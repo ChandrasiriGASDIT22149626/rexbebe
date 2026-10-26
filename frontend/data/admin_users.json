@@ -1,0 +1,69 @@
+[
+  {
+    "id": "usr-super-1",
+    "name": "REXBEBE Owner & Executive",
+    "email": "admin@rexbebe.com",
+    "role": "SUPER_ADMIN",
+    "status": "ACTIVE",
+    "permissions": [
+      "all",
+      "manage_store",
+      "manage_orders",
+      "manage_inventory",
+      "manage_products",
+      "manage_website",
+      "manage_feedback",
+      "manage_users",
+      "manage_settings"
+    ],
+    "lastLogin": "2026-10-14T04:45:00Z",
+    "createdAt": "2026-10-01T00:00:00Z"
+  },
+  {
+    "id": "usr-manager-2",
+    "name": "Ananya Senanayake",
+    "email": "manager@rexbebe.com",
+    "role": "STORE_MANAGER",
+    "status": "ACTIVE",
+    "permissions": [
+      "manage_orders",
+      "manage_inventory",
+      "manage_products",
+      "manage_website",
+      "manage_feedback"
+    ],
+    "lastLogin": "2026-10-13T14:30:00Z",
+    "createdAt": "2026-10-05T09:00:00Z"
+  },
+  {
+    "id": "usr-content-3",
+    "name": "Claire Dupont",
+    "email": "content@rexbebe.com",
+    "role": "CONTENT_MANAGER",
+    "status": "ACTIVE",
+    "permissions": [
+      "manage_website",
+      "manage_pages",
+      "manage_homepage",
+      "manage_navigation",
+      "manage_media"
+    ],
+    "lastLogin": "2026-10-12T11:15:00Z",
+    "createdAt": "2026-10-06T10:30:00Z"
+  },
+  {
+    "id": "usr-support-4",
+    "name": "Nadeesha Fernando",
+    "email": "support@rexbebe.com",
+    "role": "CUSTOMER_SUPPORT",
+    "status": "ACTIVE",
+    "permissions": [
+      "view_orders",
+      "update_fulfillment",
+      "view_feedback",
+      "respond_feedback"
+    ],
+    "lastLogin": "2026-10-14T03:20:00Z",
+    "createdAt": "2026-10-08T08:00:00Z"
+  }
+]

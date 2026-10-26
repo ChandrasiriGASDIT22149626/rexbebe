@@ -1,0 +1,19 @@
+{
+  "courierCode": "KOOMBIYO",
+  "courierName": "Koombiyo Delivery",
+  "agreementReference": "KMB-REX-2026-AGR",
+  "standardDeliveryCharge": 400,
+  "codCommissionType": "PERCENTAGE",
+  "codCommissionRate": 0,
+  "returnHandlingFee": 300,
+  "vatTaxRatePercent": 0,
+  "settlementCycleNotice": "As per actual merchant remittance agreement: weekly/bi-weekly upon statement submission. Dates and amounts are not invented.",
+  "standardDeductions": [
+    {
+      "type": "DELIVERY_FEE",
+      "amount": 400,
+      "description": "Contracted parcel delivery fee as per zone rate"
+    }
+  ],
+  "notes": "Updated 2026 Q4 rates verified from portal"
+}

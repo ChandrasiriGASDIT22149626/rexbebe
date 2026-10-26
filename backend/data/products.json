@@ -1,0 +1,1567 @@
+[
+  {
+    "id": "prod-1792940183449",
+    "name": "Pink Dino Dreams",
+    "slug": "pink-dino-dreams-1",
+    "sku": "REX-BABY-3166",
+    "shortDescription": "",
+    "description": "",
+    "price": 500,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792557286988-6ozkat",
+      "name": "TODDLER",
+      "slug": "toddler"
+    },
+    "subcategory": {
+      "id": "cat-1792557360998-u1t8v2",
+      "name": "24-36 Months",
+      "slug": "24-36-months"
+    },
+    "images": [
+      {
+        "id": "img-1792940183449-0",
+        "url": "/uploads/1792940141383-47d819d8-f579-4a76-bd22-84199fe6dcdb.png",
+        "alt": "Pink Dino Dreams - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-pink-dino-dreams-2436months-BabyPink",
+        "sku": "REX-BABY-3166-2436months-BAB",
+        "size": "24-36 months",
+        "color": "Baby Pink",
+        "colorHex": "#F9A8D4",
+        "price": 500,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792940141383-47d819d8-f579-4a76-bd22-84199fe6dcdb.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Baby Pink",
+        "hex": "#F9A8D4"
+      }
+    ],
+    "sizes": [
+      "24-36 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792940088420",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Baby Pink",
+            "hex": "#F9A8D4"
+          }
+        ],
+        "defaultColor": "Baby Pink",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Pink Dino Dreams | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792940073264",
+    "name": "Tiny Explorer",
+    "slug": "tiny-explorer",
+    "sku": "REX-BABY-6411",
+    "shortDescription": "",
+    "description": "",
+    "price": 500,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792557286988-6ozkat",
+      "name": "TODDLER",
+      "slug": "toddler"
+    },
+    "subcategory": {
+      "id": "cat-1792557360998-u1t8v2",
+      "name": "24-36 Months",
+      "slug": "24-36-months"
+    },
+    "images": [
+      {
+        "id": "img-1792940073264-0",
+        "url": "/uploads/1792939932178-7f919ac9-31fa-4fd7-9265-970ca6f23c95.png",
+        "alt": "Tiny Explorer - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-tiny-explorer-2436months-IvoryCream",
+        "sku": "REX-BABY-6411-2436months-IVO",
+        "size": "24-36 months",
+        "color": "Ivory Cream",
+        "colorHex": "#FEF3C7",
+        "price": 500,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792939932178-7f919ac9-31fa-4fd7-9265-970ca6f23c95.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Ivory Cream",
+        "hex": "#FEF3C7"
+      }
+    ],
+    "sizes": [
+      "24-36 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792939924989",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Ivory Cream",
+            "hex": "#FEF3C7"
+          }
+        ],
+        "defaultColor": "Ivory Cream",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Tiny Explorer | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792939920902",
+    "name": "Pink Sunshine",
+    "slug": "pink-sunshine",
+    "sku": "REX-BABY-4160",
+    "shortDescription": "",
+    "description": "",
+    "price": 500,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792557286988-6ozkat",
+      "name": "TODDLER",
+      "slug": "toddler"
+    },
+    "subcategory": {
+      "id": "cat-1792557360998-u1t8v2",
+      "name": "24-36 Months",
+      "slug": "24-36-months"
+    },
+    "images": [
+      {
+        "id": "img-1792939920902-0",
+        "url": "/uploads/1792939850190-7eb54854-e6df-4991-85b4-a14c70345cf6-1-.png",
+        "alt": "Pink Sunshine - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-pink-sunshine-2436months-BabyPink",
+        "sku": "REX-BABY-4160-2436months-BAB",
+        "size": "24-36 months",
+        "color": "Baby Pink",
+        "colorHex": "#F9A8D4",
+        "price": 500,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792939850190-7eb54854-e6df-4991-85b4-a14c70345cf6-1-.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Baby Pink",
+        "hex": "#F9A8D4"
+      }
+    ],
+    "sizes": [
+      "24-36 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792939842970",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Baby Pink",
+            "hex": "#F9A8D4"
+          }
+        ],
+        "defaultColor": "Baby Pink",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Pink Sunshine | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792939839603",
+    "name": "Pink Dino Dreams",
+    "slug": "pink-dino-dreams",
+    "sku": "REX-BABY-9729",
+    "shortDescription": "",
+    "description": "",
+    "price": 500,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792557286988-6ozkat",
+      "name": "TODDLER",
+      "slug": "toddler"
+    },
+    "subcategory": {
+      "id": "cat-1792557360998-u1t8v2",
+      "name": "24-36 Months",
+      "slug": "24-36-months"
+    },
+    "images": [
+      {
+        "id": "img-1792939839603-0",
+        "url": "/uploads/1792939768779-3e43c047-6868-4660-8e84-b13dad83629a.png",
+        "alt": "Pink Dino Dreams - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-pink-dino-dreams-2436months-BabyPink",
+        "sku": "REX-BABY-9729-2436months-BAB",
+        "size": "24-36 months",
+        "color": "Baby Pink",
+        "colorHex": "#F9A8D4",
+        "price": 500,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792939768779-3e43c047-6868-4660-8e84-b13dad83629a.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Baby Pink",
+        "hex": "#F9A8D4"
+      }
+    ],
+    "sizes": [
+      "24-36 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792939762502",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Baby Pink",
+            "hex": "#F9A8D4"
+          }
+        ],
+        "defaultColor": "Baby Pink",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Pink Dino Dreams | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792939727894",
+    "name": "Little Blue Buddy",
+    "slug": "little-blue-buddy",
+    "sku": "REX-BABY-2199",
+    "shortDescription": "",
+    "description": "",
+    "price": 500,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792557286988-6ozkat",
+      "name": "TODDLER",
+      "slug": "toddler"
+    },
+    "subcategory": {
+      "id": "cat-1792557360998-u1t8v2",
+      "name": "24-36 Months",
+      "slug": "24-36-months"
+    },
+    "images": [
+      {
+        "id": "img-1792939727894-0",
+        "url": "/uploads/1792939669540-1ad185c4-5fde-4bf3-a471-bde58700d7be.png",
+        "alt": "Little Blue Buddy - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-little-blue-buddy-2436months-Blue",
+        "sku": "REX-BABY-2199-2436months-BLU",
+        "size": "24-36 months",
+        "color": "Blue",
+        "colorHex": "#3B82F6",
+        "price": 500,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792939669540-1ad185c4-5fde-4bf3-a471-bde58700d7be.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Blue",
+        "hex": "#3B82F6"
+      }
+    ],
+    "sizes": [
+      "24-36 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792939659968",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Blue",
+            "hex": "#3B82F6"
+          }
+        ],
+        "defaultColor": "Blue",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Little Blue Buddy | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792939642136",
+    "name": "Little Dino Explorer",
+    "slug": "little-dino-explorer",
+    "sku": "REX-BABY-4821",
+    "shortDescription": "",
+    "description": "",
+    "price": 500,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792557286988-6ozkat",
+      "name": "TODDLER",
+      "slug": "toddler"
+    },
+    "subcategory": {
+      "id": "cat-1792557360998-u1t8v2",
+      "name": "24-36 Months",
+      "slug": "24-36-months"
+    },
+    "images": [
+      {
+        "id": "img-1792939642136-0",
+        "url": "/uploads/1792939536963-0e9c7fc8-19da-4e48-8887-e38467e19073.png",
+        "alt": "Little Dino Explorer - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-little-dino-explorer-2436months-Blue",
+        "sku": "REX-BABY-4821-2436months-BLU",
+        "size": "24-36 months",
+        "color": "Blue",
+        "colorHex": "#3B82F6",
+        "price": 500,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792939536963-0e9c7fc8-19da-4e48-8887-e38467e19073.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Blue",
+        "hex": "#3B82F6"
+      }
+    ],
+    "sizes": [
+      "24-36 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792939492374",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Blue",
+            "hex": "#3B82F6"
+          }
+        ],
+        "defaultColor": "Blue",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Little Dino Explorer | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792939403869",
+    "name": "Bunny Love",
+    "slug": "bunny-love",
+    "sku": "REX-BABY-6464",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792939403869-0",
+        "url": "/uploads/1792939370245-d1e3e9f4-d6ac-4a37-8a16-ae5307b197d0.png",
+        "alt": "Bunny Love - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-bunny-love-06months-Red",
+        "sku": "REX-BABY-6464-06months-RED",
+        "size": "0-6 months",
+        "color": "Red",
+        "colorHex": "#EF4444",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792939370245-d1e3e9f4-d6ac-4a37-8a16-ae5307b197d0.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Red",
+        "hex": "#EF4444"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792939353848",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Red",
+            "hex": "#EF4444"
+          }
+        ],
+        "defaultColor": "Red",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Bunny Love | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792939338062",
+    "name": "Happy Bunny",
+    "slug": "happy-bunny",
+    "sku": "REX-BABY-6201",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792939338062-0",
+        "url": "/uploads/1792939303316-a9e7312f-f0b4-4557-8025-afa17e5beb9b.png",
+        "alt": "Happy Bunny - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-happy-bunny-06months-BabyPink",
+        "sku": "REX-BABY-6201-06months-BAB",
+        "size": "0-6 months",
+        "color": "Baby Pink",
+        "colorHex": "#F9A8D4",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792939303316-a9e7312f-f0b4-4557-8025-afa17e5beb9b.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Baby Pink",
+        "hex": "#F9A8D4"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792939287544",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Baby Pink",
+            "hex": "#F9A8D4"
+          }
+        ],
+        "defaultColor": "Baby Pink",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Happy Bunny | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792939229881",
+    "name": "Rainbow Dreams",
+    "slug": "rainbow-dreams",
+    "sku": "REX-BABY-9322",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792939229881-0",
+        "url": "/uploads/1792939195951-22878da5-88ce-4446-9c58-4a3e80eb3884.png",
+        "alt": "Rainbow Dreams - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-rainbow-dreams-06months-SageGreen",
+        "sku": "REX-BABY-9322-06months-SAG",
+        "size": "0-6 months",
+        "color": "Sage Green",
+        "colorHex": "#9BA88D",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792939195951-22878da5-88ce-4446-9c58-4a3e80eb3884.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Sage Green",
+        "hex": "#9BA88D"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792939178026",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Sage Green",
+            "hex": "#9BA88D"
+          }
+        ],
+        "defaultColor": "Sage Green",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Rainbow Dreams | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792939148285",
+    "name": "Bunny Cuddles",
+    "slug": "bunny-cuddles",
+    "sku": "REX-BABY-6237",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792939148285-0",
+        "url": "/uploads/1792939114633-966d3c0d-7a17-4377-9f75-b6555d883b42.png",
+        "alt": "Bunny Cuddles - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-bunny-cuddles-06months-Blue",
+        "sku": "REX-BABY-6237-06months-BLU",
+        "size": "0-6 months",
+        "color": "Blue",
+        "colorHex": "#3B82F6",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792939114633-966d3c0d-7a17-4377-9f75-b6555d883b42.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Blue",
+        "hex": "#3B82F6"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792939092479",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Blue",
+            "hex": "#3B82F6"
+          }
+        ],
+        "defaultColor": "Blue",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Bunny Cuddles | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792939046225",
+    "name": "Pink Blossom",
+    "slug": "pink-blossom",
+    "sku": "REX-BABY-7199",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792939046225-0",
+        "url": "/uploads/1792939010873-354c939d-ae18-41e0-8df6-8f4337218afd.png",
+        "alt": "Pink Blossom - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-pink-blossom-06months-BabyPink",
+        "sku": "REX-BABY-7199-06months-BAB",
+        "size": "0-6 months",
+        "color": "Baby Pink",
+        "colorHex": "#F9A8D4",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792939010873-354c939d-ae18-41e0-8df6-8f4337218afd.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Baby Pink",
+        "hex": "#F9A8D4"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792938976381",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Baby Pink",
+            "hex": "#F9A8D4"
+          }
+        ],
+        "defaultColor": "Baby Pink",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Pink Blossom | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792938962128",
+    "name": "Happy Dino",
+    "slug": "happy-dino",
+    "sku": "REX-BABY-6202",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792938962128-0",
+        "url": "/uploads/1792938909338-0144d747-ff16-4b75-af9f-74ccc887368d.png",
+        "alt": "Happy Dino - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-happy-dino-06months-purple",
+        "sku": "REX-BABY-6202-06months-PUR",
+        "size": "0-6 months",
+        "color": "purple",
+        "colorHex": "#d289e6",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792938909338-0144d747-ff16-4b75-af9f-74ccc887368d.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "purple",
+        "hex": "#d289e6"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792938888363",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "purple",
+            "hex": "#d289e6"
+          }
+        ],
+        "defaultColor": "purple",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Happy Dino | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792938839562",
+    "name": "Cute Dino Duo",
+    "slug": "cute-dino-duo",
+    "sku": "REX-BABY-4993",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792938839561-0",
+        "url": "/uploads/1792938790060-71b24c0e-583e-46fc-be62-c6eec3cacef6.png",
+        "alt": "Cute Dino Duo - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-cute-dino-duo-06months-SageGreen",
+        "sku": "REX-BABY-4993-06months-SAG",
+        "size": "0-6 months",
+        "color": "Sage Green",
+        "colorHex": "#9BA88D",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792938790060-71b24c0e-583e-46fc-be62-c6eec3cacef6.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Sage Green",
+        "hex": "#9BA88D"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792938776947",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Sage Green",
+            "hex": "#9BA88D"
+          }
+        ],
+        "defaultColor": "Sage Green",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Cute Dino Duo | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792938736811",
+    "name": "Honey Bee Hugs",
+    "slug": "honey-bee-hugs",
+    "sku": "REX-BABY-9367",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792938736811-0",
+        "url": "/uploads/1792938704132-44a8fc47-4c6d-4333-8c15-51dba181263e.png",
+        "alt": "Honey Bee Hugs - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-honey-bee-hugs-06months-Red",
+        "sku": "REX-BABY-9367-06months-RED",
+        "size": "0-6 months",
+        "color": "Red",
+        "colorHex": "#EF4444",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792938704132-44a8fc47-4c6d-4333-8c15-51dba181263e.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Red",
+        "hex": "#EF4444"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792938690154",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Red",
+            "hex": "#EF4444"
+          }
+        ],
+        "defaultColor": "Red",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Honey Bee Hugs | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792938664817",
+    "name": "Purple Dino",
+    "slug": "purple-dino",
+    "sku": "REX-BABY-1949",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792938664817-0",
+        "url": "/uploads/1792938562647-43d043cd-7180-44a0-be93-5f1ad44a6ad8.png",
+        "alt": "Purple Dino - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-purple-dino-06months-purple",
+        "sku": "REX-BABY-1949-06months-PUR",
+        "size": "0-6 months",
+        "color": "purple",
+        "colorHex": "#d289e6",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792938562647-43d043cd-7180-44a0-be93-5f1ad44a6ad8.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "purple",
+        "hex": "#d289e6"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792938547701",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "purple",
+            "hex": "#d289e6"
+          }
+        ],
+        "defaultColor": "purple",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Purple Dino | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792938525601",
+    "name": "Tiny Aviator",
+    "slug": "tiny-aviator",
+    "sku": "REX-BABY-6648",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792938525601-0",
+        "url": "/uploads/1792938477682-8d757195-e67a-4605-93ca-4824ed9ef65e.png",
+        "alt": "Tiny Aviator - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-tiny-aviator-06months-IvoryCream",
+        "sku": "REX-BABY-6648-06months-IVO",
+        "size": "0-6 months",
+        "color": "Ivory Cream",
+        "colorHex": "#FEF3C7",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792938477682-8d757195-e67a-4605-93ca-4824ed9ef65e.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Ivory Cream",
+        "hex": "#FEF3C7"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 10,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792938462698",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Ivory Cream",
+            "hex": "#FEF3C7"
+          }
+        ],
+        "defaultColor": "Ivory Cream",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Tiny Aviator | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  },
+  {
+    "id": "prod-1792938412601",
+    "name": "Pooh’s Honey Time",
+    "slug": "pooh-s-honey-time",
+    "sku": "REX-BABY-1927",
+    "shortDescription": "",
+    "description": "",
+    "price": 400,
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isBestSeller": false,
+    "isSaleBadge": false,
+    "status": "published",
+    "brand": "REXBEBE Atelier",
+    "gender": "Baby",
+    "ageGroup": "0–12 months",
+    "category": {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "slug": "baby"
+    },
+    "subcategory": {
+      "id": "cat-1792557187526-0diww5",
+      "name": "0–6 Months",
+      "slug": "0-6-months"
+    },
+    "images": [
+      {
+        "id": "img-1792938412600-0",
+        "url": "/uploads/1792938348396-7b5a7a20-bc99-4039-8303-7a029de623e3.png",
+        "alt": "Pooh’s Honey Time - View 1",
+        "position": 1
+      }
+    ],
+    "variants": [
+      {
+        "id": "var-pooh-s-honey-time-06months-Red",
+        "sku": "REX-BABY-1927-06months-RED",
+        "size": "0-6 months",
+        "color": "Red",
+        "colorHex": "#EF4444",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792938348396-7b5a7a20-bc99-4039-8303-7a029de623e3.png"
+      },
+      {
+        "id": "var-pooh-s-honey-time-06months-Yellow",
+        "sku": "REX-BABY-1927-06months-YEL",
+        "size": "0-6 months",
+        "color": "Yellow",
+        "colorHex": "#F59E0B",
+        "price": 400,
+        "stockQuantity": 10,
+        "imageUrl": "/uploads/1792938348396-7b5a7a20-bc99-4039-8303-7a029de623e3.png"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Red",
+        "hex": "#EF4444"
+      },
+      {
+        "name": "Yellow",
+        "hex": "#F59E0B"
+      }
+    ],
+    "sizes": [
+      "0-6 months"
+    ],
+    "stockQuantity": 20,
+    "lowStockThreshold": 5,
+    "stockStatus": "in_stock",
+    "fabricMaterial": "100% GOTS Certified Organic Cotton",
+    "careInstructions": "Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.",
+    "countryOfOrigin": "Sri Lanka",
+    "weight": "160g",
+    "features": [
+      "Ultra-soft organic fabric",
+      "Nickel-free buttons",
+      "Gentle seams"
+    ],
+    "rating": 5,
+    "reviewCount": 1,
+    "reviewsList": [],
+    "productType": "single",
+    "parts": [
+      {
+        "id": "part-1792938194624",
+        "name": "Clothing Part 1",
+        "type": "T-shirt",
+        "description": "",
+        "colors": [
+          {
+            "name": "Red",
+            "hex": "#EF4444"
+          },
+          {
+            "name": "Yellow",
+            "hex": "#F59E0B"
+          }
+        ],
+        "defaultColor": "Red",
+        "active": true,
+        "images": []
+      }
+    ],
+    "seoTitle": "Pooh’s Honey Time | REXBEBE Baby Clothing",
+    "seoDescription": ""
+  }
+]

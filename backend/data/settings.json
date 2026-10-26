@@ -1,0 +1,58 @@
+{
+  "storeInfo": {
+    "storeName": "REXBEBE Baby Boutique",
+    "tagline": "Little Moments, Big Adventures 🦕✨",
+    "businessEmail": "care@rexbebe.com",
+    "orderEmail": "orders@rexbebe.com",
+    "phone": "+94 77 123 4567",
+    "address": "142 Galle Road, Colombo 03, Sri Lanka",
+    "currency": "LKR",
+    "defaultCountry": "Sri Lanka",
+    "storeUrl": "https://rexbebe.com"
+  },
+  "international": {
+    "enabledMarkets": [
+      { "code": "LK", "name": "Sri Lanka", "currency": "LKR", "symbol": "LKR", "taxRate": 0, "status": "ACTIVE" },
+      { "code": "US", "name": "United States", "currency": "USD", "symbol": "$", "taxRate": 0, "status": "ACTIVE" },
+      { "code": "GB", "name": "United Kingdom", "currency": "GBP", "symbol": "£", "taxRate": 0, "status": "ACTIVE" },
+      { "code": "EU", "name": "European Union", "currency": "EUR", "symbol": "€", "taxRate": 0, "status": "ACTIVE" },
+      { "code": "AE", "name": "United Arab Emirates", "currency": "AED", "symbol": "AED", "taxRate": 0, "status": "ACTIVE" },
+      { "code": "AU", "name": "Australia", "currency": "AUD", "symbol": "A$", "taxRate": 0, "status": "ACTIVE" }
+    ],
+    "defaultLanguage": "en",
+    "supportedLanguages": ["en"]
+  },
+  "shipping": {
+    "freeShippingThreshold": 10000,
+    "domesticStandardRate": 650,
+    "domesticEstimatedDays": "1–3 Business Days",
+    "internationalExpressRate": 6500,
+    "internationalEstimatedDays": "3–5 Business Days (DHL Express DDP)",
+    "supportedCarriers": ["DHL Express", "FedEx", "Pronto Courier", "Royal Mail"]
+  },
+  "payments": {
+    "payhere": {
+      "name": "PayHere Sri Lanka (Credit/Debit/e-Wallets)",
+      "enabled": true,
+      "mode": "production",
+      "supportedCurrencies": ["LKR", "USD"]
+    },
+    "stripe": {
+      "name": "Stripe Global (Visa, Mastercard, Apple Pay, Google Pay)",
+      "enabled": true,
+      "mode": "test",
+      "supportedCurrencies": ["USD", "GBP", "EUR", "AED", "AUD"]
+    },
+    "cod": {
+      "name": "Cash on Delivery (Islandwide Sri Lanka)",
+      "enabled": true,
+      "maxOrderAmount": 50000
+    }
+  },
+  "seo": {
+    "metaTitle": "REXBEBE | Luxury Organic Baby Clothing & Nursery Boutique",
+    "metaDescription": "Shop handcrafted 100% organic cashmere, French flax linen, and gentle organic cotton clothing for newborn babies and toddlers. Express delivery across Sri Lanka and worldwide.",
+    "socialShareImage": "/images/products/editorial-baby-lifestyle.jpg",
+    "keywords": "baby clothes, organic cashmere baby, baby boy rompers, baby girl dresses, Sri Lanka baby boutique"
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "items": [
+    {
+      "id": "nav-home",
+      "name": "HOME",
+      "pageTitle": "HOME",
+      "slug": "home",
+      "href": "/",
+      "order": 1,
+      "status": "published",
+      "isActive": true,
+      "destinationType": "HOMEPAGE",
+      "galleryImages": [],
+      "assignedProductIds": [],
+      "subGroups": []
+    },
+    {
+      "id": "nav-about",
+      "name": "ABOUT US",
+      "pageTitle": "ABOUT US",
+      "slug": "about-us",
+      "href": "/about",
+      "order": 2,
+      "status": "published",
+      "isActive": true,
+      "galleryImages": [],
+      "assignedProductIds": [],
+      "subGroups": []
+    },
+    {
+      "id": "cat-1792556617917-72c7r7",
+      "name": "BABY",
+      "pageTitle": "BABY",
+      "slug": "baby",
+      "href": "/shop/baby",
+      "destinationType": "CATEGORY_PAGE",
+      "destinationReference": "party-dresses",
+      "order": 3,
+      "status": "published",
+      "isActive": true,
+      "galleryImages": [],
+      "assignedProductIds": [],
+      "subGroups": [
+        {
+          "id": "grp-baby-collection",
+          "title": "BABY COLLECTION",
+          "slug": "baby",
+          "href": "/shop/baby",
+          "subItems": [
+            {
+              "id": "cat-1792557187526-0diww5",
+              "name": "0–6 Months",
+              "pageTitle": "0–6 Months",
+              "slug": "0-6-months",
+              "href": "/shop/0-6-months",
+              "order": 1,
+              "status": "published",
+              "isActive": true,
+              "galleryImages": [],
+              "assignedProductIds": [],
+              "parentId": "cat-1792556617917-72c7r7",
+              "destinationType": "CATEGORY_PAGE",
+              "destinationReference": "party-dresses"
+            },
+            {
+              "id": "cat-1792557258002-3h3f33",
+              "name": "6–12 Months",
+              "pageTitle": "6–12 Months",
+              "slug": "6-12-months",
+              "href": "/shop/6-12-months",
+              "order": 2,
+              "status": "published",
+              "isActive": true,
+              "galleryImages": [],
+              "assignedProductIds": [],
+              "parentId": "cat-1792556617917-72c7r7",
+              "destinationType": "CATEGORY_PAGE",
+              "destinationReference": "party-dresses"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat-1792557286988-6ozkat",
+      "name": "TODDLER",
+      "pageTitle": "TODDLER",
+      "slug": "toddler",
+      "href": "/shop/toddler",
+      "destinationType": "CATEGORY_PAGE",
+      "destinationReference": "party-dresses",
+      "order": 4,
+      "status": "published",
+      "isActive": true,
+      "galleryImages": [],
+      "assignedProductIds": [],
+      "subGroups": [
+        {
+          "id": "grp-toddler-collection",
+          "title": "TODDLER COLLECTION",
+          "slug": "toddler",
+          "href": "/shop/toddler",
+          "subItems": [
+            {
+              "id": "cat-1792557309838-hnx0zw",
+              "name": "12-18 months",
+              "pageTitle": "12-18 MONTHS",
+              "slug": "12-18-months",
+              "href": "/shop/12-18-months",
+              "destinationType": "CATEGORY_PAGE",
+              "destinationReference": "party-dresses",
+              "order": 1,
+              "status": "published",
+              "isActive": true,
+              "galleryImages": [],
+              "assignedProductIds": [],
+              "parentId": "cat-1792557286988-6ozkat"
+            },
+            {
+              "id": "cat-1792557336208-96k1zz",
+              "name": "18-24 Months",
+              "pageTitle": "18-24 MONTHS",
+              "slug": "18-24-months",
+              "href": "/shop/18-24-months",
+              "destinationType": "CATEGORY_PAGE",
+              "destinationReference": "party-dresses",
+              "order": 2,
+              "status": "published",
+              "isActive": true,
+              "galleryImages": [],
+              "assignedProductIds": [],
+              "parentId": "cat-1792557286988-6ozkat"
+            },
+            {
+              "id": "cat-1792557360998-u1t8v2",
+              "name": "24-36 Months",
+              "pageTitle": "24-36 MONTHS",
+              "slug": "24-36-months",
+              "href": "/shop/24-36-months",
+              "destinationType": "CATEGORY_PAGE",
+              "destinationReference": "party-dresses",
+              "order": 3,
+              "status": "published",
+              "isActive": true,
+              "galleryImages": [],
+              "assignedProductIds": [],
+              "parentId": "cat-1792557286988-6ozkat"
+            },
+            {
+              "id": "cat-1792858682846-ak63fm",
+              "name": "6-10 Months",
+              "pageTitle": "6-10 Months",
+              "slug": "6-10-months",
+              "href": "/shop/6-10-months",
+              "status": "published",
+              "isActive": true,
+              "parentId": "cat-1792557286988-6ozkat",
+              "order": 1,
+              "galleryImages": [],
+              "assignedProductIds": [],
+              "destinationType": "CATEGORY_PAGE",
+              "destinationReference": "party-dresses"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat-1792557393548-4ibray",
+      "name": "PRE-SCHOOL",
+      "pageTitle": "PRE-SCHOOL",
+      "slug": "pre-school",
+      "href": "/shop/pre-school",
+      "destinationType": "CATEGORY_PAGE",
+      "destinationReference": "party-dresses",
+      "order": 5,
+      "status": "published",
+      "isActive": true,
+      "galleryImages": [],
+      "assignedProductIds": [],
+      "subGroups": []
+    },
+    {
+      "id": "cat-1792557421459-sapv4x",
+      "name": "MILD CHILDHOOD",
+      "pageTitle": "MILD CHILDHOOD",
+      "slug": "mild-childhood",
+      "href": "/shop/mild-childhood",
+      "destinationType": "CATEGORY_PAGE",
+      "destinationReference": "party-dresses",
+      "order": 6,
+      "status": "published",
+      "isActive": true,
+      "galleryImages": [],
+      "assignedProductIds": [],
+      "subGroups": []
+    },
+    {
+      "id": "nav-contact",
+      "name": "CONTACT US",
+      "pageTitle": "CONTACT US",
+      "slug": "contact-us",
+      "href": "/contact",
+      "order": 7,
+      "status": "published",
+      "isActive": true,
+      "galleryImages": [],
+      "assignedProductIds": [],
+      "subGroups": []
+    }
+  ]
+}

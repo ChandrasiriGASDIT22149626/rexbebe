@@ -1,0 +1,321 @@
+'use client';
+
+import React, { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { ShoppingBag, Eye, Heart } from 'lucide-react';
+import { Product } from '../../types/product';
+import { formatCurrency } from '../../utils/formatCurrency';
+import { useCart } from '../../hooks/useCart';
+import { WishlistButton } from './WishlistButton';
+import { QuickViewModal } from './QuickViewModal';
+
+export function ProductCard({ product }: { product: Product }) {
+  const { addToCart } = useCart();
+  const [isHovered, setIsHovered] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [selectedColorName, setSelectedColorName] = useState<string | null>(null);
+
+  const images = product.images || [];
+  const primaryImage = images[0]?.url || '/images/products/organic-onesie.jpg';
+  const secondaryImage = images[1]?.url || primaryImage;
+
+  // Resolve colour-specific image if a colour is selected/hovered
+  const displayImage = React.useMemo(() => {
+    if (!selectedColorName) return primaryImage;
+    const matchImg = images.find(
+      (img) => img.colorName?.toLowerCase() === selectedColorName.toLowerCase()
+    );
+    if (matchImg?.url) return matchImg.url;
+    const matchVar = product.variants?.find(
+      (v) => v.color?.toLowerCase() === selectedColorName.toLowerCase() && v.imageUrl
+    );
+    return matchVar?.imageUrl || primaryImage;
+  }, [selectedColorName, images, product.variants, primaryImage]);
+
+  const [currentImgSrc, setCurrentImgSrc] = useState<string>(displayImage);
+  const [currentSecSrc, setCurrentSecSrc] = useState<string>(secondaryImage);
+
+  React.useEffect(() => {
+    setCurrentImgSrc(displayImage);
+  }, [displayImage]);
+
+  React.useEffect(() => {
+    setCurrentSecSrc(secondaryImage);
+  }, [secondaryImage]);
+
+  const defaultVariant = product.variants?.[0] || {
+    id: `var-default-${product.id}`,
+    sku: product.sku || 'REX-STD',
+    price: product.price,
+    stockQuantity: product.stockQuantity || 0,
+  };
+
+  const totalStock = product.stockQuantity ?? (product.variants || []).reduce((sum, v) => sum + (v.stockQuantity || 0), 0);
+  const isSoldOut = totalStock <= 0;
+
+  const isSaleActive = Boolean(
+    (product.isSaleBadge ?? true) &&
+    product.comparePrice &&
+    product.comparePrice > product.price &&
+    (!product.saleStartDate || new Date(product.saleStartDate) <= new Date()) &&
+    (!product.saleEndDate || new Date(product.saleEndDate) >= new Date())
+  );
+
+  const discountPercent = isSaleActive && product.comparePrice
+    ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
+    : 0;
+
+  // 3x Buy-Now-Pay-Later installment (e.g. Koko / Mintpay popular in Sri Lanka)
+  const installmentAmount = (product.price / 3).toLocaleString('en-LK', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  // Only display colours that the admin actually configured
+  const swatches = React.useMemo(() => {
+    if (product.colors && product.colors.length > 0) {
+      return product.colors;
+    }
+    const list: { name: string; hex: string }[] = [];
+    const seen = new Set<string>();
+    (product.variants || []).forEach((v) => {
+      if (v.colorHex && !seen.has(v.colorHex.toLowerCase())) {
+        seen.add(v.colorHex.toLowerCase());
+        list.push({ name: v.color || 'Color', hex: v.colorHex });
+      }
+    });
+    return list;
+  }, [product]);
+
+  const handleQuickAdd = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isSoldOut) return;
+    setIsAdding(true);
+    addToCart(product, defaultVariant);
+    setTimeout(() => setIsAdding(false), 800);
+  };
+
+  return (
+    <>
+      <div
+        className="group relative flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/90 dark:border-slate-800 hover:border-amber-400/80 dark:hover:border-amber-400/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 h-full overflow-hidden"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Product Image Container (Slightly larger box & aspect ratio for clear photo view) */}
+        <div className="relative w-full aspect-square sm:aspect-[4/5] bg-[#FAF9F6] dark:bg-slate-950 overflow-hidden flex items-center justify-center p-1 sm:p-2 cursor-pointer">
+          <div
+            onClick={() => setIsQuickViewOpen(true)}
+            className="block w-full h-full relative"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') setIsQuickViewOpen(true);
+            }}
+            aria-label={`View ${product.name}`}
+          >
+            {/* Primary or Colour-Specific Image */}
+            <Image
+              src={currentImgSrc}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className={`object-contain object-center transition-all duration-300 ease-in-out ${
+                images.length > 1 && isHovered && !selectedColorName ? 'opacity-0 scale-102' : 'opacity-100 scale-100'
+              }`}
+              priority={false}
+              onError={() => {
+                if (currentImgSrc !== '/images/products/organic-onesie.jpg') {
+                  setCurrentImgSrc('/images/products/organic-onesie.jpg');
+                }
+              }}
+            />
+
+            {/* Secondary Image for smooth lookbook preview */}
+            {images.length > 1 && !selectedColorName && (
+              <Image
+                src={currentSecSrc}
+                alt={`${product.name} back view`}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className={`object-contain object-center transition-all duration-300 ease-in-out ${
+                  isHovered ? 'opacity-100 scale-102' : 'opacity-0 scale-100'
+                }`}
+                onError={() => {
+                  if (currentSecSrc !== currentImgSrc) {
+                    setCurrentSecSrc(currentImgSrc);
+                  }
+                }}
+              />
+            )}
+          </div>
+
+          {/* Top-Right Badges */}
+          <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none flex flex-col gap-1 items-end">
+            {isSoldOut ? (
+              <span className="px-2.5 py-0.5 bg-stone-900 text-white text-[10px] sm:text-[11px] font-black rounded-md shadow-xs tracking-tight uppercase">
+                Sold Out
+              </span>
+            ) : (
+              <>
+                {product.isNewArrival && (
+                  <span className="px-2.5 py-0.5 bg-[#2563EB] text-white text-[10px] sm:text-[11px] font-bold rounded-md shadow-xs tracking-tight">
+                    New
+                  </span>
+                )}
+                {isSaleActive && (
+                  <span className="px-2.5 py-0.5 bg-rose-600 text-white text-[10px] sm:text-[11px] font-bold rounded-md shadow-xs tracking-tight">
+                    {discountPercent > 0 ? `-${discountPercent}%` : 'Sale'}
+                  </span>
+                )}
+                {!product.isNewArrival && !isSaleActive && product.isBestSeller && (
+                  <span className="px-2.5 py-0.5 bg-emerald-700 text-white text-[10px] sm:text-[11px] font-bold rounded-md shadow-xs tracking-tight">
+                    Best Seller
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Top-Left Wishlist Heart Button */}
+          <div className="absolute top-2.5 left-2.5 z-10 opacity-90 group-hover:opacity-100 transition-opacity">
+            <WishlistButton productId={product.id} product={product} />
+          </div>
+
+          {/* Dual Action Bar (Slide up on desktop hover: View Product + Quick Add) */}
+          <div className="absolute inset-x-0 bottom-0 p-2.5 z-10 translate-y-full group-hover:translate-y-0 transition-transform duration-250 ease-out hidden sm:flex items-center space-x-2 bg-gradient-to-t from-stone-950/70 via-stone-950/40 to-transparent">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsQuickViewOpen(true);
+              }}
+              className="flex-1 py-2 px-2.5 bg-white/95 hover:bg-stone-900 text-stone-900 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center space-x-1.5 backdrop-blur-xs active:scale-95"
+              title="View Product"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>View</span>
+            </button>
+
+            {!isSoldOut && (
+              <button
+                type="button"
+                onClick={handleQuickAdd}
+                disabled={isAdding}
+                className="flex-1 py-2 px-2.5 bg-stone-900 hover:bg-amber-900 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center space-x-1.5 active:scale-95"
+                title="Quick Add to Bag"
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>{isAdding ? 'Added ✓' : 'Add'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Product Details Section (Roomier padding & larger typography) */}
+        <div className="p-3.5 sm:p-4 md:p-5 flex flex-col flex-1 justify-between bg-white dark:bg-slate-900">
+          <div className="space-y-1.5">
+            {/* Product Name (Bold, Clickable to open view or full page) */}
+            <Link href={`/products/${product.slug}`} className="block group/link">
+              <h3 className="text-sm sm:text-[15px] font-bold text-stone-900 dark:text-slate-100 uppercase tracking-tight line-clamp-1 group-hover/link:text-amber-800 dark:group-hover/link:text-amber-400 transition-colors">
+                {product.name}
+              </h3>
+            </Link>
+
+            {/* Pricing Row */}
+            <div className="flex items-baseline space-x-2 pt-0.5">
+              <span className="text-sm sm:text-base font-black text-stone-950 dark:text-white font-mono">
+                {formatCurrency(product.price)}
+              </span>
+              {isSaleActive && product.comparePrice && (
+                <span className="text-xs sm:text-[13px] text-stone-400 dark:text-slate-400 line-through font-mono">
+                  {formatCurrency(product.comparePrice)}
+                </span>
+              )}
+            </div>
+
+            {/* Installment subtext */}
+            <p className="text-[10px] sm:text-[11px] text-stone-500 dark:text-slate-400 font-medium tracking-tight">
+              or LKR {installmentAmount} with{' '}
+              <span className="font-bold text-stone-700 dark:text-slate-300">koko</span>{' '}
+              <span className="font-bold text-sky-700 dark:text-sky-400">mintpay</span>
+            </p>
+          </div>
+
+          {/* Color Swatch Dots & Mobile Actions */}
+          <div className="pt-2.5 flex items-center justify-between">
+            {swatches.length > 0 ? (
+              <div className="flex items-center space-x-2">
+                {swatches.map((s, idx) => {
+                  const isSelected = selectedColorName?.toLowerCase() === s.name.toLowerCase();
+                  return (
+                    <button
+                      key={`${s.hex}-${idx}`}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setSelectedColorName((prev) => (prev === s.name ? null : s.name));
+                      }}
+                      onMouseEnter={() => setSelectedColorName(s.name)}
+                      className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'ring-2 ring-stone-900 dark:ring-white ring-offset-1 scale-110 border-white'
+                          : 'border-stone-300 dark:border-slate-600 hover:scale-110'
+                      }`}
+                      style={{ backgroundColor: s.hex }}
+                      title={`View ${s.name} colour`}
+                      aria-label={`View ${s.name} colour`}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div />
+            )}
+
+            {/* Mobile Action Buttons: View + Add */}
+            <div className="flex items-center space-x-1.5 sm:hidden">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsQuickViewOpen(true);
+                }}
+                className="p-2 rounded-full bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-200 transition-colors shadow-2xs"
+                title="View Product"
+                aria-label="View Product"
+              >
+                <Eye className="w-3.5 h-3.5" />
+              </button>
+
+              {!isSoldOut && (
+                <button
+                  type="button"
+                  onClick={handleQuickAdd}
+                  className="p-2 rounded-full bg-stone-900 dark:bg-slate-700 text-white hover:bg-amber-900 dark:hover:bg-amber-600 transition-colors shadow-2xs"
+                  title="Add to Cart"
+                  aria-label="Add to Cart"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Quick View Modal */}
+      <QuickViewModal
+        product={product}
+        isOpen={isQuickViewOpen}
+        onClose={() => setIsQuickViewOpen(false)}
+      />
+    </>
+  );
+}

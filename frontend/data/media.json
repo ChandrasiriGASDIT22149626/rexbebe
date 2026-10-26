@@ -1,0 +1,668 @@
+[
+  {
+    "id": "med-1792866097479-u8dn",
+    "name": "cocomelon-recolored-yellow.jpg",
+    "url": "/uploads/cocomelon-recolored-yellow.jpg",
+    "size": "296 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.479Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-okqc",
+    "name": "cocomelon-recolored-pure-white.jpg",
+    "url": "/uploads/cocomelon-recolored-pure-white.jpg",
+    "size": "301 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-r9h7",
+    "name": "cocomelon-recolored-ivory-cream.jpg",
+    "url": "/uploads/cocomelon-recolored-ivory-cream.jpg",
+    "size": "296 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-yogs",
+    "name": "cocomelon-recolored-baby-pink.jpg",
+    "url": "/uploads/cocomelon-recolored-baby-pink.jpg",
+    "size": "296 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-2eh1",
+    "name": "1792691227474-toddler-s-pink-dinosaur-shirt-front-and-back.png",
+    "url": "/uploads/1792691227474-toddler-s-pink-dinosaur-shirt-front-and-back.png",
+    "size": "544 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-hhup",
+    "name": "1792691088614-toddler-s-navy-cowgirl-outfit-display.png",
+    "url": "/uploads/1792691088614-toddler-s-navy-cowgirl-outfit-display.png",
+    "size": "596 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-w0o7",
+    "name": "1792691016368-toddler-s-bluey-outfit-showcase.png",
+    "url": "/uploads/1792691016368-toddler-s-bluey-outfit-showcase.png",
+    "size": "673 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-0go3",
+    "name": "1792690923333-toddler-unicorn-outfit-front-and-back.png",
+    "url": "/uploads/1792690923333-toddler-unicorn-outfit-front-and-back.png",
+    "size": "704 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-g152",
+    "name": "1792690831990-toddler-peppa-pig-t-shirt-diptych.png",
+    "url": "/uploads/1792690831990-toddler-peppa-pig-t-shirt-diptych.png",
+    "size": "711 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-pcel",
+    "name": "1792690729062-toddler-moana-shirt-front-and-back.png",
+    "url": "/uploads/1792690729062-toddler-moana-shirt-front-and-back.png",
+    "size": "806 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-zdkj",
+    "name": "1792690588788-toddler-dinosaur-outfit-front-and-back.png",
+    "url": "/uploads/1792690588788-toddler-dinosaur-outfit-front-and-back.png",
+    "size": "754 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-vl0g",
+    "name": "1792690500887-toddler-bluey-t-shirt-front-and-back.png",
+    "url": "/uploads/1792690500887-toddler-bluey-t-shirt-front-and-back.png",
+    "size": "673 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-1za2",
+    "name": "1792690419599-playful-dinosaur-shirt-front-and-back-1-.png",
+    "url": "/uploads/1792690419599-playful-dinosaur-shirt-front-and-back-1-.png",
+    "size": "754 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-82ua",
+    "name": "1792690318374-peppa-pig-toddler-style-showcase.png",
+    "url": "/uploads/1792690318374-peppa-pig-toddler-style-showcase.png",
+    "size": "711 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-13ap",
+    "name": "1792690262871-peppa-pig-toddler-shirt-showcase-1-.png",
+    "url": "/uploads/1792690262871-peppa-pig-toddler-shirt-showcase-1-.png",
+    "size": "711 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-mxjr",
+    "name": "1792689904160-peppa-pig-toddler-outfit-diptych-1-.png",
+    "url": "/uploads/1792689904160-peppa-pig-toddler-outfit-diptych-1-.png",
+    "size": "711 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-r2gr",
+    "name": "1792578345035-recolored-clothing-part-1-pure-white-1792578344933.jpg",
+    "url": "/uploads/1792578345035-recolored-clothing-part-1-pure-white-1792578344933.jpg",
+    "size": "301 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-1tnq",
+    "name": "1792575786129-recolored-clothing-part-1-baby-pink-1792575786105.jpg",
+    "url": "/uploads/1792575786129-recolored-clothing-part-1-baby-pink-1792575786105.jpg",
+    "size": "296 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097478-pahj",
+    "name": "1792575716465-recolored-clothing-part-1-sunny-yellow-1792575716434.jpg",
+    "url": "/uploads/1792575716465-recolored-clothing-part-1-sunny-yellow-1792575716434.jpg",
+    "size": "296 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.478Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097477-mlsj",
+    "name": "1792575680500-recolored-clothing-part-1-baby-pink-1792575680474.jpg",
+    "url": "/uploads/1792575680500-recolored-clothing-part-1-baby-pink-1792575680474.jpg",
+    "size": "296 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.477Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097477-qnq1",
+    "name": "1792575592111-recolored-clothing-part-1-ivory-cream-1792575592084.jpg",
+    "url": "/uploads/1792575592111-recolored-clothing-part-1-ivory-cream-1792575592084.jpg",
+    "size": "296 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.477Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097477-wddt",
+    "name": "1792575500936-recolored-clothing-part-1-pure-white-1792575500905.jpg",
+    "url": "/uploads/1792575500936-recolored-clothing-part-1-pure-white-1792575500905.jpg",
+    "size": "301 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.477Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097477-q8iu",
+    "name": "1792575100291-happy-toddler-in-cocomelon-shirt-1-.png",
+    "url": "/uploads/1792575100291-happy-toddler-in-cocomelon-shirt-1-.png",
+    "size": "700 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.477Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097477-o7a3",
+    "name": "1792562019515-cocomelon-shirt-front-and-back-view-1-.png",
+    "url": "/uploads/1792562019515-cocomelon-shirt-front-and-back-view-1-.png",
+    "size": "700 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.477Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792866097475-2k9z",
+    "name": "1792557565407-cheerful-giraffe-tee-front-and-back.png",
+    "url": "/uploads/1792557565407-cheerful-giraffe-tee-front-and-back.png",
+    "size": "773 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-24T18:21:37.476Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792865828334",
+    "name": "1792865828325-nextjs-test-upload.png",
+    "url": "/uploads/1792865828325-nextjs-test-upload.png",
+    "size": "0 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-24T18:17:08.334Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792865614836",
+    "name": "1792865614834-test-upload.png",
+    "url": "/uploads/1792865614834-test-upload.png",
+    "size": "0 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-24T18:13:34.836Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792690995664",
+    "name": "1792690995420-toddler-s-bluey-outfit-showcase.png",
+    "url": "/uploads/1792690995420-toddler-s-bluey-outfit-showcase.png",
+    "size": "2067 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-22T17:43:15.664Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792690682060",
+    "name": "1792690682046-toddler-moana-shirt-front-and-back.png",
+    "url": "/uploads/1792690682046-toddler-moana-shirt-front-and-back.png",
+    "size": "2301 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-22T17:38:02.060Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792650878575",
+    "name": "1792650878566-peppa-pig-toddler-outfit-diptych-1-.png",
+    "url": "/uploads/1792650878566-peppa-pig-toddler-outfit-diptych-1-.png",
+    "size": "2159 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-22T06:34:38.575Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792650759818",
+    "name": "1792650759807-peppa-pig-toddler-outfit-diptych-1-.png",
+    "url": "/uploads/1792650759807-peppa-pig-toddler-outfit-diptych-1-.png",
+    "size": "2159 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-22T06:32:39.819Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792649375564",
+    "name": "1792649375484-recolored-t-shirt-sunny-yellow-1792649375195.jpg",
+    "url": "/uploads/1792649375484-recolored-t-shirt-sunny-yellow-1792649375195.jpg",
+    "size": "469 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-22T06:09:35.565Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792641594849",
+    "name": "1792641594831-peppa-pig-toddler-outfit-diptych-1-.png",
+    "url": "/uploads/1792641594831-peppa-pig-toddler-outfit-diptych-1-.png",
+    "size": "2159 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-22T03:59:54.849Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792577949905",
+    "name": "1792577949897-peppa-pig-toddler-outfit-diptych-1-.png",
+    "url": "/uploads/1792577949897-peppa-pig-toddler-outfit-diptych-1-.png",
+    "size": "2159 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-21T10:19:09.905Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792577510534",
+    "name": "1792577510526-peppa-pig-toddler-outfit-diptych-1-.png",
+    "url": "/uploads/1792577510526-peppa-pig-toddler-outfit-diptych-1-.png",
+    "size": "2159 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-21T10:11:50.534Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792577345182",
+    "name": "1792577345175-peppa-pig-toddler-outfit-diptych-1-.png",
+    "url": "/uploads/1792577345175-peppa-pig-toddler-outfit-diptych-1-.png",
+    "size": "2159 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-21T10:09:05.182Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792575416498",
+    "name": "1792575416486-recolored-clothing-part-1-ivory-cream-1792575416436.jpg",
+    "url": "/uploads/1792575416486-recolored-clothing-part-1-ivory-cream-1792575416436.jpg",
+    "size": "457 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-21T09:36:56.498Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792575234174",
+    "name": "1792575234167-recolored-clothing-part-1-pure-white-1792575234148.jpg",
+    "url": "/uploads/1792575234167-recolored-clothing-part-1-pure-white-1792575234148.jpg",
+    "size": "429 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-21T09:33:54.174Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792574578189",
+    "name": "1792574578176-recolored-t-shirt-ivory-cream-1792574578134.jpg",
+    "url": "/uploads/1792574578176-recolored-t-shirt-ivory-cream-1792574578134.jpg",
+    "size": "456 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-21T09:22:58.190Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792574566128",
+    "name": "1792574566108-recolored-t-shirt-dusty-rose-1792574566019.jpg",
+    "url": "/uploads/1792574566108-recolored-t-shirt-dusty-rose-1792574566019.jpg",
+    "size": "477 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-21T09:22:46.128Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792574413543",
+    "name": "1792574413127-recolored-t-shirt-light-pink-1792574412625.jpg",
+    "url": "/uploads/1792574413127-recolored-t-shirt-light-pink-1792574412625.jpg",
+    "size": "483 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-21T09:20:13.543Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792574367858",
+    "name": "1792574367815-recolored-t-shirt-yellow-1792574367656.jpg",
+    "url": "/uploads/1792574367815-recolored-t-shirt-yellow-1792574367656.jpg",
+    "size": "460 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-21T09:19:27.858Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792574266044",
+    "name": "1792574265962-recolored-t-shirt-pure-white-1792574259746.jpg",
+    "url": "/uploads/1792574265962-recolored-t-shirt-pure-white-1792574259746.jpg",
+    "size": "431 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-21T09:17:46.044Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792505866542",
+    "name": "1792505866540-e2e-test-fabric.png",
+    "url": "/uploads/1792505866540-e2e-test-fabric.png",
+    "size": "0 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-20T14:17:46.542Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792494197708",
+    "name": "1792494197682-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792494197682-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-20T11:03:17.708Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792491902689",
+    "name": "1792491902674-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792491902674-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-20T10:25:02.690Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792475466091",
+    "name": "1792475466082-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792475466082-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-20T05:51:06.091Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792431566728",
+    "name": "1792431566716-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792431566716-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T17:39:26.728Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792431516800",
+    "name": "1792431516782-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792431516782-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T17:38:36.800Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792413921087",
+    "name": "1792413921070-recolored-t-shirt-fabric-light-blue-1792413920985.jpg",
+    "url": "/uploads/1792413921070-recolored-t-shirt-fabric-light-blue-1792413920985.jpg",
+    "size": "292 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T12:45:21.088Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792412366702",
+    "name": "1792412366697-recolored-t-shirt-fabric-light-blue-1792412366662.jpg",
+    "url": "/uploads/1792412366697-recolored-t-shirt-fabric-light-blue-1792412366662.jpg",
+    "size": "293 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T12:19:26.702Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792406881394",
+    "name": "1792406881382-recolored-t-shirt-fabric-light-blue-1792406881267.jpg",
+    "url": "/uploads/1792406881382-recolored-t-shirt-fabric-light-blue-1792406881267.jpg",
+    "size": "293 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T10:48:01.394Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792406545532",
+    "name": "1792406545518-recolored-t-shirt-fabric-light-blue-1792406545477.jpg",
+    "url": "/uploads/1792406545518-recolored-t-shirt-fabric-light-blue-1792406545477.jpg",
+    "size": "1 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T10:42:25.532Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792404500538",
+    "name": "1792404500529-recolored-t-shirt-fabric-light-blue-1792404500508.jpg",
+    "url": "/uploads/1792404500529-recolored-t-shirt-fabric-light-blue-1792404500508.jpg",
+    "size": "1 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T10:08:20.538Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792403123325",
+    "name": "1792403123316-recolored-t-shirt-fabric-yellow-1792403123257.jpg",
+    "url": "/uploads/1792403123316-recolored-t-shirt-fabric-yellow-1792403123257.jpg",
+    "size": "260 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T09:45:23.325Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792402900445",
+    "name": "1792402900432-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792402900432-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T09:41:40.445Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792402577773",
+    "name": "1792402577764-recolored-t-shirt-fabric-light-blue-1792402577748.jpg",
+    "url": "/uploads/1792402577764-recolored-t-shirt-fabric-light-blue-1792402577748.jpg",
+    "size": "1 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T09:36:17.773Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792401944582",
+    "name": "1792401944571-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792401944571-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T09:25:44.582Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792392898244",
+    "name": "1792392898224-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792392898224-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T06:54:58.244Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792389446488",
+    "name": "1792389446481-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792389446481-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T05:57:26.488Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792384670254",
+    "name": "1792384670248-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792384670248-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T04:37:50.254Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792384473944",
+    "name": "1792384473935-cheerful-airplane-outfit-front-and-back.png",
+    "url": "/uploads/1792384473935-cheerful-airplane-outfit-front-and-back.png",
+    "size": "1495 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-19T04:34:33.945Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792342892294",
+    "name": "1792342892292-64c2ad55-24de-48bf-abf1-b4435fc4a50a.jfif",
+    "url": "/uploads/1792342892292-64c2ad55-24de-48bf-abf1-b4435fc4a50a.jfif",
+    "size": "61 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-18T17:01:32.294Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792334978301",
+    "name": "1792334978292-f17.png",
+    "url": "/uploads/1792334978292-f17.png",
+    "size": "1908 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-18T14:49:38.301Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1792334939660",
+    "name": "1792334939645-sunlit-courtyard-portrait-in-burgundy.png",
+    "url": "/uploads/1792334939645-sunlit-courtyard-portrait-in-burgundy.png",
+    "size": "2158 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-18T14:48:59.660Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1791965671105",
+    "name": "1791965671101-98269874-4593-4296-b235-ec05401fe892.jpg",
+    "url": "/uploads/1791965671101-98269874-4593-4296-b235-ec05401fe892.jpg",
+    "size": "158 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-14T08:14:31.105Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1791965658518",
+    "name": "1791965658513--t9-tk5nvj0wxu-bk8a3xwj4hrvgcijfa8-sgxmti2uzvkima-nomgtgfrwzvynlwim0gwxcaxoo-fp-weaawcpccxrot86inesften6c8a9fc9aok9ld6t5-owhhd5mlv6x-opxeo5fi5t3pql7weftba79vvojiaa2kg2tzggggk8oqahsmzeokyoqkzdb.jpg",
+    "url": "/uploads/1791965658513--t9-tk5nvj0wxu-bk8a3xwj4hrvgcijfa8-sgxmti2uzvkima-nomgtgfrwzvynlwim0gwxcaxoo-fp-weaawcpccxrot86inesften6c8a9fc9aok9ld6t5-owhhd5mlv6x-opxeo5fi5t3pql7weftba79vvojiaa2kg2tzggggk8oqahsmzeokyoqkzdb.jpg",
+    "size": "759 KB",
+    "category": "general",
+    "uploadedAt": "2026-10-14T08:14:18.518Z",
+    "isSystem": false
+  },
+  {
+    "id": "med-1",
+    "name": "organic-onesie.jpg",
+    "url": "/images/products/organic-onesie.jpg",
+    "size": "737 KB",
+    "category": "products",
+    "uploadedAt": "2026-01-15T08:00:00.000Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-2",
+    "name": "baby-girl-fashion.jpg",
+    "url": "/images/products/baby-girl-fashion.jpg",
+    "size": "725 KB",
+    "category": "products",
+    "uploadedAt": "2026-01-15T08:00:00.000Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-3",
+    "name": "baby-boy-fashion.jpg",
+    "url": "/images/products/baby-boy-fashion.jpg",
+    "size": "616 KB",
+    "category": "products",
+    "uploadedAt": "2026-01-15T08:00:00.000Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-4",
+    "name": "wooden-gym.jpg",
+    "url": "/images/products/wooden-gym.jpg",
+    "size": "678 KB",
+    "category": "products",
+    "uploadedAt": "2026-01-15T08:00:00.000Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-5",
+    "name": "editorial-baby-lifestyle.jpg",
+    "url": "/images/products/editorial-baby-lifestyle.jpg",
+    "size": "661 KB",
+    "category": "banners",
+    "uploadedAt": "2026-01-15T08:00:00.000Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-6",
+    "name": "baby-boy-adventure.jpg",
+    "url": "/images/products/baby-boy-adventure.jpg",
+    "size": "688 KB",
+    "category": "products",
+    "uploadedAt": "2026-01-15T08:00:00.000Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-7",
+    "name": "hero-nursery.jpg",
+    "url": "/images/products/hero-nursery.jpg",
+    "size": "723 KB",
+    "category": "banners",
+    "uploadedAt": "2026-01-15T08:00:00.000Z",
+    "isSystem": true
+  }
+]

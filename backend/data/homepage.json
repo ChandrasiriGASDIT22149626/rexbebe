@@ -1,0 +1,305 @@
+{
+  "hero": {
+    "headlineLine1": "Little Moments",
+    "headlineLine2": "Big Adventures.",
+    "speechBubbleText": "Welcome to REXBEBE! 🦕✨",
+    "dinoQuotes": [
+      "Little Moments, Big Adventures! 🦕",
+      "Handcrafted 100% Organic Cashmere! ☁️",
+      "Made with love for little ones! 💖",
+      "Explore our 2026 Collection! 🌸"
+    ],
+    "ctaPrimaryText": "Shop New Season",
+    "ctaPrimaryHref": "/new-in",
+    "ctaSecondaryText": "Explore Nursery",
+    "ctaSecondaryHref": "/shop?category=nursery-toys",
+    "badgeText": "2026 Atelier Collection",
+    "badge": "TEST PERSISTED BADGE 🌸"
+  },
+  "announcements": {
+    "enabled": true,
+    "autoplaySpeed": 6,
+    "items": [
+      {
+        "id": "ann-1",
+        "text": "FREE SHIPPING ON ORDERS OVER LKR 10,000 | EASY RETURNS | SECURE CHECKOUT 🌸",
+        "iconName": "Truck",
+        "active": true
+      },
+      {
+        "id": "ann-2",
+        "text": "NEW SEASON: ATELIER AUTUMN CASHMERE & FRENCH LINEN CAPSULE HAS ARRIVED ✨",
+        "iconName": "Sparkles",
+        "active": true
+      },
+      {
+        "id": "ann-3",
+        "text": "COMPLIMENTARY LUXURY GIFT WRAPPING ON ALL BOUTIQUE ORDERS 🎁",
+        "iconName": "Heart",
+        "active": true
+      }
+    ]
+  },
+  "bestSellers": {
+    "badge": "Parent Favorites 🧸",
+    "title": "Featured Little Favorites",
+    "subtitle": "Curated with unconditional love and ultra-gentle craftsmanship for tender baby moments.",
+    "maxItems": 4,
+    "showOnlyMarkedBestSellers": true
+  },
+  "categories": [
+    {
+      "id": "cat-newborn",
+      "name": "NEWBORN",
+      "subtitle": "First little moments",
+      "href": "/baby",
+      "image": "/images/products/organic-onesie.jpg",
+      "bg": "from-pink-100/80 via-rose-50/70 to-pink-50/60",
+      "ringBorder": "border-pink-300 group-hover:border-pink-400",
+      "dotBg": "bg-pink-400",
+      "badge": "🌸"
+    },
+    {
+      "id": "cat-girls",
+      "name": "BABY GIRLS",
+      "subtitle": "Sweet little looks",
+      "href": "/girls",
+      "image": "/images/products/baby-girl-fashion.jpg",
+      "bg": "from-purple-100/80 via-pink-50/70 to-peach-50/60",
+      "ringBorder": "border-purple-300 group-hover:border-purple-400",
+      "dotBg": "bg-purple-400",
+      "badge": "👑"
+    },
+    {
+      "id": "cat-boys",
+      "name": "BABY BOYS",
+      "subtitle": "Everyday adventures",
+      "href": "/boys",
+      "image": "/images/products/baby-boy-fashion.jpg",
+      "bg": "from-sky-100/80 via-blue-50/70 to-cyan-50/60",
+      "ringBorder": "border-sky-300 group-hover:border-sky-400",
+      "dotBg": "bg-sky-400",
+      "badge": "🦕"
+    },
+    {
+      "id": "cat-dresses",
+      "name": "DRESSES",
+      "subtitle": "Made to twirl",
+      "href": "/shop?category=Dresses",
+      "image": "/images/products/editorial-baby-lifestyle.jpg",
+      "bg": "from-rose-100/80 via-pink-50/70 to-rose-50/60",
+      "ringBorder": "border-rose-300 group-hover:border-rose-400",
+      "dotBg": "bg-rose-400",
+      "badge": "✨"
+    },
+    {
+      "id": "cat-rompers",
+      "name": "ROMPERS",
+      "subtitle": "Soft everyday comfort",
+      "href": "/shop?category=Rompers",
+      "image": "/images/products/baby-boy-adventure.jpg",
+      "bg": "from-emerald-100/80 via-mint-50/70 to-teal-50/60",
+      "ringBorder": "border-emerald-300 group-hover:border-emerald-400",
+      "dotBg": "bg-emerald-400",
+      "badge": "🌿"
+    },
+    {
+      "id": "cat-nursery",
+      "name": "NURSERY & TOYS",
+      "subtitle": "Gentle Montessori play",
+      "href": "/shop?category=nursery-toys",
+      "image": "/images/products/wooden-gym.jpg",
+      "bg": "from-amber-100/80 via-orange-50/70 to-yellow-50/60",
+      "ringBorder": "border-amber-300 group-hover:border-amber-400",
+      "dotBg": "bg-amber-400",
+      "badge": "🧸"
+    }
+  ],
+  "editorial": {
+    "essentialsBadge": "Editorial Curation 🌸",
+    "essentialsTitle": "LITTLE ESSENTIALS",
+    "essentialsSubtitle": "The building blocks of a serene, beautiful nursery wardrobe.",
+    "essentialsDescription": "From buttery-soft organic cotton bodysuits to heirloom knitted blankets, every piece is made to cherish.",
+    "essentialsButtonText": "Explore Essentials",
+    "essentialsButtonHref": "/collections/essentials",
+    "essentialsMainImage": "/images/products/editorial-baby-lifestyle.jpg",
+    "editBadge": "Seasonal Focus ✨",
+    "editTitle": "THE LITTLE EDIT",
+    "editSubtitle": "Thoughtful layering and cozy textures for sunny strolls and story times.",
+    "editDescription": "Discover our breathable linen sets, sun hats, and hand-crocheted booties crafted with tender care.",
+    "editButtonText": "Shop The Capsule",
+    "editButtonHref": "/collections/autumn-atelier",
+    "editMainImage": "/images/products/baby-girl-fashion.jpg"
+  },
+  "brandStory": {
+    "tag": "Our Philosophy 🌿",
+    "title": "Little Days. Big Memories.",
+    "description1": "At REXBEBE, we believe in pure comfort without compromise. Our garments are hand-tailored from organic Mongolian cashmere, French flax linen, and GOTS-certified combed cotton.",
+    "description2": "Each piece is carefully inspected to ensure baby-safe stitching, flat seams, and whisper-soft breathability.",
+    "quote": "\"Because childhood is fleeting, and every cozy cuddle deserves perfection.\"",
+    "quoteAuthor": "REXBEBE Founders & Mother Craftswomen",
+    "badge1": "100% Hypoallergenic & Gentle",
+    "badge2": "GOTS Certified Organic Fibers",
+    "badge3": "Eco-Friendly Heirloom Quality"
+  },
+  "lookbook": [
+    {
+      "id": "lb-1",
+      "tag": "NEW COLLECTION 🌸",
+      "title": "NORDIC COZY KNITS",
+      "subtitle": "Soft organic Mongolian cashmere & flax linen for gentle morning hugs.",
+      "href": "/shop?category=Clothing",
+      "image": "/images/products/organic-onesie.jpg",
+      "badgeEmoji": "🧸",
+      "buttonText": "Discover Knits"
+    },
+    {
+      "id": "lb-2",
+      "tag": "EDITORIAL LOOKBOOK 👑",
+      "title": "SWEET TWIRLS & DREAMS",
+      "subtitle": "Ethereal party dresses, delicate lace overlays, and dreamlike twirls.",
+      "href": "/shop?category=Dresses",
+      "image": "/images/products/editorial-baby-lifestyle.jpg",
+      "badgeEmoji": "✨",
+      "buttonText": "View Dresses"
+    },
+    {
+      "id": "lb-3",
+      "tag": "SIGNATURE LINE 🦕",
+      "title": "LITTLE ADVENTURES",
+      "subtitle": "Playful, durable everyday sets crafted for first steps and big smiles.",
+      "href": "/shop?category=Rompers",
+      "image": "/images/products/baby-boy-adventure.jpg",
+      "badgeEmoji": "👶",
+      "buttonText": "Explore Sets"
+    },
+    {
+      "id": "lb-4",
+      "tag": "GOTS ORGANIC 🌿",
+      "title": "NEWBORN COTTON BLISS",
+      "subtitle": "Cloud-soft, hypoallergenic bodysuits designed for sensitive baby skin.",
+      "href": "/baby",
+      "image": "/images/products/baby-girl-fashion.jpg",
+      "badgeEmoji": "🐰",
+      "buttonText": "Shop Newborn"
+    }
+  ],
+  "whyRexbebe": [
+    {
+      "id": "why-1",
+      "title": "PREMIUM QUALITY",
+      "subtitle": "GOTS Organic Certified",
+      "iconName": "Award",
+      "color": "text-pink-600 bg-pink-100/80 border-pink-200",
+      "active": true
+    },
+    {
+      "id": "why-2",
+      "title": "SECURE PAYMENT",
+      "subtitle": "100% Encrypted & Safe",
+      "iconName": "ShieldCheck",
+      "color": "text-emerald-700 bg-emerald-100/80 border-emerald-200",
+      "active": true
+    },
+    {
+      "id": "why-3",
+      "title": "ISLANDWIDE DELIVERY",
+      "subtitle": "Express delivery in LK & Global",
+      "iconName": "Truck",
+      "color": "text-sky-700 bg-sky-100/80 border-sky-200",
+      "active": true
+    },
+    {
+      "id": "why-4",
+      "title": "EASY RETURNS",
+      "subtitle": "Hassle-free 14-day exchange",
+      "iconName": "RefreshCw",
+      "color": "text-amber-700 bg-orange-100/80 border-orange-200",
+      "active": true
+    },
+    {
+      "id": "why-5",
+      "title": "CUSTOMER SUPPORT",
+      "subtitle": "Friendly 24/7 care",
+      "iconName": "Headset",
+      "color": "text-purple-700 bg-purple-100/80 border-purple-200",
+      "active": true
+    }
+  ],
+  "reviews": [
+    {
+      "id": "rev-1",
+      "name": "Elena Rostova",
+      "role": "Newborn Mom",
+      "location": "Colombo, Sri Lanka",
+      "rating": 5,
+      "text": "The Aurelia cashmere romper is insanely soft! My 4-month-old daughter looks adorable and sleeps so comfortably in it. The quality exceeds luxury European boutiques.",
+      "verified": true,
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
+      "productName": "Aurelia Organic Cashmere Romper",
+      "productImage": "/images/products/organic-onesie.jpg",
+      "badgeEmoji": "🧸"
+    },
+    {
+      "id": "rev-2",
+      "name": "Samantha & Noah",
+      "role": "Parents of 6-month-old",
+      "location": "Kandy, Sri Lanka",
+      "rating": 5,
+      "text": "The wooden play gym is a masterpiece. Solid beechwood with hand-crocheted rattles that keep our little boy mesmerized for hours. Packaging was gorgeous!",
+      "verified": true,
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+      "productName": "Nordic Artisan Wooden Play Gym",
+      "productImage": "/images/products/baby-boy-adventure.jpg",
+      "badgeEmoji": "👶"
+    },
+    {
+      "id": "rev-3",
+      "name": "Dr. Priya Fernando",
+      "role": "Pediatrician & Mom",
+      "location": "Galle, Sri Lanka",
+      "rating": 5,
+      "text": "As a pediatrician and mom, I am super picky about fabrics. REXBEBE’s French linen swaddles are 100% breathable and get softer after every single wash.",
+      "verified": true,
+      "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80",
+      "productName": "Maison Luxe Organic Linen Swaddle",
+      "productImage": "/images/products/editorial-baby-lifestyle.jpg",
+      "badgeEmoji": "🐰"
+    }
+  ],
+  "instagram": {
+    "handle": "@rexbebe_baby",
+    "posts": [
+      {
+        "id": "ig-1",
+        "image": "/images/products/organic-onesie.jpg",
+        "likes": "1.2k",
+        "handle": "@rexbebe_baby"
+      },
+      {
+        "id": "ig-2",
+        "image": "/images/products/wooden-gym.jpg",
+        "likes": "890",
+        "handle": "@scandi_nursery"
+      },
+      {
+        "id": "ig-3",
+        "image": "/images/products/hero-nursery.jpg",
+        "likes": "2.4k",
+        "handle": "@petite_reves"
+      },
+      {
+        "id": "ig-4",
+        "image": "/images/products/baby-girl-fashion.jpg",
+        "likes": "1.8k",
+        "handle": "@little_luna"
+      },
+      {
+        "id": "ig-5",
+        "image": "/images/products/baby-boy-adventure.jpg",
+        "likes": "3.1k",
+        "handle": "@cashmere_cuddles"
+      }
+    ]
+  }
+}
