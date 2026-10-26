@@ -130,31 +130,32 @@ export function LittleEssentials() {
           <div className="lg:col-span-6 relative">
             <div className="relative">
               
-              {/* Primary Anchor Lifestyle Image */}
+              {/* Primary Anchor Lifestyle Image (Matching Photo Aspect Ratio 1024/935, Top Anchored so Head is Never Cropped) */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
-                className="relative aspect-[4/3] rounded-[34px] overflow-hidden shadow-2xl border-6 border-white/95 bg-gradient-to-tr from-pink-100 to-sky-100"
+                className="relative aspect-[1024/935] rounded-[34px] overflow-hidden shadow-2xl border-6 border-white/95 bg-gradient-to-tr from-pink-100 to-sky-100"
               >
                 <Image
                   src="/images/products/pooh-baby-lifestyle.jpg"
                   alt="REXBEBE Little Essentials"
                   fill
-                  className="object-cover object-center transition-transform duration-700 hover:scale-105"
+                  priority
+                  className="object-cover object-[center_top] transition-transform duration-700 hover:scale-103"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/15 via-transparent to-transparent pointer-events-none" />
               </motion.div>
 
-              {/* Floating Product Cut-Out Card overlapping top right */}
+              {/* Floating Product Cut-Out Card - Repositioned to Top-Left over background so baby's head is 100% visible */}
               <motion.div
-                initial={{ opacity: 0, y: -30, rotate: 3 }}
-                whileInView={{ opacity: 1, y: 0, rotate: 3 }}
+                initial={{ opacity: 0, y: -25, rotate: -3 }}
+                whileInView={{ opacity: 1, y: 0, rotate: -3 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: 0.2 }}
                 whileHover={{ rotate: 0, scale: 1.05 }}
-                className="absolute -top-8 -right-3 sm:-right-6 w-44 sm:w-56 p-3 bg-white/95 backdrop-blur-xl rounded-[28px] shadow-2xl border-4 border-white/95 z-20"
+                className="absolute -top-6 -left-3 sm:-left-6 w-40 sm:w-50 p-2.5 sm:p-3 bg-white/95 backdrop-blur-xl rounded-[28px] shadow-2xl border-4 border-white/95 z-20"
               >
                 <div className="relative aspect-square rounded-2xl overflow-hidden bg-pink-50 border border-pink-100">
                   <Image
@@ -167,26 +168,26 @@ export function LittleEssentials() {
                     MUST-HAVE 🎀
                   </span>
                 </div>
-                <div className="mt-2.5 px-1">
+                <div className="mt-2 px-1">
                   <p className="text-xs font-bold font-heading text-slate-900">Soft Cotton Twirl Dress</p>
                   <p className="text-[11px] text-pink-600 font-extrabold mt-0.5">LKR 4,990</p>
                 </div>
               </motion.div>
 
-              {/* Secondary Floating Soft Badge overlapping bottom left */}
+              {/* Secondary Floating Soft Badge - Positioned at Bottom-Right over bed sheet */}
               <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="absolute -bottom-6 -left-3 sm:-left-6 bg-white/95 backdrop-blur-xl p-4 rounded-[26px] shadow-xl border border-emerald-100/90 z-20 flex items-center space-x-3"
+                className="absolute -bottom-5 -right-2 sm:-right-5 bg-white/95 backdrop-blur-xl p-3 sm:p-3.5 rounded-[24px] shadow-xl border border-emerald-100/90 z-20 flex items-center space-x-2.5"
               >
-                <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg shadow-inner">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base shadow-inner">
                   🌱
                 </div>
                 <div>
                   <p className="text-xs font-heading font-extrabold text-slate-900">GOTS Organic Certified</p>
-                  <p className="text-[11px] text-slate-500 font-medium">100% Breathable & Hypoallergenic</p>
+                  <p className="text-[10px] text-slate-500 font-medium">100% Breathable & Hypoallergenic</p>
                 </div>
               </motion.div>
 
