@@ -102,11 +102,11 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
       <div
         className="group relative flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/90 dark:border-slate-800 hover:border-amber-400/80 dark:hover:border-amber-400/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-300 ease-out will-change-transform h-full overflow-hidden"
       >
-        {/* Product Image Container (Fixed 4:5 Aspect Ratio, Soft Cream Background, Uncropped Contain) */}
-        <div className="relative w-full aspect-[4/5] flex-shrink-0 bg-[#FAF7F2] dark:bg-slate-900 overflow-hidden cursor-pointer select-none">
+        {/* Product Image Container (Fixed 4:5 Aspect Ratio, Soft Cream Background, Card 2 Reference Size) */}
+        <div className="relative w-full aspect-[4/5] flex-shrink-0 bg-[#FAF7F2] dark:bg-slate-900 overflow-hidden cursor-pointer select-none flex items-center justify-center p-2 sm:p-2.5">
           <div
             onClick={() => setIsQuickViewOpen(true)}
-            className="relative w-full h-full overflow-hidden flex items-center justify-center"
+            className="relative w-full aspect-[1312/1199] overflow-hidden flex items-center justify-center"
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
@@ -120,7 +120,7 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
               alt={product.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className={`w-full h-full object-contain object-center p-3 sm:p-4 lg:p-5 pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform ${
+              className={`w-full h-full object-contain object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform ${
                 images.length > 1 && !selectedColorName
                   ? 'group-hover:opacity-0 group-hover:scale-105 opacity-100 scale-100'
                   : 'group-hover:scale-105 opacity-100 scale-100'
@@ -140,7 +140,7 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
                 alt={`${product.name} back view`}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="w-full h-full object-contain object-center p-3 sm:p-4 lg:p-5 pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform opacity-0 scale-100 group-hover:opacity-100 group-hover:scale-105"
+                className="w-full h-full object-contain object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform opacity-0 scale-100 group-hover:opacity-100 group-hover:scale-105"
                 onError={() => {
                   if (currentSecSrc !== currentImgSrc) {
                     setCurrentSecSrc(currentImgSrc);
