@@ -143,12 +143,13 @@ export function BrandStory() {
             <div className="relative">
               
               {/* Primary Atmospheric Image */}
-              <div className="relative aspect-[4/3] rounded-[34px] overflow-hidden shadow-2xl border-6 border-white/95 bg-pink-50">
+              <div className="relative aspect-[1024/655] rounded-[34px] overflow-hidden shadow-2xl border-6 border-white/95 bg-pink-50">
                 <Image
-                  src="/images/products/hero-nursery.jpg"
-                  alt="Baby Nursery & Playful Moments"
+                  src="/images/products/plush-bears-tshirts.jpg"
+                  alt="Plush Animals Wearing REXBEBE T-Shirts"
                   fill
-                  className="object-cover transition-transform duration-700 hover:scale-105"
+                  priority
+                  className="object-cover transition-transform duration-700 hover:scale-103"
                 />
               </div>
               
@@ -159,7 +160,7 @@ export function BrandStory() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                 whileHover={{ scale: 1.05 }}
-                className="absolute -bottom-8 -right-3 sm:-right-6 w-44 sm:w-60 aspect-square rounded-[28px] overflow-hidden shadow-2xl border-4 border-white/95 bg-white z-20"
+                className="absolute -bottom-6 -right-2 sm:-right-10 lg:-right-12 w-32 sm:w-44 aspect-square rounded-[24px] overflow-hidden shadow-2xl border-4 border-white/95 bg-white z-20"
               >
                 <Image
                   src="/images/products/wooden-gym.jpg"
