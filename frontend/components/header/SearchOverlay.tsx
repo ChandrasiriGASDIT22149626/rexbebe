@@ -158,13 +158,13 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                               onClick={onClose}
                               className="group block p-2.5 rounded-2xl hover:bg-purple-50/50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-purple-100 dark:hover:border-slate-700"
                             >
-                              <div className="aspect-square bg-purple-50 dark:bg-slate-800 rounded-xl overflow-hidden mb-2 relative">
+                              <div className="aspect-[4/5] bg-[#FAF7F2] dark:bg-slate-800 rounded-xl overflow-hidden mb-2 relative p-1">
                                 <Image
                                   src={prod.images[0]?.url || '/images/products/organic-onesie.jpg'}
                                   alt={prod.name}
                                   fill
                                   sizes="120px"
-                                  className="object-cover group-hover:scale-105 transition-transform"
+                                  className="object-contain group-hover:scale-105 transition-transform"
                                 />
                               </div>
                               <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate group-hover:text-purple-600 dark:group-hover:text-purple-400">
@@ -211,13 +211,13 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                             onClick={onClose}
                             className="flex items-center space-x-4 p-3 rounded-2xl border border-purple-100 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-purple-50/50 dark:hover:bg-slate-800/50 transition-all group shadow-xs"
                           >
-                            <div className="w-16 h-16 bg-purple-50 dark:bg-slate-800 rounded-xl overflow-hidden flex-shrink-0 relative">
+                            <div className="w-14 aspect-[4/5] bg-[#FAF7F2] dark:bg-slate-800 rounded-xl overflow-hidden flex-shrink-0 relative p-1">
                               <Image
                                 src={product.images[0]?.url || '/images/products/organic-onesie.jpg'}
                                 alt={product.name}
                                 fill
                                 sizes="64px"
-                                className="object-cover group-hover:scale-105 transition-transform"
+                                className="object-contain group-hover:scale-105 transition-transform"
                               />
                             </div>
                             <div className="flex-1 min-w-0">

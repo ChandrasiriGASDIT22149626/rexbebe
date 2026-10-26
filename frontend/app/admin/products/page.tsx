@@ -1456,8 +1456,8 @@ export default function AdminProductsPage() {
                         <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="py-3.5 px-4 sm:px-6">
                             <div className="flex items-center space-x-3">
-                              <div className="relative w-12 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
-                                <Image src={mainImg} alt={p.name} fill className="object-cover" />
+                              <div className="relative w-12 aspect-[4/5] rounded-xl overflow-hidden bg-[#FAF7F2] border border-slate-200 shrink-0 flex items-center justify-center p-0.5">
+                                <Image src={mainImg} alt={p.name} fill className="object-contain" />
                               </div>
                               <div className="min-w-0 max-w-xs">
                                 <Link
@@ -1886,7 +1886,7 @@ export default function AdminProductsPage() {
                       {formData.images.map((imgUrl, idx) => (
                         <div
                           key={idx}
-                          className="relative aspect-square rounded-2xl overflow-hidden bg-stone-50 border-2 border-stone-200 group p-2 flex items-center justify-center shadow-xs"
+                          className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-[#FAF7F2] border-2 border-stone-200 group p-2 flex items-center justify-center shadow-xs"
                         >
                           <div className="relative w-full h-full flex items-center justify-center">
                             <Image
@@ -2745,8 +2745,8 @@ export default function AdminProductsPage() {
                             className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-white shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                           >
                             <div className="flex items-center space-x-4">
-                              {/* Photo Preview Container - uncropped, aspect preserved */}
-                              <div className="relative w-24 sm:w-28 h-24 sm:h-28 rounded-2xl overflow-hidden bg-stone-50 border-2 border-stone-200 shrink-0 p-1.5 flex items-center justify-center shadow-xs">
+                              {/* Photo Preview Container - 4:5 aspect ratio, uncropped */}
+                              <div className="relative w-20 sm:w-24 aspect-[4/5] rounded-2xl overflow-hidden bg-[#FAF7F2] border-2 border-stone-200 shrink-0 p-1.5 flex items-center justify-center shadow-xs">
                                 {colImg ? (
                                   <div className="relative w-full h-full flex items-center justify-center">
                                     <Image
@@ -2976,7 +2976,7 @@ export default function AdminProductsPage() {
 
                         return (
                           <>
-                            <div className="relative aspect-square min-h-[280px] sm:min-h-[340px] rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-xs p-3 flex items-center justify-center">
+                            <div className="relative aspect-[4/5] min-h-[280px] sm:min-h-[340px] rounded-2xl overflow-hidden bg-[#FAF7F2] border border-slate-200 shadow-xs p-3 flex items-center justify-center">
                               <div className="relative w-full h-full flex items-center justify-center">
                                 <Image
                                   src={displayImg}

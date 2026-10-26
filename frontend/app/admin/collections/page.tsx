@@ -598,12 +598,12 @@ export default function AdminCollectionsPage() {
                         }`}
                       >
                         <div className="flex items-center space-x-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-lg overflow-hidden relative flex-shrink-0 bg-stone-100">
+                          <div className="w-8 aspect-[4/5] rounded-lg overflow-hidden relative flex-shrink-0 bg-[#FAF7F2] p-0.5 flex items-center justify-center">
                             <Image
                               src={p.images[0]?.url || '/images/products/organic-onesie.jpg'}
                               alt={p.name}
                               fill
-                              className="object-cover"
+                              className="object-contain"
                             />
                           </div>
                           <div className="min-w-0">
@@ -717,12 +717,12 @@ export default function AdminCollectionsPage() {
                             key={pid}
                             className="p-2.5 rounded-xl border border-stone-200 bg-stone-50 space-y-1.5"
                           >
-                            <div className="h-28 relative rounded-lg overflow-hidden bg-white">
+                            <div className="w-full aspect-[4/5] relative rounded-lg overflow-hidden bg-[#FAF7F2] p-1 flex items-center justify-center">
                               <Image
                                 src={p.images[0]?.url || '/images/products/organic-onesie.jpg'}
                                 alt={p.name}
                                 fill
-                                className="object-cover"
+                                className="object-contain"
                               />
                             </div>
                             <p className="font-bold text-stone-900 text-[11px] truncate">{p.name}</p>

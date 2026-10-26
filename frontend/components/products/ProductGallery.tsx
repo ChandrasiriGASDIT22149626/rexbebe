@@ -102,7 +102,7 @@ export function ProductGallery({
         - Strictly object-contain so NO part of the baby, head, feet, clothing or accessories is cropped.
         - Preserves exact aspect ratio without stretching, squeezing, or distortion.
       */}
-      <div className="relative w-full aspect-[4/5] sm:aspect-square md:aspect-[4/5] lg:aspect-square min-h-[460px] sm:min-h-[540px] lg:min-h-[620px] max-h-[760px] rounded-3xl bg-white border border-stone-200/90 shadow-sm flex items-center justify-center p-3 sm:p-6 overflow-hidden group">
+      <div className="relative w-full aspect-[4/5] min-h-[440px] sm:min-h-[520px] lg:min-h-[600px] max-h-[760px] rounded-3xl bg-[#FAF7F2] dark:bg-slate-900 border border-stone-200/90 shadow-sm flex items-center justify-center p-3 sm:p-6 overflow-hidden group">
         {/* Full-screen Zoom trigger button */}
         <button
           type="button"
@@ -200,9 +200,9 @@ export function ProductGallery({
                   type="button"
                   onClick={() => setSelectedImage(img.url)}
                   aria-label={`View photo ${idx + 1} (${img.colorName || 'standard'}) of ${productName}`}
-                  className={`relative w-20 sm:w-24 h-20 sm:h-24 rounded-2xl overflow-hidden flex-shrink-0 border-2 transition-all p-1 bg-stone-50 flex items-center justify-center ${
+                  className={`relative w-16 sm:w-20 aspect-[4/5] rounded-2xl overflow-hidden flex-shrink-0 border-2 transition-all p-1 bg-[#FAF7F2] flex items-center justify-center ${
                     isSelected
-                      ? 'border-pink-600 ring-3 ring-pink-100 scale-102 bg-white'
+                      ? 'border-pink-600 ring-3 ring-pink-100 scale-102 bg-[#FAF7F2]'
                       : 'border-stone-200 opacity-75 hover:opacity-100 hover:border-stone-300'
                   }`}
                 >

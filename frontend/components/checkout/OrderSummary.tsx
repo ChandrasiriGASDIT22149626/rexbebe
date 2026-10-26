@@ -47,12 +47,13 @@ export function OrderSummary({
       <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
         {items.map((item) => (
           <div key={item.variant.id} className="flex items-center space-x-3 text-xs py-1">
-            <div className="relative w-12 h-12 rounded-lg bg-stone-100 flex-shrink-0 overflow-hidden border border-stone-200">
+            <div className="relative w-12 aspect-[4/5] rounded-lg bg-[#FAF7F2] flex-shrink-0 overflow-hidden border border-stone-200 flex items-center justify-center p-0.5">
               <Image
                 src={item.variant.imageUrl || item.product.images[0]?.url || '/images/products/organic-onesie.jpg'}
                 alt={item.product.name}
                 fill
-                className="object-cover"
+                className="object-contain"
+                sizes="48px"
               />
             </div>
             <div className="flex-1 min-w-0">

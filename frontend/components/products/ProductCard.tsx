@@ -105,11 +105,11 @@ export function ProductCard({ product }: { product: Product }) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Product Image Container (Slightly larger box & aspect ratio for clear photo view) */}
-        <div className="relative w-full aspect-square sm:aspect-[4/5] bg-[#FAF9F6] dark:bg-slate-950 overflow-hidden flex items-center justify-center p-1 sm:p-2 cursor-pointer">
+        {/* Product Image Container (Fixed 4:5 Aspect Ratio & Consistent Soft Cream Background) */}
+        <div className="relative w-full aspect-[4/5] flex-shrink-0 bg-[#FAF7F2] dark:bg-slate-950/80 overflow-hidden flex items-center justify-center p-2 sm:p-2.5 cursor-pointer select-none">
           <div
             onClick={() => setIsQuickViewOpen(true)}
-            className="block w-full h-full relative"
+            className="relative w-full h-full flex items-center justify-center"
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
@@ -216,18 +216,18 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
         </div>
 
-        {/* Product Details Section (Roomier padding & larger typography) */}
-        <div className="p-3.5 sm:p-4 md:p-5 flex flex-col flex-1 justify-between bg-white dark:bg-slate-900">
-          <div className="space-y-1.5">
-            {/* Product Name (Bold, Clickable to open view or full page) */}
+        {/* Product Details Section (Consistent Heights & Spacing across all cards) */}
+        <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between bg-white dark:bg-slate-900">
+          <div className="space-y-1">
+            {/* Product Name (Fixed Height, 1-Line Truncate) */}
             <Link href={`/products/${product.slug}`} className="block group/link">
-              <h3 className="text-sm sm:text-[15px] font-bold text-stone-900 dark:text-slate-100 uppercase tracking-tight line-clamp-1 group-hover/link:text-amber-800 dark:group-hover/link:text-amber-400 transition-colors">
+              <h3 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-slate-100 uppercase tracking-tight truncate group-hover/link:text-amber-800 dark:group-hover/link:text-amber-400 transition-colors h-5 leading-5">
                 {product.name}
               </h3>
             </Link>
 
-            {/* Pricing Row */}
-            <div className="flex items-baseline space-x-2 pt-0.5">
+            {/* Pricing Row (Fixed Height) */}
+            <div className="flex items-baseline space-x-2 pt-0.5 h-5 sm:h-6">
               <span className="text-sm sm:text-base font-black text-stone-950 dark:text-white font-mono">
                 {formatCurrency(product.price)}
               </span>
@@ -238,19 +238,19 @@ export function ProductCard({ product }: { product: Product }) {
               )}
             </div>
 
-            {/* Installment subtext */}
-            <p className="text-[10px] sm:text-[11px] text-stone-500 dark:text-slate-400 font-medium tracking-tight">
+            {/* Installment Subtext (Fixed Height) */}
+            <p className="text-[10px] sm:text-[11px] text-stone-500 dark:text-slate-400 font-medium tracking-tight truncate h-4">
               or LKR {installmentAmount} with{' '}
               <span className="font-bold text-stone-700 dark:text-slate-300">koko</span>{' '}
               <span className="font-bold text-sky-700 dark:text-sky-400">mintpay</span>
             </p>
           </div>
 
-          {/* Color Swatch Dots & Mobile Actions */}
-          <div className="pt-2.5 flex items-center justify-between">
+          {/* Color Swatch Dots & Mobile Actions (Fixed Height) */}
+          <div className="pt-2 flex items-center justify-between min-h-[28px]">
             {swatches.length > 0 ? (
-              <div className="flex items-center space-x-2">
-                {swatches.map((s, idx) => {
+              <div className="flex items-center space-x-1.5 overflow-hidden">
+                {swatches.slice(0, 5).map((s, idx) => {
                   const isSelected = selectedColorName?.toLowerCase() === s.name.toLowerCase();
                   return (
                     <button
@@ -273,9 +273,12 @@ export function ProductCard({ product }: { product: Product }) {
                     />
                   );
                 })}
+                {swatches.length > 5 && (
+                  <span className="text-[10px] text-stone-400 font-semibold">+{swatches.length - 5}</span>
+                )}
               </div>
             ) : (
-              <div />
+              <div className="h-4" />
             )}
 
             {/* Mobile Action Buttons: View + Add */}
@@ -287,7 +290,7 @@ export function ProductCard({ product }: { product: Product }) {
                   e.stopPropagation();
                   setIsQuickViewOpen(true);
                 }}
-                className="p-2 rounded-full bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-200 transition-colors shadow-2xs"
+                className="p-1.5 rounded-full bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-200 transition-colors shadow-2xs"
                 title="View Product"
                 aria-label="View Product"
               >
@@ -298,7 +301,7 @@ export function ProductCard({ product }: { product: Product }) {
                 <button
                   type="button"
                   onClick={handleQuickAdd}
-                  className="p-2 rounded-full bg-stone-900 dark:bg-slate-700 text-white hover:bg-amber-900 dark:hover:bg-amber-600 transition-colors shadow-2xs"
+                  className="p-1.5 rounded-full bg-stone-900 dark:bg-slate-700 text-white hover:bg-amber-900 dark:hover:bg-amber-600 transition-colors shadow-2xs"
                   title="Add to Cart"
                   aria-label="Add to Cart"
                 >

@@ -207,8 +207,8 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
               {/* Left Column: Image Gallery Showcase */}
               <div className="bg-[#FAF9F6] dark:bg-slate-950 p-4 sm:p-6 sm:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-stone-100 dark:border-slate-800">
-                {/* Main Large Image Display */}
-                <div className="relative w-full aspect-square bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-xs border border-stone-200/60 dark:border-slate-800 flex items-center justify-center">
+                {/* Main Large Image Display (Fixed 4:5 Aspect Ratio & Soft Cream Background) */}
+                <div className="relative w-full aspect-[4/5] bg-[#FAF7F2] dark:bg-slate-900 rounded-2xl overflow-hidden shadow-xs border border-stone-200/60 dark:border-slate-800 flex items-center justify-center p-2 sm:p-3">
                   <Image
                     src={currentImageUrl}
                     alt={product.name}
@@ -253,13 +253,13 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                       <button
                         key={idx}
                         onClick={() => setSelectedImageIndex(idx)}
-                        className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 bg-white ${
+                        className={`relative w-12 sm:w-14 aspect-[4/5] rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 bg-[#FAF7F2] ${
                           selectedImageIndex === idx
                             ? 'border-amber-600 ring-2 ring-amber-200 scale-105'
                             : 'border-stone-200 opacity-70 hover:opacity-100'
                         }`}
                       >
-                        <Image src={img} alt={`Thumbnail ${idx + 1}`} fill className="object-contain p-1" />
+                        <Image src={img} alt={`Thumbnail ${idx + 1}`} fill className="object-contain p-1" sizes="60px" />
                       </button>
                     ))}
                   </div>

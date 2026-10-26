@@ -265,12 +265,12 @@ export default function AdminPromotionsPage() {
                           {/* Item & Image */}
                           <td className="p-4">
                             <div className="flex items-center space-x-3">
-                              <div className="w-12 h-14 rounded-xl relative overflow-hidden bg-stone-100 border border-stone-200 shrink-0">
+                              <div className="w-12 aspect-[4/5] rounded-xl relative overflow-hidden bg-[#FAF7F2] border border-stone-200 shrink-0 flex items-center justify-center p-0.5">
                                 <Image
                                   src={p.images[0]?.url || '/images/products/organic-onesie.jpg'}
                                   alt={p.name}
                                   fill
-                                  className="object-cover"
+                                  className="object-contain"
                                 />
                               </div>
                               <div className="min-w-0 max-w-xs">

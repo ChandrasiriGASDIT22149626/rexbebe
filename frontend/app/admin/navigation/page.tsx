@@ -1374,12 +1374,12 @@ export default function AdminNavigationPage() {
                               onChange={() => {}}
                               className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4 cursor-pointer"
                             />
-                            <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-stone-200 shrink-0">
+                            <div className="relative w-9 aspect-[4/5] rounded-lg overflow-hidden border border-stone-200 shrink-0 bg-[#FAF7F2] flex items-center justify-center p-0.5">
                               <Image
                                 src={prod.images[0]?.url || '/images/products/organic-onesie.jpg'}
                                 alt={prod.name}
                                 fill
-                                className="object-cover"
+                                className="object-contain"
                               />
                             </div>
                             <div>

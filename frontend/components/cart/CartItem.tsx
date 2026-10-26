@@ -14,8 +14,8 @@ export function CartItem({ item }: { item: CartItemState }) {
 
   return (
     <div className="flex space-x-4 pb-4 border-b border-stone-100 dark:border-slate-800">
-      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-stone-100 dark:bg-slate-800 flex-shrink-0">
-        <Image src={itemImage} alt={item.product.name} fill className="object-cover" />
+      <div className="relative w-18 sm:w-20 aspect-[4/5] rounded-xl overflow-hidden bg-[#FAF7F2] dark:bg-slate-800 flex-shrink-0 flex items-center justify-center p-1">
+        <Image src={itemImage} alt={item.product.name} fill className="object-contain" sizes="80px" />
       </div>
 
       <div className="flex-1 space-y-1">
