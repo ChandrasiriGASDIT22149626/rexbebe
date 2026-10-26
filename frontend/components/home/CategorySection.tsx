@@ -425,10 +425,12 @@ export function CategorySection() {
                   {/* White Outer Ring + Soft Pastel Border + Shadow */}
                   <div className={`w-full h-full rounded-full p-2 sm:p-2.5 bg-white/95 shadow-[0_12px_32px_-6px_rgba(0,0,0,0.09)] group-hover:shadow-[0_18px_40px_-5px_rgba(244,114,182,0.2)] border-2 sm:border-[3.5px] ${cat.ringBorder} transition-all duration-300`}>
                     <div className="w-full h-full rounded-full overflow-hidden relative shadow-inner bg-slate-50">
-                      <img
+                      <Image
                         src={cat.image}
                         alt={cat.name}
-                        className="w-full h-full object-cover group-hover:scale-106 transition-transform duration-700 ease-out"
+                        fill
+                        sizes="(max-width: 640px) 195px, 245px"
+                        className="object-cover group-hover:scale-106 transition-transform duration-700 ease-out"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>

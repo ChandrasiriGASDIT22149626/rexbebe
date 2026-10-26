@@ -239,6 +239,8 @@ export function CustomerReviews() {
                   <img
                     src={rev.avatar}
                     alt={rev.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-11 h-11 rounded-full object-cover border-2 border-pink-200 shadow-sm"
                   />
                   <div>

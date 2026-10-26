@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -158,13 +159,12 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                               className="group block p-2.5 rounded-2xl hover:bg-purple-50/50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-purple-100 dark:hover:border-slate-700"
                             >
                               <div className="aspect-square bg-purple-50 dark:bg-slate-800 rounded-xl overflow-hidden mb-2 relative">
-                                <img
+                                <Image
                                   src={prod.images[0]?.url || '/images/products/organic-onesie.jpg'}
                                   alt={prod.name}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src = '/images/products/organic-onesie.jpg';
-                                  }}
+                                  fill
+                                  sizes="120px"
+                                  className="object-cover group-hover:scale-105 transition-transform"
                                 />
                               </div>
                               <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate group-hover:text-purple-600 dark:group-hover:text-purple-400">
@@ -211,14 +211,13 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                             onClick={onClose}
                             className="flex items-center space-x-4 p-3 rounded-2xl border border-purple-100 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-purple-50/50 dark:hover:bg-slate-800/50 transition-all group shadow-xs"
                           >
-                            <div className="w-16 h-16 bg-purple-50 dark:bg-slate-800 rounded-xl overflow-hidden flex-shrink-0">
-                              <img
+                            <div className="w-16 h-16 bg-purple-50 dark:bg-slate-800 rounded-xl overflow-hidden flex-shrink-0 relative">
+                              <Image
                                 src={product.images[0]?.url || '/images/products/organic-onesie.jpg'}
                                 alt={product.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = '/images/products/organic-onesie.jpg';
-                                }}
+                                fill
+                                sizes="64px"
+                                className="object-cover group-hover:scale-105 transition-transform"
                               />
                             </div>
                             <div className="flex-1 min-w-0">
