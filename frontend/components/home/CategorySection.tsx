@@ -12,7 +12,7 @@ const DEFAULT_CATEGORIES = [
     name: 'NEWBORN',
     subtitle: 'First little moments',
     href: '/baby',
-    image: '/images/products/organic-onesie.jpg',
+    image: '/images/products/insta-cocomelon-family-cream.jpg',
     bg: 'from-pink-100/80 via-rose-50/70 to-pink-50/60',
     ringBorder: 'border-pink-300 group-hover:border-pink-400',
     dotBg: 'bg-pink-400',
@@ -22,7 +22,7 @@ const DEFAULT_CATEGORIES = [
     name: 'BABY GIRLS',
     subtitle: 'Sweet little looks',
     href: '/girls',
-    image: '/images/products/baby-girl-fashion.jpg',
+    image: '/images/products/insta-labubu-baby-girl.jpg',
     bg: 'from-purple-100/80 via-pink-50/70 to-peach-50/60',
     ringBorder: 'border-purple-300 group-hover:border-purple-400',
     dotBg: 'bg-purple-400',
@@ -32,7 +32,7 @@ const DEFAULT_CATEGORIES = [
     name: 'BABY BOYS',
     subtitle: 'Everyday adventures',
     href: '/boys',
-    image: '/images/products/baby-boy-fashion.jpg',
+    image: '/images/products/insta-peppa-wooden-bear.jpg',
     bg: 'from-sky-100/80 via-blue-50/70 to-cyan-50/60',
     ringBorder: 'border-sky-300 group-hover:border-sky-400',
     dotBg: 'bg-sky-400',
@@ -42,7 +42,7 @@ const DEFAULT_CATEGORIES = [
     name: 'DRESSES',
     subtitle: 'Made to twirl',
     href: '/shop?category=Dresses',
-    image: '/images/products/editorial-baby-lifestyle.jpg',
+    image: '/images/products/insta-cocomelon-mom-baby.jpg',
     bg: 'from-rose-100/80 via-pink-50/70 to-rose-50/60',
     ringBorder: 'border-rose-300 group-hover:border-rose-400',
     dotBg: 'bg-rose-400',
@@ -52,21 +52,21 @@ const DEFAULT_CATEGORIES = [
     name: 'ROMPERS',
     subtitle: 'Soft everyday comfort',
     href: '/shop?category=Rompers',
-    image: '/images/products/baby-boy-adventure.jpg',
+    image: '/images/products/insta-cocomelon-pouf.jpg',
     bg: 'from-emerald-100/80 via-mint-50/70 to-teal-50/60',
     ringBorder: 'border-emerald-300 group-hover:border-emerald-400',
     dotBg: 'bg-emerald-400',
     badge: '🌿',
   },
   {
-    name: 'SETS',
-    subtitle: 'Little looks, perfectly paired',
-    href: '/new-in',
-    image: '/images/products/hero-nursery.jpg',
-    bg: 'from-amber-100/80 via-orange-50/70 to-amber-50/60',
+    name: 'NURSERY & TOYS',
+    subtitle: 'Gentle Montessori play',
+    href: '/shop?category=nursery-toys',
+    image: '/images/products/insta-baby-bluey-gym.jpg',
+    bg: 'from-amber-100/80 via-orange-50/70 to-yellow-50/60',
     ringBorder: 'border-amber-300 group-hover:border-amber-400',
     dotBg: 'bg-amber-400',
-    badge: '🎀',
+    badge: '🧸',
   },
 ];
 
@@ -429,6 +429,7 @@ export function CategorySection() {
                         src={cat.image}
                         alt={cat.name}
                         fill
+                        unoptimized
                         sizes="(max-width: 640px) 195px, 245px"
                         className="object-cover group-hover:scale-106 transition-transform duration-700 ease-out"
                       />
