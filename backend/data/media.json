@@ -655,5 +655,95 @@
     "category": "products",
     "uploadedAt": "2026-10-26T09:17:48.244Z",
     "isSystem": true
+  },
+  {
+    "id": "med-ig-1",
+    "name": "insta-peppa-wooden-bear.jpg",
+    "url": "/images/products/insta-peppa-wooden-bear.jpg",
+    "size": "341 KB",
+    "category": "social",
+    "uploadedAt": "2026-10-26T09:31:37.747Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-ig-2",
+    "name": "insta-cocomelon-family-cream.jpg",
+    "url": "/images/products/insta-cocomelon-family-cream.jpg",
+    "size": "482 KB",
+    "category": "social",
+    "uploadedAt": "2026-10-26T09:31:37.748Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-ig-3",
+    "name": "insta-cocomelon-mom-baby.jpg",
+    "url": "/images/products/insta-cocomelon-mom-baby.jpg",
+    "size": "378 KB",
+    "category": "social",
+    "uploadedAt": "2026-10-26T09:31:37.748Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-ig-4",
+    "name": "insta-cocomelon-pink-gift.jpg",
+    "url": "/images/products/insta-cocomelon-pink-gift.jpg",
+    "size": "489 KB",
+    "category": "social",
+    "uploadedAt": "2026-10-26T09:31:37.748Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-ig-5",
+    "name": "insta-labubu-parents.jpg",
+    "url": "/images/products/insta-labubu-parents.jpg",
+    "size": "297 KB",
+    "category": "social",
+    "uploadedAt": "2026-10-26T09:31:37.748Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-ig-6",
+    "name": "insta-family-stitch-dinoboy.jpg",
+    "url": "/images/products/insta-family-stitch-dinoboy.jpg",
+    "size": "335 KB",
+    "category": "social",
+    "uploadedAt": "2026-10-26T09:31:37.748Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-ig-7",
+    "name": "insta-labubu-baby-girl.jpg",
+    "url": "/images/products/insta-labubu-baby-girl.jpg",
+    "size": "371 KB",
+    "category": "social",
+    "uploadedAt": "2026-10-26T09:31:37.748Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-ig-8",
+    "name": "insta-cocomelon-pouf.jpg",
+    "url": "/images/products/insta-cocomelon-pouf.jpg",
+    "size": "343 KB",
+    "category": "social",
+    "uploadedAt": "2026-10-26T09:31:37.748Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-ig-9",
+    "name": "insta-baby-bluey-gym.jpg",
+    "url": "/images/products/insta-baby-bluey-gym.jpg",
+    "size": "183 KB",
+    "category": "social",
+    "uploadedAt": "2026-10-26T09:31:37.748Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-ig-10",
+    "name": "insta-peppa-baby-friends.jpg",
+    "url": "/images/products/insta-peppa-baby-friends.jpg",
+    "size": "360 KB",
+    "category": "social",
+    "uploadedAt": "2026-10-26T09:31:37.748Z",
+    "isSystem": true
   }
 ]

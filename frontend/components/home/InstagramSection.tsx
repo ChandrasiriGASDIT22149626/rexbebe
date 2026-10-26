@@ -7,11 +7,16 @@ import { Instagram, Heart, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-
 import { useAdminData } from '../../hooks/AdminContext';
 
 const DEFAULT_INSTA_POSTS = [
-  { id: 1, image: '/images/products/organic-onesie.jpg', likes: '1.2k', handle: '@rexbebe_baby' },
-  { id: 2, image: '/images/products/wooden-gym.jpg', likes: '890', handle: '@scandi_nursery' },
-  { id: 3, image: '/images/products/hero-nursery.jpg', likes: '2.4k', handle: '@petite_reves' },
-  { id: 4, image: '/images/products/baby-girl-fashion.jpg', likes: '1.8k', handle: '@little_luna' },
-  { id: 5, image: '/images/products/baby-boy-adventure.jpg', likes: '3.1k', handle: '@cashmere_cuddles' },
+  { id: 1, image: '/images/products/insta-peppa-wooden-bear.jpg', likes: '2.8k', handle: '@peppa_smiles' },
+  { id: 2, image: '/images/products/insta-cocomelon-family-cream.jpg', likes: '3.5k', handle: '@cocomelon_cozy' },
+  { id: 3, image: '/images/products/insta-cocomelon-mom-baby.jpg', likes: '4.2k', handle: '@mama_and_mini' },
+  { id: 4, image: '/images/products/insta-cocomelon-pink-gift.jpg', likes: '1.9k', handle: '@gift_of_gentle' },
+  { id: 5, image: '/images/products/insta-labubu-parents.jpg', likes: '3.7k', handle: '@samantha_and_noah' },
+  { id: 6, image: '/images/products/insta-family-stitch-dinoboy.jpg', likes: '5.1k', handle: '@family_moments_lk' },
+  { id: 7, image: '/images/products/insta-labubu-baby-girl.jpg', likes: '2.6k', handle: '@little_labubu' },
+  { id: 8, image: '/images/products/insta-cocomelon-pouf.jpg', likes: '3.3k', handle: '@cloud_soft_baby' },
+  { id: 9, image: '/images/products/insta-baby-bluey-gym.jpg', likes: '4.8k', handle: '@bluey_playtime' },
+  { id: 10, image: '/images/products/insta-peppa-baby-friends.jpg', likes: '2.9k', handle: '@little_explorers' },
 ];
 
 export function InstagramSection() {
@@ -309,7 +314,8 @@ export function InstagramSection() {
                     src={post.image}
                     alt="REXBEBE Instagram moment"
                     fill
-                    className="object-cover group-hover/item:scale-108 transition-transform duration-700 ease-out"
+                    unoptimized
+                    className="object-cover object-top group-hover/item:scale-108 transition-transform duration-700 ease-out"
                   />
                   
                   {/* Hover Overlay with Instagram Like Badge */}

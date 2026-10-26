@@ -284,33 +284,63 @@
     "posts": [
       {
         "id": "ig-1",
-        "image": "/images/products/organic-onesie.jpg",
-        "likes": "1.2k",
-        "handle": "@rexbebe_baby"
+        "image": "/images/products/insta-peppa-wooden-bear.jpg",
+        "likes": "2.8k",
+        "handle": "@peppa_smiles"
       },
       {
         "id": "ig-2",
-        "image": "/images/products/wooden-gym.jpg",
-        "likes": "890",
-        "handle": "@scandi_nursery"
+        "image": "/images/products/insta-cocomelon-family-cream.jpg",
+        "likes": "3.5k",
+        "handle": "@cocomelon_cozy"
       },
       {
         "id": "ig-3",
-        "image": "/images/products/hero-nursery.jpg",
-        "likes": "2.4k",
-        "handle": "@petite_reves"
+        "image": "/images/products/insta-cocomelon-mom-baby.jpg",
+        "likes": "4.2k",
+        "handle": "@mama_and_mini"
       },
       {
         "id": "ig-4",
-        "image": "/images/products/baby-girl-fashion.jpg",
-        "likes": "1.8k",
-        "handle": "@little_luna"
+        "image": "/images/products/insta-cocomelon-pink-gift.jpg",
+        "likes": "1.9k",
+        "handle": "@gift_of_gentle"
       },
       {
         "id": "ig-5",
-        "image": "/images/products/baby-boy-adventure.jpg",
-        "likes": "3.1k",
-        "handle": "@cashmere_cuddles"
+        "image": "/images/products/insta-labubu-parents.jpg",
+        "likes": "3.7k",
+        "handle": "@samantha_and_noah"
+      },
+      {
+        "id": "ig-6",
+        "image": "/images/products/insta-family-stitch-dinoboy.jpg",
+        "likes": "5.1k",
+        "handle": "@family_moments_lk"
+      },
+      {
+        "id": "ig-7",
+        "image": "/images/products/insta-labubu-baby-girl.jpg",
+        "likes": "2.6k",
+        "handle": "@little_labubu"
+      },
+      {
+        "id": "ig-8",
+        "image": "/images/products/insta-cocomelon-pouf.jpg",
+        "likes": "3.3k",
+        "handle": "@cloud_soft_baby"
+      },
+      {
+        "id": "ig-9",
+        "image": "/images/products/insta-baby-bluey-gym.jpg",
+        "likes": "4.8k",
+        "handle": "@bluey_playtime"
+      },
+      {
+        "id": "ig-10",
+        "image": "/images/products/insta-peppa-baby-friends.jpg",
+        "likes": "2.9k",
+        "handle": "@little_explorers"
       }
     ]
   }
