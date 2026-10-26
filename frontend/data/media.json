@@ -700,5 +700,32 @@
     "category": "banners",
     "uploadedAt": "2026-10-26T08:54:16.404Z",
     "isSystem": true
+  },
+  {
+    "id": "med-rev-1",
+    "name": "review-cocomelon-mom-baby.jpg",
+    "url": "/images/products/review-cocomelon-mom-baby.jpg",
+    "size": "378 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-26T09:17:48.243Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-rev-2",
+    "name": "review-labubu-family-parents.jpg",
+    "url": "/images/products/review-labubu-family-parents.jpg",
+    "size": "297 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-26T09:17:48.244Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-rev-3",
+    "name": "review-rexbebe-family-four.jpg",
+    "url": "/images/products/review-rexbebe-family-four.jpg",
+    "size": "335 KB",
+    "category": "products",
+    "uploadedAt": "2026-10-26T09:17:48.244Z",
+    "isSystem": true
   }
 ]

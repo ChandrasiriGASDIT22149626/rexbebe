@@ -12,11 +12,11 @@ const DEFAULT_REVIEWS = [
     role: 'Newborn Mom',
     location: 'Colombo, Sri Lanka',
     rating: 5,
-    text: 'The Aurelia cashmere romper is insanely soft! My 4-month-old daughter looks adorable and sleeps so comfortably in it. The quality exceeds luxury European boutiques.',
+    text: 'The organic cotton tee is insanely soft! My 4-month-old looks adorable and smiles so comfortably in it. The quality exceeds luxury European boutiques.',
     verified: true,
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
-    productImage: '/images/products/organic-onesie.jpg',
-    productName: 'Aurelia Organic Cashmere Romper',
+    productImage: '/images/products/review-cocomelon-mom-baby.jpg',
+    productName: 'Cocomelon Organic Cotton Tee',
     badgeEmoji: '🧸',
   },
   {
@@ -24,11 +24,11 @@ const DEFAULT_REVIEWS = [
     role: 'Parents of 6-month-old',
     location: 'Kandy, Sri Lanka',
     rating: 5,
-    text: 'The wooden play gym is a masterpiece. Solid beechwood with hand-crocheted rattles that keep our little boy mesmerized for hours. Packaging was gorgeous!',
+    text: 'The Labubu romper is a masterpiece! Cloud-soft fabric that keeps our little one cozy and smiling for hours. Packaging was gorgeous!',
     verified: true,
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    productImage: '/images/products/baby-boy-adventure.jpg',
-    productName: 'Nordic Artisan Wooden Play Gym',
+    productImage: '/images/products/review-labubu-family-parents.jpg',
+    productName: 'Labubu Pastel Infant Romper',
     badgeEmoji: '👶',
   },
   {
@@ -36,11 +36,11 @@ const DEFAULT_REVIEWS = [
     role: 'Pediatrician & Mom',
     location: 'Galle, Sri Lanka',
     rating: 5,
-    text: 'As a pediatrician and mom, I am super picky about fabrics. REXBEBE’s French linen swaddles are 100% breathable and get softer after every single wash.',
+    text: 'As a pediatrician and mom, I am super picky about fabrics. REXBEBE\'s organic cotton sets are 100% breathable and get softer after every single wash.',
     verified: true,
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80',
-    productImage: '/images/products/editorial-baby-lifestyle.jpg',
-    productName: 'Maison Luxe Organic Linen Swaddle',
+    productImage: '/images/products/review-rexbebe-family-four.jpg',
+    productName: 'Signature Dino Boy & Character Set',
     badgeEmoji: '🐰',
   },
 ];
@@ -197,14 +197,14 @@ export function CustomerReviews() {
                 <div className="absolute bottom-2.5 right-2.5 text-xs opacity-75 pointer-events-none select-none z-20">🦋</div>
 
                 {/* Product Preview Image Header Banner */}
-                <div className="relative w-full h-44 rounded-2xl overflow-hidden mb-5 bg-slate-100 shadow-inner">
+                <div className="relative w-full h-48 sm:h-52 rounded-2xl overflow-hidden mb-5 bg-slate-100 shadow-inner">
                   <Image
                     src={rev.productImage}
                     alt={rev.productName}
                     fill
-                    className="object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                    className="object-cover object-top group-hover:scale-108 transition-transform duration-700 ease-out"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent" />
                   
                   {/* Product Name Overlay */}
                   <div className="absolute bottom-3 left-3 right-3 text-white">
