@@ -10,9 +10,8 @@ import { useCart } from '../../hooks/useCart';
 import { WishlistButton } from './WishlistButton';
 import { QuickViewModal } from './QuickViewModal';
 
-export function ProductCard({ product }: { product: Product }) {
+export const ProductCard = React.memo(function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
-  const [isHovered, setIsHovered] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [selectedColorName, setSelectedColorName] = useState<string | null>(null);
@@ -101,9 +100,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <>
       <div
-        className="group relative flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/90 dark:border-slate-800 hover:border-amber-400/80 dark:hover:border-amber-400/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 h-full overflow-hidden"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        className="group relative flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/90 dark:border-slate-800 hover:border-amber-400/80 dark:hover:border-amber-400/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-300 ease-out will-change-transform h-full overflow-hidden"
       >
         {/* Product Image Container (Fixed 4:5 Aspect Ratio, Edge-to-Edge Fill) */}
         <div className="relative w-full aspect-[4/5] flex-shrink-0 bg-stone-100 dark:bg-slate-950/80 overflow-hidden cursor-pointer select-none">
@@ -123,8 +120,10 @@ export function ProductCard({ product }: { product: Product }) {
               alt={product.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className={`w-full h-full object-cover object-center transition-all duration-300 ease-in-out ${
-                images.length > 1 && isHovered && !selectedColorName ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
+              className={`w-full h-full object-cover object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform ${
+                images.length > 1 && !selectedColorName
+                  ? 'group-hover:opacity-0 group-hover:scale-105 opacity-100 scale-100'
+                  : 'group-hover:scale-105 opacity-100 scale-100'
               }`}
               priority={false}
               onError={() => {
@@ -141,9 +140,7 @@ export function ProductCard({ product }: { product: Product }) {
                 alt={`${product.name} back view`}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className={`w-full h-full object-cover object-center transition-all duration-300 ease-in-out ${
-                  isHovered ? 'opacity-100 scale-105' : 'opacity-0 scale-100'
-                }`}
+                className="w-full h-full object-cover object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform opacity-0 scale-100 group-hover:opacity-100 group-hover:scale-105"
                 onError={() => {
                   if (currentSecSrc !== currentImgSrc) {
                     setCurrentSecSrc(currentImgSrc);
@@ -313,12 +310,14 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
       </div>
 
-      {/* Interactive Quick View Modal */}
-      <QuickViewModal
-        product={product}
-        isOpen={isQuickViewOpen}
-        onClose={() => setIsQuickViewOpen(false)}
-      />
+      {/* Interactive Quick View Modal (Mounted on Demand) */}
+      {isQuickViewOpen && (
+        <QuickViewModal
+          product={product}
+          isOpen={isQuickViewOpen}
+          onClose={() => setIsQuickViewOpen(false)}
+        />
+      )}
     </>
   );
-}
+});

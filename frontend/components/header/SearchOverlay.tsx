@@ -164,7 +164,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                                   alt={prod.name}
                                   fill
                                   sizes="120px"
-                                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform"
+                                  className="w-full h-full object-cover object-center pointer-events-none group-hover:scale-105 transition-transform duration-300 ease-out will-change-transform"
                                 />
                               </div>
                               <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate group-hover:text-purple-600 dark:group-hover:text-purple-400">
@@ -217,7 +217,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                                 alt={product.name}
                                 fill
                                 sizes="64px"
-                                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform"
+                                className="w-full h-full object-cover object-center pointer-events-none group-hover:scale-105 transition-transform duration-300 ease-out will-change-transform"
                               />
                             </div>
                             <div className="flex-1 min-w-0">
