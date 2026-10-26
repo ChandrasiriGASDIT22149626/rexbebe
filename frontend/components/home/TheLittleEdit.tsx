@@ -171,12 +171,13 @@ export function TheLittleEdit() {
 
               {/* Visual Anchor & Secondary Decorative Floating Cutouts */}
               <div className="lg:col-span-7 relative z-10 flex justify-center">
-                <div className="relative w-full max-w-lg aspect-[4/3] rounded-[30px] overflow-hidden shadow-2xl border-4 border-white/95 bg-gradient-to-br from-sky-50 to-pink-50">
+                <div className="relative w-full max-w-lg aspect-[1024/935] rounded-[30px] overflow-hidden shadow-2xl border-4 border-white/95 bg-gradient-to-br from-sky-50 to-pink-50">
                   <Image
-                    src="/images/products/baby-boy-adventure.jpg"
-                    alt="The Little Edit Curation"
+                    src="/images/products/cocomelon-tshirt-lifestyle.jpg"
+                    alt="The Little Edit Cocomelon T-Shirt"
                     fill
-                    className="object-cover transition-transform duration-700 hover:scale-105"
+                    priority
+                    className="object-cover object-[center_top] transition-transform duration-700 hover:scale-103"
                   />
 
                   {/* Floating Secondary Decorative Product Card */}
@@ -184,24 +185,24 @@ export function TheLittleEdit() {
                     animate={{ y: [0, -8, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                     whileHover={{ scale: 1.05 }}
-                    className="absolute bottom-4 left-4 p-3 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-white/95 flex items-center space-x-3 max-w-[210px]"
+                    className="absolute bottom-4 left-4 p-2.5 sm:p-3 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-white/95 flex items-center space-x-3 max-w-[210px] z-20"
                   >
-                    <div className="w-11 h-11 rounded-xl overflow-hidden relative flex-shrink-0 border border-emerald-100 shadow-inner">
+                    <div className="w-11 h-11 rounded-xl overflow-hidden relative flex-shrink-0 border border-pink-100 shadow-inner">
                       <Image
-                        src="/images/products/organic-onesie.jpg"
-                        alt="Organic Onesie"
+                        src="/images/products/cocomelon-tshirt-thumb.jpg"
+                        alt="Cocomelon T-Shirt"
                         fill
                         className="object-cover"
                       />
                     </div>
                     <div>
-                      <p className="text-xs font-extrabold text-slate-900 font-heading truncate">Sage Onesie Set</p>
-                      <p className="text-[11px] text-emerald-600 font-extrabold mt-0.5">LKR 3,850</p>
+                      <p className="text-xs font-extrabold text-slate-900 font-heading truncate">Cocomelon T-Shirt</p>
+                      <p className="text-[11px] text-pink-600 font-extrabold mt-0.5">LKR 450</p>
                     </div>
                   </motion.div>
 
                   {/* Floating Decorative Badge */}
-                  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-md border border-pink-100 flex items-center space-x-1.5 text-xs font-extrabold text-slate-800">
+                  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-md border border-pink-100 flex items-center space-x-1.5 text-xs font-extrabold text-slate-800 z-20">
                     <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-400" />
                     <span>Editor Choice</span>
                   </div>
