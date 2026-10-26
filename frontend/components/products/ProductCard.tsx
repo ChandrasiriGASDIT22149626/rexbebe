@@ -105,11 +105,11 @@ export function ProductCard({ product }: { product: Product }) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Product Image Container (Fixed 4:5 Aspect Ratio & Consistent Soft Cream Background) */}
-        <div className="relative w-full aspect-[4/5] flex-shrink-0 bg-[#FAF7F2] dark:bg-slate-950/80 overflow-hidden flex items-center justify-center p-2 sm:p-2.5 cursor-pointer select-none">
+        {/* Product Image Container (Fixed 4:5 Aspect Ratio, Edge-to-Edge Fill) */}
+        <div className="relative w-full aspect-[4/5] flex-shrink-0 bg-stone-100 dark:bg-slate-950/80 overflow-hidden cursor-pointer select-none">
           <div
             onClick={() => setIsQuickViewOpen(true)}
-            className="relative w-full h-full flex items-center justify-center"
+            className="relative w-full h-full overflow-hidden"
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
@@ -123,8 +123,8 @@ export function ProductCard({ product }: { product: Product }) {
               alt={product.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className={`object-contain object-center transition-all duration-300 ease-in-out ${
-                images.length > 1 && isHovered && !selectedColorName ? 'opacity-0 scale-102' : 'opacity-100 scale-100'
+              className={`w-full h-full object-cover object-center transition-all duration-300 ease-in-out ${
+                images.length > 1 && isHovered && !selectedColorName ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
               }`}
               priority={false}
               onError={() => {
@@ -141,8 +141,8 @@ export function ProductCard({ product }: { product: Product }) {
                 alt={`${product.name} back view`}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className={`object-contain object-center transition-all duration-300 ease-in-out ${
-                  isHovered ? 'opacity-100 scale-102' : 'opacity-0 scale-100'
+                className={`w-full h-full object-cover object-center transition-all duration-300 ease-in-out ${
+                  isHovered ? 'opacity-100 scale-105' : 'opacity-0 scale-100'
                 }`}
                 onError={() => {
                   if (currentSecSrc !== currentImgSrc) {
