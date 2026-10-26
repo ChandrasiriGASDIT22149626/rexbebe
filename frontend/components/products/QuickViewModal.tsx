@@ -76,9 +76,9 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
   const images = product.images && product.images.length > 0
     ? product.images.map((img) => img.url)
-    : ['/images/products/organic-onesie.jpg'];
+    : ['/images/products/organic-onesie.webp'];
 
-  const currentImageUrl = images[selectedImageIndex] || images[0] || '/images/products/organic-onesie.jpg';
+  const currentImageUrl = images[selectedImageIndex] || images[0] || '/images/products/organic-onesie.webp';
 
   const totalStock = product.stockQuantity ?? (product.variants || []).reduce((sum, v) => sum + (v.stockQuantity || 0), 0);
   const isSoldOut = totalStock <= 0;

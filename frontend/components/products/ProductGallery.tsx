@@ -32,7 +32,7 @@ export function ProductGallery({
   hasAuthenticImage = true,
 }: ProductGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<string>(
-    activeImageUrl || images[0]?.url || '/images/products/organic-onesie.jpg'
+    activeImageUrl || images[0]?.url || '/images/products/organic-onesie.webp'
   );
 
   // Full-screen / Inspection Lightbox State

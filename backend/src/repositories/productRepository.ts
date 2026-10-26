@@ -390,7 +390,7 @@ export class ProductRepository {
       images:
         data.images && data.images.length > 0
           ? data.images
-          : [{ id: `img-${Date.now()}`, url: '/images/products/organic-onesie.jpg', alt: data.name, position: 1 }],
+          : [{ id: `img-${Date.now()}`, url: '/images/products/organic-onesie.webp', alt: data.name, position: 1 }],
       variants:
         data.variants && data.variants.length > 0
           ? data.variants

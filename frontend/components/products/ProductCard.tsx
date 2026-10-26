@@ -22,8 +22,19 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
   const [selectedColorName, setSelectedColorName] = useState<string | null>(null);
 
   const images = product.images || [];
-  const primaryImage = images[0]?.url || '/images/products/organic-onesie.jpg';
+  const primaryImage = images[0]?.url || '/images/products/organic-onesie.webp';
   const secondaryImage = images[1]?.url || primaryImage;
+
+  // Resolve thumbnail variant for ultra-light product grid rendering
+  const getCardThumbnailUrl = (url: string) => {
+    if (!url) return '/images/products/organic-onesie-thumb.webp';
+    if (url.includes('-thumb.')) return url;
+    if (url.endsWith('.webp')) return url.replace('.webp', '-thumb.webp');
+    if (url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.png')) {
+      return url.replace(/\.[^.]+$/, '-thumb.webp');
+    }
+    return url;
+  };
 
   // Resolve colour-specific image if a colour is selected/hovered
   const displayImage = React.useMemo(() => {
@@ -38,15 +49,15 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
     return matchVar?.imageUrl || primaryImage;
   }, [selectedColorName, images, product.variants, primaryImage]);
 
-  const [currentImgSrc, setCurrentImgSrc] = useState<string>(displayImage);
-  const [currentSecSrc, setCurrentSecSrc] = useState<string>(secondaryImage);
+  const [currentImgSrc, setCurrentImgSrc] = useState<string>(() => getCardThumbnailUrl(displayImage));
+  const [currentSecSrc, setCurrentSecSrc] = useState<string>(() => getCardThumbnailUrl(secondaryImage));
 
   React.useEffect(() => {
-    setCurrentImgSrc(displayImage);
+    setCurrentImgSrc(getCardThumbnailUrl(displayImage));
   }, [displayImage]);
 
   React.useEffect(() => {
-    setCurrentSecSrc(secondaryImage);
+    setCurrentSecSrc(getCardThumbnailUrl(secondaryImage));
   }, [secondaryImage]);
 
   const defaultVariant = product.variants?.[0] || {
@@ -146,8 +157,11 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
               priority={false}
               onError={() => {
                 setIsImgLoaded(true);
-                if (currentImgSrc !== '/images/products/organic-onesie.jpg') {
-                  setCurrentImgSrc('/images/products/organic-onesie.jpg');
+                if (currentImgSrc.includes('-thumb.webp')) {
+                  // If thumbnail fails to load, gracefully fallback to main image
+                  setCurrentImgSrc(displayImage);
+                } else if (currentImgSrc !== '/images/products/organic-onesie.webp') {
+                  setCurrentImgSrc('/images/products/organic-onesie.webp');
                 }
               }}
             />
@@ -163,7 +177,9 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
                 decoding="async"
                 className="w-full h-full object-contain object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform opacity-0 scale-100 group-hover:opacity-100 group-hover:scale-105"
                 onError={() => {
-                  if (currentSecSrc !== currentImgSrc) {
+                  if (currentSecSrc.includes('-thumb.webp')) {
+                    setCurrentSecSrc(secondaryImage);
+                  } else if (currentSecSrc !== currentImgSrc) {
                     setCurrentSecSrc(currentImgSrc);
                   }
                 }}
