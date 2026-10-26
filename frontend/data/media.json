@@ -664,5 +664,41 @@
     "category": "banners",
     "uploadedAt": "2026-01-15T08:00:00.000Z",
     "isSystem": true
+  },
+  {
+    "id": "med-lb-1",
+    "name": "lookbook-cocomelon-pink-gift.jpg",
+    "url": "/images/products/lookbook-cocomelon-pink-gift.jpg",
+    "size": "489 KB",
+    "category": "banners",
+    "uploadedAt": "2026-10-26T08:54:16.402Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-lb-2",
+    "name": "lookbook-peppa-pig-blue.jpg",
+    "url": "/images/products/lookbook-peppa-pig-blue.jpg",
+    "size": "360 KB",
+    "category": "banners",
+    "uploadedAt": "2026-10-26T08:54:16.404Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-lb-3",
+    "name": "lookbook-cocomelon-baby.jpg",
+    "url": "/images/products/lookbook-cocomelon-baby.jpg",
+    "size": "343 KB",
+    "category": "banners",
+    "uploadedAt": "2026-10-26T08:54:16.404Z",
+    "isSystem": true
+  },
+  {
+    "id": "med-lb-4",
+    "name": "lookbook-labubu-purple.jpg",
+    "url": "/images/products/lookbook-labubu-purple.jpg",
+    "size": "371 KB",
+    "category": "banners",
+    "uploadedAt": "2026-10-26T08:54:16.404Z",
+    "isSystem": true
   }
 ]
