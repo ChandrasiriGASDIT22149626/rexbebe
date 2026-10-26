@@ -139,10 +139,10 @@ export function LittleEssentials() {
                 className="relative aspect-[4/3] rounded-[34px] overflow-hidden shadow-2xl border-6 border-white/95 bg-gradient-to-tr from-pink-100 to-sky-100"
               >
                 <Image
-                  src="/images/products/editorial-baby-lifestyle.jpg"
+                  src="/images/products/pooh-baby-lifestyle.jpg"
                   alt="REXBEBE Little Essentials"
                   fill
-                  className="object-cover transition-transform duration-700 hover:scale-105"
+                  className="object-cover object-center transition-transform duration-700 hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent" />
               </motion.div>
