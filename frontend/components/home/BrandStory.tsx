@@ -163,8 +163,8 @@ export function BrandStory() {
                 className="absolute -bottom-6 -right-2 sm:-right-10 lg:-right-12 w-32 sm:w-44 aspect-square rounded-[24px] overflow-hidden shadow-2xl border-4 border-white/95 bg-white z-20"
               >
                 <Image
-                  src="/images/products/wooden-gym.jpg"
-                  alt="Baby Playing with Wooden Gym"
+                  src="/images/products/baby-bluey-gym.jpg"
+                  alt="Baby in Bluey T-shirt Playing under Wooden Gym"
                   fill
                   className="object-cover transition-transform duration-700 hover:scale-105"
                 />
