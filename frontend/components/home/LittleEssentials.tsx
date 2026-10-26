@@ -157,20 +157,20 @@ export function LittleEssentials() {
                 whileHover={{ rotate: 0, scale: 1.05 }}
                 className="absolute -top-6 -left-3 sm:-left-6 w-40 sm:w-50 p-2.5 sm:p-3 bg-white/95 backdrop-blur-xl rounded-[28px] shadow-2xl border-4 border-white/95 z-20"
               >
-                <div className="relative aspect-square rounded-2xl overflow-hidden bg-pink-50 border border-pink-100">
+                <div className="relative aspect-square rounded-2xl overflow-hidden bg-amber-50 border border-amber-100">
                   <Image
-                    src="/images/products/baby-girl-fashion.jpg"
-                    alt="Floating Product Cutout"
+                    src="/images/products/yellow-pooh-baby-card.jpg"
+                    alt="Sunshine Cotton Pooh Tee"
                     fill
-                    className="object-cover"
+                    className="object-cover object-[center_20%]"
                   />
-                  <span className="absolute top-2 left-2 px-2.5 py-0.5 bg-pink-500 text-white text-[9px] font-bold uppercase rounded-full shadow-xs">
-                    MUST-HAVE 🎀
+                  <span className="absolute top-2 left-2 px-2.5 py-0.5 bg-amber-500 text-white text-[9px] font-bold uppercase rounded-full shadow-xs">
+                    MUST-HAVE 💛
                   </span>
                 </div>
                 <div className="mt-2 px-1">
-                  <p className="text-xs font-bold font-heading text-slate-900">Soft Cotton Twirl Dress</p>
-                  <p className="text-[11px] text-pink-600 font-extrabold mt-0.5">LKR 4,990</p>
+                  <p className="text-xs font-bold font-heading text-slate-900">Sunshine Cotton Pooh Tee</p>
+                  <p className="text-[11px] text-amber-700 font-extrabold mt-0.5">LKR 4,990</p>
                 </div>
               </motion.div>
 
