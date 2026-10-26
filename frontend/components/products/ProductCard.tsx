@@ -120,7 +120,7 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
               alt={product.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className={`w-full h-full object-contain object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform ${
+              className={`w-full h-full object-contain object-center p-3 sm:p-4 lg:p-5 pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform ${
                 images.length > 1 && !selectedColorName
                   ? 'group-hover:opacity-0 group-hover:scale-105 opacity-100 scale-100'
                   : 'group-hover:scale-105 opacity-100 scale-100'
@@ -140,7 +140,7 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
                 alt={`${product.name} back view`}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="w-full h-full object-contain object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform opacity-0 scale-100 group-hover:opacity-100 group-hover:scale-105"
+                className="w-full h-full object-contain object-center p-3 sm:p-4 lg:p-5 pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform opacity-0 scale-100 group-hover:opacity-100 group-hover:scale-105"
                 onError={() => {
                   if (currentSecSrc !== currentImgSrc) {
                     setCurrentSecSrc(currentImgSrc);
