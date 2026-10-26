@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Outfit, Plus_Jakarta_Sans, Fredoka } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '../hooks/useCart';
 import { WishlistProvider } from '../hooks/useWishlist';
@@ -9,6 +10,27 @@ import { VisitorTracker } from '../components/common/VisitorTracker';
 import { OrganizationJsonLd, WebSiteJsonLd } from '../components/seo/JsonLd';
 import { GoogleAnalytics } from '../components/analytics/GoogleAnalytics';
 import { SITE_URL, BRAND_NAME, generateOpenGraph, generateTwitter } from '../config/seoConfig';
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-outfit',
+  display: 'swap',
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-plus-jakarta',
+  display: 'swap',
+});
+
+const fredoka = Fredoka({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+  variable: '--font-fredoka',
+  display: 'swap',
+});
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -78,7 +100,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${outfit.variable} ${plusJakartaSans.variable} ${fredoka.variable}`} suppressHydrationWarning>
       <head>
         <OrganizationJsonLd />
         <WebSiteJsonLd />

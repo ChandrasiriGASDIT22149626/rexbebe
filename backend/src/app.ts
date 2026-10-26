@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import cors from 'cors';
+import compression from 'compression';
 import { corsOptions } from './config/cors';
 import { errorHandler } from './middleware/errorMiddleware';
 import { rateLimiter } from './middleware/rateLimitMiddleware';
@@ -32,14 +33,15 @@ const app = express();
 
 // Global Middlewares
 app.use(cors(corsOptions));
+app.use(compression());
 app.use(express.json({ limit: '15mb' }));
 app.use(rateLimiter);
 
-// Serve uploads statically
+// Serve uploads statically with long-term immutable caching & ETag
 const backendUploads = path.resolve(__dirname, '../uploads');
 const frontendUploads = path.resolve(__dirname, '../../frontend/public/uploads');
-app.use('/uploads', express.static(backendUploads, { maxAge: '1d' }));
-app.use('/uploads', express.static(frontendUploads, { maxAge: '1d' }));
+app.use('/uploads', express.static(backendUploads, { maxAge: '30d', etag: true }));
+app.use('/uploads', express.static(frontendUploads, { maxAge: '30d', etag: true }));
 
 // Root API Index & Health Check
 app.get(['/', '/api'], (req, res) => {

@@ -3,12 +3,17 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { ShoppingBag, Eye, Heart } from 'lucide-react';
 import { Product } from '../../types/product';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { useCart } from '../../hooks/useCart';
 import { WishlistButton } from './WishlistButton';
-import { QuickViewModal } from './QuickViewModal';
+
+const QuickViewModal = dynamic(
+  () => import('./QuickViewModal').then((m) => m.QuickViewModal),
+  { ssr: false }
+);
 
 export const ProductCard = React.memo(function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
@@ -97,9 +102,14 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
     setTimeout(() => setIsAdding(false), 800);
   };
 
+  const [isHovered, setIsHovered] = useState(false);
+  const [isImgLoaded, setIsImgLoaded] = useState(false);
+
   return (
     <>
       <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className="group relative flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/90 dark:border-slate-800 hover:border-amber-400/80 dark:hover:border-amber-400/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-300 ease-out will-change-transform h-full overflow-hidden"
       >
         {/* Product Image Container (Fixed 4:5 Aspect Ratio, Soft Cream Background, Card 2 Reference Size) */}
@@ -114,12 +124,20 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
             }}
             aria-label={`View ${product.name}`}
           >
+            {/* Shimmer Placeholder while loading */}
+            {!isImgLoaded && (
+              <div className="absolute inset-0 bg-[#F5EFE6]/60 dark:bg-slate-800 animate-pulse rounded-lg pointer-events-none" />
+            )}
+
             {/* Primary or Colour-Specific Image */}
             <Image
               src={currentImgSrc}
               alt={product.name}
               fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
+              loading="lazy"
+              decoding="async"
+              onLoad={() => setIsImgLoaded(true)}
               className={`w-full h-full object-contain object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform ${
                 images.length > 1 && !selectedColorName
                   ? 'group-hover:opacity-0 group-hover:scale-105 opacity-100 scale-100'
@@ -127,19 +145,22 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
               }`}
               priority={false}
               onError={() => {
+                setIsImgLoaded(true);
                 if (currentImgSrc !== '/images/products/organic-onesie.jpg') {
                   setCurrentImgSrc('/images/products/organic-onesie.jpg');
                 }
               }}
             />
 
-            {/* Secondary Image for smooth lookbook preview */}
-            {images.length > 1 && !selectedColorName && (
+            {/* Secondary Image loaded strictly on card hover for smooth lookbook preview without extra network overhead */}
+            {isHovered && images.length > 1 && !selectedColorName && (
               <Image
                 src={currentSecSrc}
                 alt={`${product.name} back view`}
                 fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-contain object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform opacity-0 scale-100 group-hover:opacity-100 group-hover:scale-105"
                 onError={() => {
                   if (currentSecSrc !== currentImgSrc) {

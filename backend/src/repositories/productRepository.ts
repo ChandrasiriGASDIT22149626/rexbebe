@@ -120,6 +120,8 @@ const STORAGE_FILE_PATH = path.resolve(__dirname, '../../data/products.json');
 
 export class ProductRepository {
   private products: ProductRecord[] = [];
+  private static cachedProducts: ProductRecord[] | null = null;
+  private static lastFileMtime: number = 0;
 
   constructor() {
     this.products = this.loadFromDisk();
@@ -130,10 +132,17 @@ export class ProductRepository {
       const seedPath = path.resolve(__dirname, '../../data/products.seed.json');
 
       if (fs.existsSync(STORAGE_FILE_PATH)) {
+        const stats = fs.statSync(STORAGE_FILE_PATH);
+        if (ProductRepository.cachedProducts && stats.mtimeMs === ProductRepository.lastFileMtime) {
+          return ProductRepository.cachedProducts;
+        }
+
         const raw = fs.readFileSync(STORAGE_FILE_PATH, 'utf-8');
         try {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) {
+            ProductRepository.cachedProducts = parsed;
+            ProductRepository.lastFileMtime = stats.mtimeMs;
             return parsed;
           }
         } catch (e) {
@@ -152,6 +161,8 @@ export class ProductRepository {
           }
           fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(seedParsed, null, 2), 'utf-8');
           console.log(`[ProductRepository] Successfully seeded ${seedParsed.length} products from seed file.`);
+          ProductRepository.cachedProducts = seedParsed;
+          ProductRepository.lastFileMtime = fs.statSync(STORAGE_FILE_PATH).mtimeMs;
           return seedParsed;
         }
       }
@@ -168,6 +179,10 @@ export class ProductRepository {
         fs.mkdirSync(dir, { recursive: true });
       }
       fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(this.products, null, 2), 'utf-8');
+      ProductRepository.cachedProducts = this.products;
+      try {
+        ProductRepository.lastFileMtime = fs.statSync(STORAGE_FILE_PATH).mtimeMs;
+      } catch {}
 
       // Also persist to frontend/data/products.json so frontend and backend remain 100% in sync
       const frontendPath = path.resolve(__dirname, '../../../frontend/data/products.json');
@@ -180,7 +195,6 @@ export class ProductRepository {
   }
 
   async findAll(query?: any): Promise<ProductRecord[]> {
-    // Reload from disk to catch external changes
     this.products = this.loadFromDisk();
     let result = [...this.products];
 

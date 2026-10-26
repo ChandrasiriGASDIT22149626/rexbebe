@@ -41,16 +41,26 @@ export function Hero() {
   const fgX = useSpring(useTransform(mouseX, [-0.5, 0.5], [-65, 65]), springConfig);
   const fgY = useSpring(useTransform(mouseY, [-0.5, 0.5], [-45, 45]), springConfig);
 
+  const rafRef = useRef<number | null>(null);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
+    if (rafRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
+    rafRef.current = requestAnimationFrame(() => {
+      mouseX.set(x);
+      mouseY.set(y);
+      rafRef.current = null;
+    });
   };
 
   const handleMouseLeave = () => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -88,6 +98,8 @@ export function Hero() {
           alt="REXBEBE 3D Pastel World"
           fill
           priority
+          sizes="100vw"
+          quality={85}
           className="object-cover object-center transform scale-105 filter brightness-[1.02] contrast-[1.01]"
         />
 
@@ -187,6 +199,7 @@ export function Hero() {
               src="/images/hero/dino_mascot.png"
               alt="REXBEBE Mascot Dino"
               fill
+              sizes="(max-width: 640px) 200px, (max-width: 1024px) 320px, 440px"
               className="object-contain"
               priority
             />
@@ -216,6 +229,8 @@ export function Hero() {
               src="/images/hero/kitty_mascot.png"
               alt="REXBEBE Companion Kitty"
               fill
+              sizes="(max-width: 1024px) 160px, 210px"
+              loading="lazy"
               className="object-contain"
             />
           </motion.div>

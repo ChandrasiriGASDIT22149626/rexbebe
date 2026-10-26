@@ -172,13 +172,14 @@ export function TheLittleEdit() {
               {/* Visual Anchor & Secondary Decorative Floating Cutouts */}
               <div className="lg:col-span-7 relative z-10 flex justify-center">
                 <div className="relative w-full max-w-lg aspect-[1024/935] rounded-[30px] overflow-hidden shadow-2xl border-4 border-white/95 bg-gradient-to-br from-sky-50 to-pink-50">
-                  <Image
-                    src="/images/products/cocomelon-tshirt-lifestyle.jpg"
-                    alt="The Little Edit Cocomelon T-Shirt"
-                    fill
-                    priority
-                    className="object-cover object-[center_top] transition-transform duration-700 hover:scale-103"
-                  />
+                    <Image
+                      src="/images/products/cocomelon-tshirt-lifestyle.jpg"
+                      alt="The Little Edit Cocomelon T-Shirt"
+                      fill
+                      loading="lazy"
+                      sizes="(max-width: 1024px) 100vw, 55vw"
+                      className="object-cover object-[center_top] transition-transform duration-700 hover:scale-103"
+                    />
 
                   {/* Floating Secondary Decorative Product Card */}
                   <motion.div

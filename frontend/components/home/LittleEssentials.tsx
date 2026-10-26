@@ -142,7 +142,8 @@ export function LittleEssentials() {
                   src="/images/products/pooh-baby-lifestyle.jpg"
                   alt="REXBEBE Little Essentials"
                   fill
-                  priority
+                  loading="lazy"
+                  sizes="(max-width: 1024px) 100vw, 55vw"
                   className="object-cover object-[center_top] transition-transform duration-700 hover:scale-103"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/15 via-transparent to-transparent pointer-events-none" />

@@ -271,6 +271,14 @@ model Product {
 
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
+
+  @@index([status])
+  @@index([isFeatured])
+  @@index([isBestSeller])
+  @@index([isNewArrival])
+  @@index([categoryId])
+  @@index([gender])
+  @@index([createdAt])
 }
 
 model ProductVariant {

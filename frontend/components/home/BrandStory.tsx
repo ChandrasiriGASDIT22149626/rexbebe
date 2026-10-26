@@ -148,7 +148,8 @@ export function BrandStory() {
                   src="/images/products/plush-bears-tshirts.jpg"
                   alt="Plush Animals Wearing REXBEBE T-Shirts"
                   fill
-                  priority
+                  loading="lazy"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover transition-transform duration-700 hover:scale-103"
                 />
               </div>

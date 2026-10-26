@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { Hero } from '../components/home/Hero';
@@ -9,13 +10,25 @@ import { NewArrivals } from '../components/home/NewArrivals';
 import { LittleEssentials } from '../components/home/LittleEssentials';
 import { TheLittleEdit } from '../components/home/TheLittleEdit';
 import { BrandStory } from '../components/home/BrandStory';
-import { FeaturedCollection } from '../components/home/FeaturedCollection';
 import { WhyRexbebe } from '../components/home/WhyRexbebe';
-import { CustomerReviews } from '../components/home/CustomerReviews';
 import { Newsletter } from '../components/home/Newsletter';
-import { InstagramSection } from '../components/home/InstagramSection';
 import { getDatabaseSeoSettings } from '../services/serverSeoService';
 import { SITE_URL, BRAND_NAME, generateOpenGraph, generateTwitter } from '../config/seoConfig';
+
+const FeaturedCollection = dynamic(
+  () => import('../components/home/FeaturedCollection').then((mod) => mod.FeaturedCollection),
+  { ssr: true }
+);
+
+const CustomerReviews = dynamic(
+  () => import('../components/home/CustomerReviews').then((mod) => mod.CustomerReviews),
+  { ssr: true }
+);
+
+const InstagramSection = dynamic(
+  () => import('../components/home/InstagramSection').then((mod) => mod.InstagramSection),
+  { ssr: true }
+);
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = getDatabaseSeoSettings();

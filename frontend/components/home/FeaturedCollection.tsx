@@ -349,7 +349,8 @@ export function FeaturedCollection() {
                       src={item.image}
                       alt={item.title}
                       fill
-                      priority={isCenter}
+                      loading="lazy"
+                      sizes="(max-width: 640px) 300px, 420px"
                       className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-108"
                     />
 

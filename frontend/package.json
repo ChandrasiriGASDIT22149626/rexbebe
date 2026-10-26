@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "optimize:images": "node scripts/optimize-images.js",
     "test:seo": "node scripts/validate-seo.js",
     "test:responsive": "node scripts/validate-responsive.js"
   },

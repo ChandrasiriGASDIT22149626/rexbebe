@@ -57,7 +57,8 @@ export function Footer() {
           src="/images/hero/world_bg.jpg"
           alt="REXBEBE Pastel World Background"
           fill
-          priority
+          loading="lazy"
+          sizes="100vw"
           className="object-cover object-center opacity-40 mix-blend-soft-light filter brightness-105 contrast-100"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-white/15 to-white/40 backdrop-blur-[2px]" />

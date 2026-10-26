@@ -32,14 +32,14 @@ export function Preloader() {
       'Almost ready for playtime! 💖',
     ];
 
-    // Snappy progress duration (~1.2 seconds total load)
-    const duration = 1250;
-    const intervalTime = 25;
+    // Fast, delightful greeting (~380ms total load)
+    const duration = 380;
+    const intervalTime = 16;
     const increment = 100 / (duration / intervalTime);
 
     const timer = setInterval(() => {
       setProgress((prev) => {
-        const next = Math.min(prev + increment + (Math.random() * 2), 100);
+        const next = Math.min(prev + increment + (Math.random() * 3), 100);
         
         // Update status text
         const messageIndex = Math.min(
@@ -53,19 +53,19 @@ export function Preloader() {
           setTimeout(() => {
             setIsComplete(true);
             try { sessionStorage.setItem('rexbebe_preloaded', 'true'); } catch {}
-          }, 200);
+          }, 80);
           return 100;
         }
         return next;
       });
     }, intervalTime);
 
-    // Guaranteed fallback timeout: Never keep the preloader visible for more than 1.4s
+    // Guaranteed fallback timeout: Never keep the preloader visible for more than 500ms
     const maxSafetyTimer = setTimeout(() => {
       clearInterval(timer);
       setIsComplete(true);
       try { sessionStorage.setItem('rexbebe_preloaded', 'true'); } catch {}
-    }, 1400);
+    }, 500);
 
     return () => {
       clearInterval(timer);
