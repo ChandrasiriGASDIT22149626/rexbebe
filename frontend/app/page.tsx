@@ -32,27 +32,29 @@ const InstagramSection = dynamic(
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = getDatabaseSeoSettings();
-  const title = seo.metaTitle || `REXBEBE | Luxury Baby & Toddler Boutique Online`;
+  const rawTitle = seo.metaTitle || `REXBEBE | Luxury Baby & Toddler Boutique Online Sri Lanka`;
   const description =
     seo.metaDescription ||
-    `Curated organic cashmere rompers, French flax linen swaddles, handcrafted wooden nursery toys, and pastel baby clothes online at REXBEBE.`;
+    `Shop luxury organic baby clothes in Sri Lanka. Curated organic cashmere rompers, French flax linen swaddles, wooden nursery toys, and pastel baby clothes online with islandwide delivery.`;
   const canonical = SITE_URL;
-  const image = seo.socialShareImage || '/images/hero/world_bg.jpg';
+  const image = seo.socialShareImage || '/images/hero/world_bg.webp';
 
   return {
-    title,
+    title: {
+      absolute: rawTitle,
+    },
     description,
     alternates: {
       canonical,
     },
     openGraph: generateOpenGraph({
-      title,
+      title: rawTitle,
       description,
       url: canonical,
       image,
     }),
     twitter: generateTwitter({
-      title,
+      title: rawTitle,
       description,
       image,
     }),

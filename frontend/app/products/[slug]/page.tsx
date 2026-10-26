@@ -1,52 +1,52 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import fs from 'fs';
-import path from 'path';
+import { redirect, RedirectType, notFound } from 'next/navigation';
 import { ProductDetailView } from '../../../components/products/ProductDetailView';
-import { generateProductMetadata } from '../../../config/seoConfig';
-import { Product } from '../../../types/product';
+import {
+  getServerProductBySlug,
+  buildProductMetadata,
+  checkServerRedirect,
+} from '../../../services/serverSeoService';
+import { formatSeoTitle } from '../../../config/seoConfig';
 
 interface Props {
   params: { slug: string };
 }
 
-function getProductFromStorage(slug: string): Product | undefined {
-  const cleanSlug = slug.toLowerCase().trim();
-
-  // Try reading from persistent backend data file (Authoritative Database)
-  try {
-    const filePath = path.resolve(process.cwd(), '../backend/data/products.json');
-    if (fs.existsSync(filePath)) {
-      const raw = fs.readFileSync(filePath, 'utf-8');
-      const list: Product[] = JSON.parse(raw);
-      const match = list.find((p) => p.slug.toLowerCase() === cleanSlug || p.id === cleanSlug);
-      return match || undefined;
-    }
-  } catch (e) {
-    // ignore
-  }
-
-  // If database file is not accessible, return undefined
-  return undefined;
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = getProductFromStorage(params.slug);
-
-  if (!product) {
+  const currentPath = `/products/${params.slug}`;
+  const redirectTarget = checkServerRedirect(currentPath);
+  if (redirectTarget) {
+    // If redirect exists, metadata doesn't need indexing
     return {
-      title: 'Product Not Found | REXBEBE Luxury Baby Boutique',
-      description: 'The requested product is no longer available in our boutique catalog.',
+      robots: { index: false, follow: true },
     };
   }
 
-  return generateProductMetadata(product);
+  const product = getServerProductBySlug(params.slug);
+
+  if (!product) {
+    return {
+      title: { absolute: formatSeoTitle('Product Not Found').absolute },
+      description: 'The requested baby boutique item is no longer available in our collection.',
+      robots: { index: false, follow: true },
+    };
+  }
+
+  return buildProductMetadata(product);
 }
 
 export default function ProductDetailPage({ params }: Props) {
-  const initialProduct = getProductFromStorage(params.slug);
+  const currentPath = `/products/${params.slug}`;
+  const redirectTarget = checkServerRedirect(currentPath);
+  if (redirectTarget) {
+    redirect(redirectTarget, RedirectType.replace);
+  }
+
+  const initialProduct = getServerProductBySlug(params.slug);
 
   return (
     <ProductDetailView slug={params.slug} initialProduct={initialProduct} />
   );
 }
+

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Search Results | REXBEBE',
+  title: 'Search Results',
   robots: {
     index: false,
     follow: true,

@@ -18,6 +18,7 @@ export interface CategoryRecord {
   detailedDescription?: string;
   bannerImage?: string;
   thumbnailImage?: string;
+  imageAlt?: string;
   galleryImages?: string[];
   assignedProductIds?: string[];
   shortcutButtons?: any[];
@@ -50,6 +51,7 @@ export interface CreateCategoryInput {
   detailedDescription?: string;
   bannerImage?: string;
   thumbnailImage?: string;
+  imageAlt?: string;
   galleryImages?: string[];
   assignedProductIds?: string[];
   shortcutButtons?: any[];
@@ -74,6 +76,7 @@ export interface UpdateCategoryInput {
   detailedDescription?: string;
   bannerImage?: string;
   thumbnailImage?: string;
+  imageAlt?: string;
   galleryImages?: string[];
   assignedProductIds?: string[];
   shortcutButtons?: any[];
@@ -635,6 +638,38 @@ export class CategoryRepository {
 
     if (updates.status !== undefined && updates.isActive === undefined) {
       updated.isActive = updates.status === 'published';
+    }
+
+    if (finalSlug && finalSlug !== existing.slug) {
+      try {
+        const redirectsPath = path.resolve(__dirname, '../../data/redirects.json');
+        const frontRedirectsPath = path.resolve(__dirname, '../../../frontend/data/redirects.json');
+        const redirects = fs.existsSync(redirectsPath) ? JSON.parse(fs.readFileSync(redirectsPath, 'utf-8')) : [];
+        redirects.unshift(
+          {
+            id: `red-cat-${Date.now()}-1`,
+            fromPath: `/categories/${existing.slug}`,
+            toPath: `/categories/${finalSlug}`,
+            statusCode: 301,
+            active: true,
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: `red-cat-${Date.now()}-2`,
+            fromPath: `/shop/${existing.slug}`,
+            toPath: `/shop/${finalSlug}`,
+            statusCode: 301,
+            active: true,
+            createdAt: new Date().toISOString(),
+          }
+        );
+        fs.writeFileSync(redirectsPath, JSON.stringify(redirects, null, 2), 'utf-8');
+        if (fs.existsSync(path.dirname(frontRedirectsPath))) {
+          fs.writeFileSync(frontRedirectsPath, JSON.stringify(redirects, null, 2), 'utf-8');
+        }
+      } catch (redirErr) {
+        console.warn('[CategoryRepository] Error recording category slug redirect:', redirErr);
+      }
     }
 
     const index = this.categories.findIndex((c) => c.id === id);

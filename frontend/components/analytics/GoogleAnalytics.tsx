@@ -78,3 +78,24 @@ export function trackBeginCheckout(value: number, itemCount: number) {
     item_count: itemCount,
   });
 }
+
+export function trackPurchase(order: {
+  transactionId: string;
+  value: number;
+  shipping?: number;
+  items: Array<{ id: string; name: string; price: number; quantity: number }>;
+}) {
+  trackGAEvent('purchase', {
+    transaction_id: order.transactionId,
+    currency: 'LKR',
+    value: order.value,
+    shipping: order.shipping || 0,
+    items: order.items.map((item) => ({
+      item_id: item.id,
+      item_name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+    })),
+  });
+}
+

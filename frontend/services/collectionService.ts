@@ -6,10 +6,13 @@ export interface CollectionItem {
   slug: string;
   description: string;
   bannerImage: string;
+  bannerImageAlt?: string;
   assignedProductIds: string[];
   order: number;
   status: 'published' | 'draft';
   badge?: string;
+  seoTitle?: string;
+  seoDescription?: string;
   createdAt?: string;
   updatedAt?: string;
 }

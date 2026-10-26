@@ -98,6 +98,7 @@ type ProductFormTab =
   | 'sizes-stock'
   | 'colours-images'
   | 'pricing'
+  | 'seo'
   | 'preview';
 
 export default function AdminProductsPage() {
@@ -270,6 +271,11 @@ export default function AdminProductsPage() {
     // Fabric specs
     fabricMaterial: '100% GOTS Certified Organic Cotton',
     careInstructions: 'Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.',
+
+    // SEO Metadata
+    seoTitle: '',
+    seoDescription: '',
+    imageAlts: {} as Record<string, string>,
   });
 
   // State to switch colour variation preview inside Section 6
@@ -447,6 +453,9 @@ export default function AdminProductsPage() {
       isSaleBadge: false,
       fabricMaterial: '100% GOTS Certified Organic Cotton',
       careInstructions: 'Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.',
+      seoTitle: '',
+      seoDescription: '',
+      imageAlts: {},
     });
     setActiveTab('basic');
     setIsModalOpen(true);
@@ -562,6 +571,14 @@ export default function AdminProductsPage() {
       mainCatSlug = mainCategories[0].slug;
     }
 
+    // Build initial image alt map
+    const initialImageAlts: Record<string, string> = {};
+    (p.images || []).forEach((img) => {
+      if (img.url && img.alt) {
+        initialImageAlts[img.url] = img.alt;
+      }
+    });
+
     setFormData({
       name: p.name,
       slug: p.slug,
@@ -596,6 +613,9 @@ export default function AdminProductsPage() {
       isSaleBadge: Boolean(p.isSaleBadge ?? hasSale),
       fabricMaterial: p.fabricMaterial || '100% GOTS Certified Organic Cotton',
       careInstructions: p.careInstructions || 'Gentle cold machine wash inside out. Do not tumble dry. Warm iron on reverse.',
+      seoTitle: p.seoTitle || '',
+      seoDescription: p.seoDescription || '',
+      imageAlts: initialImageAlts,
     });
 
     setActiveTab('basic');
@@ -1095,7 +1115,7 @@ export default function AdminProductsPage() {
     const productImages: ProductImage[] = formData.images.map((url, idx) => ({
       id: `img-${Date.now()}-${idx}`,
       url,
-      alt: `${formData.name} - View ${idx + 1}`,
+      alt: formData.imageAlts[url] || `${formData.name} - View ${idx + 1}`,
       position: idx + 1,
     }));
 
@@ -1230,6 +1250,8 @@ export default function AdminProductsPage() {
       stockStatus: totalStock <= 0 ? 'out_of_stock' : totalStock <= (formData.lowStockThreshold || 5) ? 'low_stock' : 'in_stock',
       fabricMaterial: formData.fabricMaterial,
       careInstructions: formData.careInstructions,
+      seoTitle: formData.seoTitle?.trim() || undefined,
+      seoDescription: formData.seoDescription?.trim() || undefined,
       rating: editingProduct?.rating ?? 5,
       reviewCount: editingProduct?.reviewCount ?? 0,
     };
@@ -1669,7 +1691,7 @@ export default function AdminProductsPage() {
               </button>
             </div>
 
-            {/* 6 Clearly Named Sections Tabs */}
+            {/* 7 Clearly Named Sections Tabs */}
             <div className="flex items-center space-x-1 sm:space-x-2 px-4 sm:px-6 pt-3 pb-2 border-b border-slate-100 overflow-x-auto no-scrollbar text-xs bg-slate-50/40">
               {[
                 { id: 'basic', label: '1. Basic Information', icon: Tag },
@@ -1677,7 +1699,8 @@ export default function AdminProductsPage() {
                 { id: 'sizes-stock', label: '3. Sizes & Stock', icon: Boxes },
                 { id: 'colours-images', label: '4. Colours & Images', icon: Palette },
                 { id: 'pricing', label: '5. Pricing', icon: DollarSign },
-                { id: 'preview', label: '6. Preview & Publish', icon: Eye },
+                { id: 'seo', label: '6. SEO & Meta', icon: Globe },
+                { id: 'preview', label: '7. Preview & Publish', icon: Eye },
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -2953,7 +2976,194 @@ export default function AdminProductsPage() {
                 </div>
               )}
 
-              {/* SECTION 6: PREVIEW & PUBLISH */}
+              {/* SECTION 6: SEARCH ENGINE OPTIMIZATION (SEO) */}
+              {activeTab === 'seo' && (
+                <div className="space-y-6 max-w-3xl">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-pink-600 block">
+                      Search Engine Optimization
+                    </span>
+                    <h3 className="font-black text-slate-900 text-sm sm:text-base font-heading">
+                      Product SEO &amp; Search Visibility
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Optimize how this baby garment is discovered and presented across Google, social shares, and luxury shopping queries.
+                    </p>
+                  </div>
+
+                  {/* URL Slug Card */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="font-extrabold text-slate-800 text-xs block">
+                        Product URL Slug <span className="text-rose-500">*</span>
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        /products/{formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="px-3.5 py-2.5 bg-slate-100 border border-r-0 border-slate-200 rounded-l-xl text-slate-500 font-mono text-xs select-none">
+                        /products/
+                      </span>
+                      <input
+                        type="text"
+                        value={formData.slug}
+                        onChange={(e) => {
+                          const clean = e.target.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9-]/g, '')
+                            .replace(/-+/g, '-');
+                          setFormData((prev) => ({ ...prev, slug: clean }));
+                        }}
+                        placeholder="e.g. organic-cotton-baby-romper"
+                        className="flex-1 px-3.5 py-2.5 rounded-r-xl border border-slate-200 text-xs font-mono font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-pink-500/20"
+                      />
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Unique URL identifier. When editing an already published product, modifying this slug automatically creates a permanent 301 redirect to preserve search rankings and backlinks.
+                    </p>
+                  </div>
+
+                  {/* SEO Title & Description */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="font-extrabold text-slate-800 text-xs block">
+                          Custom SEO Title
+                        </label>
+                        <span
+                          className={`text-[10px] font-bold ${
+                            formData.seoTitle.length > 60 ? 'text-amber-600' : 'text-slate-400'
+                          }`}
+                        >
+                          {formData.seoTitle.length}/60 characters
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        value={formData.seoTitle}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, seoTitle: e.target.value }))}
+                        placeholder={formData.name ? `${formData.name} | REXBEBE Luxury Baby Boutique` : 'Baby Romper Sri Lanka | REXBEBE'}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-pink-500/20"
+                      />
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Leave blank to automatically format with the boutique standard title template.
+                      </p>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="font-extrabold text-slate-800 text-xs block">
+                          Meta Description
+                        </label>
+                        <span
+                          className={`text-[10px] font-bold ${
+                            formData.seoDescription.length > 160 ? 'text-amber-600' : 'text-slate-400'
+                          }`}
+                        >
+                          {formData.seoDescription.length}/160 characters
+                        </span>
+                      </div>
+                      <textarea
+                        rows={3}
+                        value={formData.seoDescription}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, seoDescription: e.target.value }))}
+                        placeholder={`Shop ${formData.name || 'luxury baby clothing'} online at REXBEBE Sri Lanka. Handcrafted certified organic cotton, delicate pastel hues, and express islandwide delivery.`}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-pink-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Image Alt Text Management */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                    <div>
+                      <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider block">
+                        Image Alt Text (SEO &amp; Accessibility)
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Describe what is shown in each product photograph to aid image search indexing and screen readers.
+                      </p>
+                    </div>
+
+                    {formData.images.length === 0 ? (
+                      <div className="p-4 text-center text-xs text-slate-400 bg-slate-50 rounded-xl">
+                        No product images uploaded yet. Upload images in Step 1 or Step 4 to manage image alt texts.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {formData.images.map((imgUrl, idx) => {
+                          const currentAlt = formData.imageAlts[imgUrl] || '';
+                          return (
+                            <div
+                              key={imgUrl}
+                              className="flex items-center space-x-3 p-2.5 rounded-xl border border-slate-100 bg-slate-50/60"
+                            >
+                              <div className="w-12 h-14 rounded-lg overflow-hidden relative bg-white border border-slate-200 flex-shrink-0 p-1">
+                                <Image
+                                  src={imgUrl}
+                                  alt="Thumbnail preview"
+                                  fill
+                                  className="object-contain"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-[10px] font-extrabold uppercase text-slate-500">
+                                    Photo #{idx + 1} {idx === 0 ? '(Primary / LCP Hero)' : ''}
+                                  </span>
+                                </div>
+                                <input
+                                  type="text"
+                                  value={currentAlt}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      imageAlts: {
+                                        ...prev.imageAlts,
+                                        [imgUrl]: val,
+                                      },
+                                    }));
+                                  }}
+                                  placeholder={`e.g. ${formData.name || 'Baby clothing'} front view in pastel organic cotton`}
+                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-pink-500/20"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Google Search Result Preview */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 via-white to-sky-50/30 border border-slate-200 shadow-2xs space-y-2">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Google Search Result Snippet Preview
+                    </div>
+                    <div className="flex items-center space-x-1.5 text-[11px] text-emerald-800 font-mono truncate">
+                      <span>https://rexbebe.com</span>
+                      <span>›</span>
+                      <span>products</span>
+                      <span>›</span>
+                      <span className="font-bold">
+                        {formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'product-slug'}
+                      </span>
+                    </div>
+                    <div className="text-xs sm:text-sm font-semibold text-blue-700 hover:underline truncate">
+                      {formData.seoTitle.trim() || `${formData.name || 'Boutique Item'} | REXBEBE Luxury Baby Boutique`}
+                    </div>
+                    <div className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                      {formData.seoDescription.trim() ||
+                        formData.shortDescription?.trim() ||
+                        formData.description?.trim() ||
+                        `Shop ${formData.name || 'heirloom baby clothing'} crafted in luxury certified organic cotton. Available with fast islandwide delivery in Sri Lanka by REXBEBE.`}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 7: PREVIEW & PUBLISH */}
               {activeTab === 'preview' && (
                 <div className="space-y-6">
                   <div>

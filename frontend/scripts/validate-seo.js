@@ -50,7 +50,7 @@ if (fs.existsSync(robotsPath)) {
   assert(content.includes('/admin/'), 'Robots.txt disallows /admin/');
   assert(content.includes('/cart/'), 'Robots.txt disallows /cart/');
   assert(content.includes('/checkout/'), 'Robots.txt disallows /checkout/');
-  assert(content.includes('allow: \'/\''), 'Robots.txt allows indexing of public root');
+  assert(content.includes("allow: '/'") || content.includes("allow: [") || content.includes("'/'"), 'Robots.txt allows indexing of public root');
 }
 
 // 3. XML Sitemap Generation

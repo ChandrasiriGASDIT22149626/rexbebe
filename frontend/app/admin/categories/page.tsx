@@ -65,8 +65,13 @@ export default function AdminCategoriesPage() {
   // Friendly toast notification
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // Form input fields - strictly essential fields, zero SEO
+  // Form input fields - with full SEO metadata management
   const [formName, setFormName] = useState('');
+  const [formSlug, setFormSlug] = useState('');
+  const [formSeoTitle, setFormSeoTitle] = useState('');
+  const [formSeoDescription, setFormSeoDescription] = useState('');
+  const [formImageAlt, setFormImageAlt] = useState('');
+  const [showSeoFields, setShowSeoFields] = useState(false);
   const [formParentId, setFormParentId] = useState<string>('');
   const [formDisplayInNav, setFormDisplayInNav] = useState<boolean>(true);
   const [formOrder, setFormOrder] = useState<number>(1);
@@ -181,6 +186,11 @@ export default function AdminCategoriesPage() {
     setEditingItem(null);
     setFormMode('main');
     setFormName('');
+    setFormSlug('');
+    setFormSeoTitle('');
+    setFormSeoDescription('');
+    setFormImageAlt('');
+    setShowSeoFields(false);
     setFormParentId('');
     setFormDisplayInNav(true);
     setFormOrder(mainCategories.length + 1);
@@ -193,6 +203,11 @@ export default function AdminCategoriesPage() {
     setEditingItem(null);
     setFormMode('sub');
     setFormName('');
+    setFormSlug('');
+    setFormSeoTitle('');
+    setFormSeoDescription('');
+    setFormImageAlt('');
+    setShowSeoFields(false);
     const defaultParent =
       presetParentId ||
       (selectedParentFilter !== 'all' ? selectedParentFilter : mainCategories[0]?.id || '');
@@ -210,6 +225,11 @@ export default function AdminCategoriesPage() {
     const isSub = Boolean(item.parentId);
     setFormMode(isSub ? 'sub' : 'main');
     setFormName(item.name || '');
+    setFormSlug(item.slug || '');
+    setFormSeoTitle(item.seoTitle || '');
+    setFormSeoDescription(item.seoDescription || '');
+    setFormImageAlt(item.imageAlt || item.name || '');
+    setShowSeoFields(Boolean(item.seoTitle || item.seoDescription));
     setFormParentId(item.parentId || '');
     setFormDisplayInNav(item.badge !== 'HIDDEN' && item.badge !== 'CATALOG_ONLY');
     setFormOrder(item.order ?? 1);
@@ -318,10 +338,16 @@ export default function AdminCategoriesPage() {
 
     setIsSaving(true);
     try {
-      const cleanSlug = formName
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
+      const cleanSlug = formSlug.trim()
+        ? formSlug
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')
+        : formName
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
 
       const parentItem = formMode === 'sub' ? mainCategories.find((c) => c.id === formParentId) : null;
 
@@ -335,6 +361,9 @@ export default function AdminCategoriesPage() {
         badge: formDisplayInNav ? undefined : 'HIDDEN',
         thumbnailImage: formImage || undefined,
         bannerImage: formImage || undefined,
+        imageAlt: formImageAlt.trim() || undefined,
+        seoTitle: formSeoTitle.trim() || undefined,
+        seoDescription: formSeoDescription.trim() || undefined,
         // Automatically create canonical routing link
         href: `/shop/${cleanSlug}`,
       };
@@ -1226,6 +1255,158 @@ export default function AdminCategoriesPage() {
                   accept="image/*"
                   className="hidden"
                 />
+              </div>
+
+              {/* Image Alt Text (when image uploaded or planned) */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                  Image Alt Text (SEO & Accessibility)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Newborn organic cotton rompers and baby essentials"
+                  value={formImageAlt}
+                  onChange={(e) => setFormImageAlt(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-xs font-semibold text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                />
+                <p className="text-[11px] text-stone-400 mt-1">
+                  Accurate description of the category photo for search engines and visually impaired visitors.
+                </p>
+              </div>
+
+              {/* Dedicated SEO Settings Accordion / Card */}
+              <div className="rounded-2xl border border-pink-200/80 bg-gradient-to-br from-pink-50/40 via-white to-sky-50/30 p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs">
+                      🔍
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-stone-800">
+                        Search Engine Optimization (SEO)
+                      </h4>
+                      <p className="text-[11px] text-stone-500">
+                        Customize how this category appears in Google and social shares.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSeoFields(!showSeoFields)}
+                    className="text-xs font-bold text-pink-600 hover:text-pink-700 underline"
+                  >
+                    {showSeoFields ? 'Hide Details' : 'Configure SEO'}
+                  </button>
+                </div>
+
+                {showSeoFields && (
+                  <div className="space-y-3.5 pt-2 border-t border-pink-100">
+                    {/* URL Slug */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                          URL Slug
+                        </label>
+                        <span className="text-[10px] text-stone-400 font-mono">
+                          /shop/{formSlug || formName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="e.g. baby-rompers"
+                        value={formSlug}
+                        onChange={(e) =>
+                          setFormSlug(
+                            e.target.value
+                              .toLowerCase()
+                              .replace(/[^a-z0-9-]/g, '')
+                              .replace(/-+/g, '-')
+                          )
+                        }
+                        className="w-full px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-xs font-mono text-stone-800 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                      />
+                      <p className="text-[10px] text-stone-400 mt-1">
+                        Slugs must contain only lowercase letters, numbers, and hyphens. Changing a published slug will automatically create a 301 redirect.
+                      </p>
+                    </div>
+
+                    {/* SEO Title */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                          Custom SEO Title
+                        </label>
+                        <span
+                          className={`text-[10px] font-bold ${
+                            formSeoTitle.length > 60 ? 'text-amber-600' : 'text-stone-400'
+                          }`}
+                        >
+                          {formSeoTitle.length}/60 chars
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder={
+                          formName
+                            ? `${formName} | Luxury Baby Boutique Sri Lanka`
+                            : 'Baby Clothing Sri Lanka | REXBEBE'
+                        }
+                        value={formSeoTitle}
+                        onChange={(e) => setFormSeoTitle(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-xs font-semibold text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                      />
+                      <p className="text-[10px] text-stone-400 mt-1">
+                        Leave blank to automatically use the standard boutique title format.
+                      </p>
+                    </div>
+
+                    {/* SEO Description */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                          Meta Description
+                        </label>
+                        <span
+                          className={`text-[10px] font-bold ${
+                            formSeoDescription.length > 160 ? 'text-amber-600' : 'text-stone-400'
+                          }`}
+                        >
+                          {formSeoDescription.length}/160 chars
+                        </span>
+                      </div>
+                      <textarea
+                        rows={3}
+                        placeholder={`Shop handcrafted ${formName || 'baby items'} in Sri Lanka with certified organic fabrics, soft pastel tones, and islandwide delivery by REXBEBE.`}
+                        value={formSeoDescription}
+                        onChange={(e) => setFormSeoDescription(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-xs font-medium text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                      />
+                    </div>
+
+                    {/* Google Search Snippet Preview */}
+                    <div className="bg-white p-3 rounded-xl border border-stone-200/90 shadow-2xs space-y-1">
+                      <div className="text-[10px] font-extrabold uppercase tracking-wider text-stone-400">
+                        Google Search Result Preview
+                      </div>
+                      <div className="flex items-center space-x-1.5 text-[11px] text-emerald-800 font-mono truncate">
+                        <span>https://rexbebe.com</span>
+                        <span>›</span>
+                        <span>shop</span>
+                        <span>›</span>
+                        <span className="font-bold">
+                          {formSlug || formName.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'category'}
+                        </span>
+                      </div>
+                      <div className="text-xs sm:text-sm font-semibold text-blue-700 hover:underline truncate">
+                        {formSeoTitle.trim() || `${formName || 'Category Name'} | REXBEBE Luxury Baby Boutique`}
+                      </div>
+                      <div className="text-[11px] text-stone-600 line-clamp-2 leading-relaxed">
+                        {formSeoDescription.trim() ||
+                          `Shop curated ${formName || 'baby essentials'} for babies and toddlers at REXBEBE Sri Lanka. Certified organic cashmere, pure linen, and express islandwide delivery.`}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Modal Actions */}

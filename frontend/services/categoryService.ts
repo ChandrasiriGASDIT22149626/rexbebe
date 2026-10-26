@@ -15,6 +15,7 @@ export interface CategoryItem {
   detailedDescription?: string;
   bannerImage?: string;
   thumbnailImage?: string;
+  imageAlt?: string;
   galleryImages?: string[];
   assignedProductIds?: string[];
   shortcutButtons?: any[];

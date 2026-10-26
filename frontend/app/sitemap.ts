@@ -6,9 +6,14 @@ import { INITIAL_PRODUCTS } from '../data/products';
 
 function readDatabaseJson<T>(fileName: string, fallback: T): T {
   try {
-    const filePath = path.join(process.cwd(), '../backend/data', fileName);
-    if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const paths = [
+      path.join(process.cwd(), '../backend/data', fileName),
+      path.join(process.cwd(), 'data', fileName),
+    ];
+    for (const p of paths) {
+      if (fs.existsSync(p)) {
+        return JSON.parse(fs.readFileSync(p, 'utf-8'));
+      }
     }
   } catch {
     // Return fallback on build/isolated environments
@@ -70,7 +75,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${SITE_URL}/size-guide`,
+      url: `${SITE_URL}/about`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/contact`,
       lastModified,
       changeFrequency: 'monthly',
       priority: 0.7,
@@ -93,12 +104,54 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
+    {
+      url: `${SITE_URL}/size-guide`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/reviews`,
+      lastModified,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/store-locator`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/gifting`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/terms`,
+      lastModified,
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    },
+    {
+      url: `${SITE_URL}/privacy`,
+      lastModified,
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    },
+    {
+      url: `${SITE_URL}/cookies`,
+      lastModified,
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    },
   ];
 
   // Dynamic Published Website Pages from database (pages.json)
   const dbPages = readDatabaseJson<any[]>('pages.json', []);
   const publishedPageRoutes: MetadataRoute.Sitemap = dbPages
-    .filter((p) => p.status === 'published')
+    .filter((p) => p.status === 'published' && p.url)
     .map((p) => ({
       url: `${SITE_URL}${p.url.startsWith('/') ? p.url : `/${p.url}`}`,
       lastModified: p.lastUpdated ? new Date(p.lastUpdated) : lastModified,
@@ -109,7 +162,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Dynamic Published Collections from database (collections.json)
   const dbCollections = readDatabaseJson<any[]>('collections.json', []);
   const publishedCollectionRoutes: MetadataRoute.Sitemap = dbCollections
-    .filter((c) => c.status === 'published')
+    .filter((c) => c.status === 'published' && c.slug)
     .map((c) => ({
       url: `${SITE_URL}/collections/${c.slug}`,
       lastModified: c.updatedAt ? new Date(c.updatedAt) : lastModified,
@@ -117,13 +170,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     }));
 
-  // Dynamic Published Navigation Categories from database (navigation.json)
-  const dbNav = readDatabaseJson<any>('navigation.json', { items: [] });
+  // Dynamic Published Categories from categories.json (authoritative catalog) & navigation.json
   const categoryUrls = new Set<string>();
   const publishedCategoryRoutes: MetadataRoute.Sitemap = [];
 
+  const dbCategories = readDatabaseJson<any[]>('categories.json', []);
+  dbCategories.forEach((cat) => {
+    if (cat.isActive !== false && cat.status !== 'draft' && cat.status !== 'unpublished' && cat.slug) {
+      const catPath = `/categories/${cat.slug}`;
+      if (!categoryUrls.has(catPath)) {
+        categoryUrls.add(catPath);
+        publishedCategoryRoutes.push({
+          url: `${SITE_URL}${catPath}`,
+          lastModified: cat.updatedAt ? new Date(cat.updatedAt) : lastModified,
+          changeFrequency: 'weekly',
+          priority: 0.8,
+        });
+      }
+    }
+  });
+
+  const dbNav = readDatabaseJson<any>('navigation.json', { items: [] });
   (dbNav.items || []).forEach((item: any) => {
-    if (item.status === 'published' && item.href && !categoryUrls.has(item.href)) {
+    if (item.status === 'published' && item.href && !item.href.startsWith('/#') && !categoryUrls.has(item.href)) {
       categoryUrls.add(item.href);
       publishedCategoryRoutes.push({
         url: `${SITE_URL}${item.href}`,
@@ -153,7 +222,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     .filter((prod) => prod.status === 'published' || !prod.status)
     .map((prod) => ({
       url: `${SITE_URL}/products/${prod.slug}`,
-      lastModified,
+      lastModified: prod.updatedAt ? new Date(prod.updatedAt) : lastModified,
       changeFrequency: 'weekly',
       priority: 0.8,
     }));

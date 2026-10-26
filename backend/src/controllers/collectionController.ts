@@ -10,10 +10,13 @@ export interface CollectionRecord {
   slug: string;
   description: string;
   bannerImage: string;
+  bannerImageAlt?: string;
   assignedProductIds: string[];
   order: number;
   status: 'published' | 'draft';
   badge?: string;
+  seoTitle?: string;
+  seoDescription?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -88,7 +91,7 @@ export const getCollectionById = async (req: Request, res: Response, next: NextF
 
 export const createCollection = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, slug, description, bannerImage, assignedProductIds, order, status, badge } = req.body;
+    const { name, slug, description, bannerImage, bannerImageAlt, assignedProductIds, order, status, badge, seoTitle, seoDescription } = req.body;
     if (!name || !name.trim()) {
       throw new BadRequestError('Collection name is required');
     }
@@ -107,10 +110,13 @@ export const createCollection = async (req: Request, res: Response, next: NextFu
       slug: finalSlug,
       description: description || '',
       bannerImage: bannerImage || '/images/products/organic-onesie.jpg',
+      bannerImageAlt: bannerImageAlt || `${name.trim()} Collection Banner`,
       assignedProductIds: Array.isArray(assignedProductIds) ? assignedProductIds : [],
       order: Number(order) || collections.length + 1,
       status: status === 'draft' ? 'draft' : 'published',
       badge: badge || undefined,
+      seoTitle: seoTitle || `${name.trim()} Capsule Collection | REXBEBE`,
+      seoDescription: seoDescription || description || undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -135,13 +141,34 @@ export const updateCollection = async (req: Request, res: Response, next: NextFu
     }
 
     const current = collections[index];
-    const { name, slug, description, bannerImage, assignedProductIds, order, status, badge } = req.body;
+    const { name, slug, description, bannerImage, bannerImageAlt, assignedProductIds, order, status, badge, seoTitle, seoDescription } = req.body;
 
     const finalSlug = slug ? slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : current.slug;
     if (finalSlug !== current.slug) {
       const duplicate = collections.find(c => c.slug === finalSlug && c.id !== id);
       if (duplicate) {
         throw new BadRequestError(`Another collection with slug '${finalSlug}' already exists`);
+      }
+
+      // Record 301 permanent redirect
+      try {
+        const redirectsPath = path.resolve(__dirname, '../../data/redirects.json');
+        const frontRedirectsPath = path.resolve(__dirname, '../../../frontend/data/redirects.json');
+        const redirects = fs.existsSync(redirectsPath) ? JSON.parse(fs.readFileSync(redirectsPath, 'utf-8')) : [];
+        redirects.unshift({
+          id: `red-col-${Date.now()}`,
+          fromPath: `/collections/${current.slug}`,
+          toPath: `/collections/${finalSlug}`,
+          statusCode: 301,
+          active: true,
+          createdAt: new Date().toISOString(),
+        });
+        fs.writeFileSync(redirectsPath, JSON.stringify(redirects, null, 2), 'utf-8');
+        if (fs.existsSync(path.dirname(frontRedirectsPath))) {
+          fs.writeFileSync(frontRedirectsPath, JSON.stringify(redirects, null, 2), 'utf-8');
+        }
+      } catch (redirErr) {
+        console.warn('[CollectionController] Error recording collection redirect:', redirErr);
       }
     }
 
@@ -151,10 +178,13 @@ export const updateCollection = async (req: Request, res: Response, next: NextFu
       slug: finalSlug,
       description: description !== undefined ? description : current.description,
       bannerImage: bannerImage !== undefined ? bannerImage : current.bannerImage,
+      bannerImageAlt: bannerImageAlt !== undefined ? bannerImageAlt : current.bannerImageAlt,
       assignedProductIds: Array.isArray(assignedProductIds) ? assignedProductIds : current.assignedProductIds,
       order: order !== undefined ? Number(order) : current.order,
       status: status !== undefined ? status : current.status,
       badge: badge !== undefined ? badge : current.badge,
+      seoTitle: seoTitle !== undefined ? seoTitle : current.seoTitle,
+      seoDescription: seoDescription !== undefined ? seoDescription : current.seoDescription,
       updatedAt: new Date().toISOString(),
     };
 

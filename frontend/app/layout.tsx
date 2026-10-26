@@ -7,7 +7,7 @@ import { ThemeProvider } from '../hooks/useTheme';
 import { Preloader } from '../components/ui/Preloader';
 import { AdminDataProvider } from '../hooks/AdminContext';
 import { VisitorTracker } from '../components/common/VisitorTracker';
-import { OrganizationJsonLd, WebSiteJsonLd } from '../components/seo/JsonLd';
+import { OrganizationJsonLd, WebSiteJsonLd, LocalBusinessJsonLd } from '../components/seo/JsonLd';
 import { GoogleAnalytics } from '../components/analytics/GoogleAnalytics';
 import { SITE_URL, BRAND_NAME, generateOpenGraph, generateTwitter } from '../config/seoConfig';
 
@@ -96,6 +96,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -104,6 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <OrganizationJsonLd />
         <WebSiteJsonLd />
+        <LocalBusinessJsonLd />
         <script
           dangerouslySetInnerHTML={{
             __html: `

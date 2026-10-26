@@ -10,10 +10,21 @@ export const BRAND_NAME = 'REXBEBE';
 export const BRAND_LEGAL_NAME = 'REXBEBE Baby & Toddler Boutique';
 export const DEFAULT_LOCALE = 'en_US';
 export const DEFAULT_CURRENCY = 'LKR';
-export const STORE_PHONE = '+94-77-123-4567';
-export const STORE_EMAIL = 'concierge@rexbebe.com';
-export const LOGO_URL = `${SITE_URL}/images/logo.png`;
-export const LOGO_CLEAN_URL = `${SITE_URL}/images/logo_clean.png`;
+export const STORE_PHONE = '+94 77 123 4567';
+export const STORE_EMAIL = 'care@rexbebe.com';
+export const STORE_ADDRESS = {
+  streetAddress: '142 Galle Road',
+  addressLocality: 'Colombo 03',
+  addressRegion: 'Western Province',
+  postalCode: '00300',
+  addressCountry: 'LK',
+};
+export const STORE_GEO = {
+  latitude: 6.9044,
+  longitude: 79.8540,
+};
+export const LOGO_URL = `${SITE_URL}/images/logo.webp`;
+export const LOGO_CLEAN_URL = `${SITE_URL}/images/logo_clean.webp`;
 
 export const SOCIAL_LINKS = [
   'https://instagram.com/rexbebe.atelier',
@@ -36,10 +47,22 @@ export function generateCanonicalUrl(path: string = ''): string {
  * Reusable helper to generate absolute image URLs.
  */
 export function generateAbsoluteImageUrl(path: string): string {
-  if (!path) return `${SITE_URL}/images/hero/world_bg.jpg`;
+  if (!path) return `${SITE_URL}/images/hero/world_bg.webp`;
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   return `${SITE_URL}${cleanPath}`;
+}
+
+/**
+ * Formats clean SEO title ensuring no duplicate branding suffix.
+ */
+export function formatSeoTitle(rawTitle: string): { default: string; absolute: string } {
+  const clean = rawTitle.trim();
+  const withBrand = clean.includes(BRAND_NAME) ? clean : `${clean} | ${BRAND_NAME}`;
+  return {
+    default: clean,
+    absolute: withBrand,
+  };
 }
 
 /**
@@ -58,9 +81,10 @@ export function generateOpenGraph({
   image?: string;
   type?: 'website' | 'article';
 }) {
-  const imageUrl = generateAbsoluteImageUrl(image || '/images/hero/world_bg.jpg');
+  const fullTitle = title.includes(BRAND_NAME) ? title : `${title} | ${BRAND_NAME}`;
+  const imageUrl = generateAbsoluteImageUrl(image || '/images/hero/world_bg.webp');
   return {
-    title,
+    title: fullTitle,
     description,
     url,
     siteName: BRAND_NAME,
@@ -71,7 +95,7 @@ export function generateOpenGraph({
         url: imageUrl,
         width: 1200,
         height: 630,
-        alt: title,
+        alt: fullTitle,
       },
     ],
   };
@@ -89,7 +113,7 @@ export function generateTwitter({
   description: string;
   image?: string;
 }) {
-  const imageUrl = generateAbsoluteImageUrl(image || '/images/hero/world_bg.jpg');
+  const imageUrl = generateAbsoluteImageUrl(image || '/images/hero/world_bg.webp');
   return {
     card: 'summary_large_image' as const,
     title,
@@ -114,59 +138,25 @@ export function generateCategoryMetadata({
   image?: string;
 }): Metadata {
   const canonical = generateCanonicalUrl(path);
+  const formattedTitle = formatSeoTitle(title);
   return {
-    title: `${title} | ${BRAND_NAME}`,
+    title: {
+      absolute: formattedTitle.absolute,
+    },
     description,
     alternates: {
       canonical,
     },
     openGraph: generateOpenGraph({
-      title: `${title} | ${BRAND_NAME}`,
+      title: formattedTitle.absolute,
       description,
       url: canonical,
       image,
     }),
     twitter: generateTwitter({
-      title: `${title} | ${BRAND_NAME}`,
+      title: formattedTitle.absolute,
       description,
       image,
-    }),
-    robots: {
-      index: true,
-      follow: true,
-    },
-  };
-}
-
-/**
- * Generates dynamic product metadata for App Router.
- */
-export function generateProductMetadata(product: Product): Metadata {
-  const title = `${product.name} | ${BRAND_NAME}`;
-  const priceFormatted = (product.price).toLocaleString();
-  const description = `${product.description} Available in premium sizes. Price: LKR ${priceFormatted}. Authentic luxury baby clothing by REXBEBE.`;
-  const canonical = generateCanonicalUrl(`/products/${product.slug}`);
-  const primaryImage = product.images?.[0]?.url || '/images/products/organic-onesie.jpg';
-
-  return {
-    title,
-    description,
-    alternates: {
-      canonical,
-    },
-    openGraph: {
-      ...generateOpenGraph({
-        title,
-        description,
-        url: canonical,
-        image: primaryImage,
-      }),
-      type: 'website',
-    },
-    twitter: generateTwitter({
-      title,
-      description,
-      image: primaryImage,
     }),
     robots: {
       index: true,
@@ -177,6 +167,63 @@ export function generateProductMetadata(product: Product): Metadata {
         'max-image-preview': 'large',
       },
     },
+  };
+}
+
+/**
+ * Generates dynamic product metadata for App Router.
+ */
+export function generateProductMetadata(product: Product): Metadata {
+  const customTitle = product.seoTitle?.trim();
+  const rawTitle = customTitle || product.name;
+  const formattedTitle = formatSeoTitle(rawTitle);
+
+  const priceFormatted = product.price ? product.price.toLocaleString('en-LK') : '0';
+  const customDesc = product.seoDescription?.trim();
+  const description = customDesc ||
+    `${product.name} crafted in luxury certified organic cotton. Price: LKR ${priceFormatted}. Newborn to toddler sizes with islandwide delivery across Sri Lanka by REXBEBE.`;
+
+  const canonical = generateCanonicalUrl(`/products/${product.slug}`);
+  const primaryImage = product.images?.[0]?.url || '/images/products/organic-onesie.webp';
+
+  const isDiscontinued = product.status === 'unpublished' || product.status === 'draft';
+
+  return {
+    title: {
+      absolute: formattedTitle.absolute,
+    },
+    description,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      ...generateOpenGraph({
+        title: formattedTitle.absolute,
+        description,
+        url: canonical,
+        image: primaryImage,
+      }),
+      type: 'website',
+    },
+    twitter: generateTwitter({
+      title: formattedTitle.absolute,
+      description,
+      image: primaryImage,
+    }),
+    robots: isDiscontinued
+      ? {
+          index: false,
+          follow: true,
+        }
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            'max-image-preview': 'large',
+          },
+        },
   };
 }
 
@@ -195,27 +242,34 @@ export function generateCollectionMetadata({
   image?: string;
 }): Metadata {
   const canonical = generateCanonicalUrl(`/collections/${slug}`);
-  const fullTitle = `${title} | ${BRAND_NAME} Collections`;
+  const formattedTitle = formatSeoTitle(`${title} Collection`);
   return {
-    title: fullTitle,
+    title: {
+      absolute: formattedTitle.absolute,
+    },
     description,
     alternates: {
       canonical,
     },
     openGraph: generateOpenGraph({
-      title: fullTitle,
+      title: formattedTitle.absolute,
       description,
       url: canonical,
       image,
     }),
     twitter: generateTwitter({
-      title: fullTitle,
+      title: formattedTitle.absolute,
       description,
       image,
     }),
     robots: {
       index: true,
       follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-image-preview': 'large',
+      },
     },
   };
 }
@@ -237,21 +291,23 @@ export function generateStaticPageMetadata({
   noIndex?: boolean;
 }): Metadata {
   const canonical = generateCanonicalUrl(path);
-  const fullTitle = `${title} | ${BRAND_NAME}`;
+  const formattedTitle = formatSeoTitle(title);
   return {
-    title: fullTitle,
+    title: {
+      absolute: formattedTitle.absolute,
+    },
     description,
     alternates: {
       canonical,
     },
     openGraph: generateOpenGraph({
-      title: fullTitle,
+      title: formattedTitle.absolute,
       description,
       url: canonical,
       image,
     }),
     twitter: generateTwitter({
-      title: fullTitle,
+      title: formattedTitle.absolute,
       description,
       image,
     }),
@@ -263,7 +319,13 @@ export function generateStaticPageMetadata({
       : {
           index: true,
           follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            'max-image-preview': 'large',
+          },
         },
   };
 }
+
 

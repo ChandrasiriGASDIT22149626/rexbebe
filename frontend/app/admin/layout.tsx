@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { AdminAuthGuard } from '../../components/admin/AdminAuthGuard';
 
 export const metadata: Metadata = {
-  title: 'Admin Management Suite | REXBEBE',
+  title: 'Admin Management Suite',
   robots: {
     index: false,
     follow: false,

@@ -12,6 +12,7 @@ import {
   generateAbsoluteImageUrl,
   generateOpenGraph,
   generateTwitter,
+  formatSeoTitle,
 } from '../config/seoConfig';
 
 export interface DatabaseSeoSettings {
@@ -34,12 +35,12 @@ export interface DatabaseSeoSettings {
 }
 
 export const DEFAULT_DATABASE_SEO: DatabaseSeoSettings = {
-  metaTitle: 'REXBEBE | Luxury Baby & Toddler Boutique Online',
+  metaTitle: 'REXBEBE | Luxury Baby & Toddler Boutique Online Sri Lanka',
   metaDescription:
-    'Curated organic cashmere rompers, French flax linen swaddles, handcrafted wooden nursery toys, and pastel baby clothes online at REXBEBE.',
-  socialShareImage: '/images/hero/world_bg.jpg',
+    'Handcrafted organic cashmere rompers, French flax linen swaddles, wooden nursery toys, and pastel baby clothes online in Sri Lanka with express islandwide delivery.',
+  socialShareImage: '/images/hero/world_bg.webp',
   keywords:
-    'baby clothes, luxury baby clothes, newborn baby clothes, organic baby romper, baby boy clothes, baby girl clothes, cashmere baby clothing, linen baby swaddles, REXBEBE',
+    'baby clothes Sri Lanka, baby clothing online Sri Lanka, toddler clothes Sri Lanka, kids clothing Sri Lanka, newborn baby clothes, organic baby romper, REXBEBE',
   canonicalDomain: SITE_URL,
   googleSiteVerification: '',
   bingSiteVerification: '',
@@ -49,13 +50,18 @@ export const DEFAULT_DATABASE_SEO: DatabaseSeoSettings = {
 };
 
 /**
- * Safely reads JSON from backend/data on server-side.
+ * Safely reads JSON from backend/data or frontend/data on server-side.
  */
 function readServerData<T>(fileName: string, fallback: T): T {
   try {
     const filePath = path.join(process.cwd(), '../backend/data', fileName);
     if (fs.existsSync(filePath)) {
       const raw = fs.readFileSync(filePath, 'utf-8');
+      return JSON.parse(raw) as T;
+    }
+    const localPath = path.join(process.cwd(), 'data', fileName);
+    if (fs.existsSync(localPath)) {
+      const raw = fs.readFileSync(localPath, 'utf-8');
       return JSON.parse(raw) as T;
     }
   } catch (err) {
@@ -94,7 +100,7 @@ export function getServerProductBySlug(slug: string): Product | undefined {
 }
 
 /**
- * Category record interface resolved from navigation.json.
+ * Category record interface resolved from categories.json and navigation.json.
  */
 export interface ResolvedCategoryRecord {
   id: string;
@@ -113,10 +119,35 @@ export interface ResolvedCategoryRecord {
 }
 
 /**
- * Searches navigation.json for a category or subcategory matching the slug or path.
+ * Searches categories.json and navigation.json for a category matching the slug.
  */
 export function getServerCategoryBySlug(slug: string): ResolvedCategoryRecord | undefined {
   const clean = slug.toLowerCase().trim().replace(/^\//, '');
+
+  // 1. Try categories.json (authoritative category catalog)
+  const categories = readServerData<any[]>('categories.json', []);
+  const directMatch = categories.find(
+    (c) => c.slug?.toLowerCase() === clean || c.id?.toLowerCase() === clean
+  );
+  if (directMatch) {
+    return {
+      id: directMatch.id,
+      name: directMatch.name,
+      pageTitle: directMatch.pageTitle || directMatch.name,
+      slug: directMatch.slug,
+      href: `/categories/${directMatch.slug}`,
+      description: directMatch.description || directMatch.detailedDescription,
+      shortDescription: directMatch.shortDescription,
+      detailedDescription: directMatch.detailedDescription,
+      bannerImage: directMatch.bannerImage || directMatch.image,
+      thumbnailImage: directMatch.thumbnailImage,
+      seoTitle: directMatch.seoTitle,
+      seoDescription: directMatch.seoDescription,
+      status: directMatch.status || (directMatch.isActive ? 'published' : 'draft'),
+    };
+  }
+
+  // 2. Try navigation.json
   const navData = readServerData<any>('navigation.json', { items: [] });
   const items = navData.items || [];
 
@@ -217,17 +248,19 @@ export function buildPageMetadata({
   noIndex?: boolean;
 }): Metadata {
   const canonical = generateCanonicalUrl(path);
-  const socialImage = generateAbsoluteImageUrl(image || '/images/hero/world_bg.jpg');
-  const fullTitle = title.includes(BRAND_NAME) ? title : `${title} | ${BRAND_NAME}`;
+  const socialImage = generateAbsoluteImageUrl(image || '/images/hero/world_bg.webp');
+  const formattedTitle = formatSeoTitle(title);
 
   return {
-    title: fullTitle,
+    title: {
+      absolute: formattedTitle.absolute,
+    },
     description,
     alternates: {
       canonical,
     },
     openGraph: {
-      title: fullTitle,
+      title: formattedTitle.absolute,
       description,
       url: canonical,
       siteName: BRAND_NAME,
@@ -238,13 +271,13 @@ export function buildPageMetadata({
           url: socialImage,
           width: 1200,
           height: 630,
-          alt: fullTitle,
+          alt: formattedTitle.absolute,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: fullTitle,
+      title: formattedTitle.absolute,
       description,
       images: [socialImage],
       creator: '@rexbebe',
@@ -260,9 +293,7 @@ export function buildPageMetadata({
           googleBot: {
             index: true,
             follow: true,
-            'max-video-preview': -1,
             'max-image-preview': 'large',
-            'max-snippet': -1,
           },
         },
   };
@@ -272,33 +303,36 @@ export function buildPageMetadata({
  * Builds rich App Router Metadata for a specific product.
  */
 export function buildProductMetadata(product: Product): Metadata {
-  const priceFormatted = product.price.toLocaleString();
+  const priceFormatted = product.price ? product.price.toLocaleString('en-LK') : '0';
   const categoryName = product.category?.name || 'Baby Boutique';
   const customTitle = product.seoTitle?.trim();
-  const title = customTitle || `${product.name} | ${BRAND_NAME}`;
+  const rawTitle = customTitle || product.name;
+  const formattedTitle = formatSeoTitle(rawTitle);
 
   const customDesc = product.seoDescription?.trim();
   const description =
     customDesc ||
-    `${product.description} Handcrafted luxury ${categoryName.toLowerCase()} in certified organic cashmere and pure linen. Available sizes: ${
+    `${product.name} handcrafted in luxury certified organic cotton for newborn and toddlers. Available sizes: ${
       product.sizes?.join(', ') || 'Newborn to Toddler'
-    }. Price: LKR ${priceFormatted}. Fast worldwide delivery at REXBEBE.`;
+    }. Price: LKR ${priceFormatted}. Fast islandwide delivery in Sri Lanka and worldwide by REXBEBE.`;
 
   const canonical = generateCanonicalUrl(`/products/${product.slug}`);
   const primaryImage =
-    product.images?.[0]?.url || '/images/products/organic-onesie.jpg';
+    product.images?.[0]?.url || '/images/products/organic-onesie.webp';
 
   const isDiscontinued = product.status === 'unpublished' || product.status === 'draft';
 
   return {
-    title,
+    title: {
+      absolute: formattedTitle.absolute,
+    },
     description,
     alternates: {
       canonical,
     },
     openGraph: {
       ...generateOpenGraph({
-        title,
+        title: formattedTitle.absolute,
         description,
         url: canonical,
         image: primaryImage,
@@ -306,7 +340,7 @@ export function buildProductMetadata(product: Product): Metadata {
       type: 'website',
     },
     twitter: generateTwitter({
-      title,
+      title: formattedTitle.absolute,
       description,
       image: primaryImage,
     }),
@@ -326,3 +360,27 @@ export function buildProductMetadata(product: Product): Metadata {
         },
   };
 }
+
+/**
+ * Checks if a 301/308 redirect exists for a given pathname.
+ */
+export function checkServerRedirect(urlPath: string): string | null {
+  const clean = urlPath.trim();
+  const redirects = readServerData<Array<{ fromPath?: string; source?: string; toPath?: string; destination?: string; active?: boolean }>>(
+    'redirects.json',
+    []
+  );
+
+  for (const r of redirects) {
+    if (r.active === false) continue;
+    const source = r.fromPath || r.source;
+    const target = r.toPath || r.destination;
+    if (source && target) {
+      if (source === clean || source.toLowerCase() === clean.toLowerCase()) {
+        return target;
+      }
+    }
+  }
+  return null;
+}
+

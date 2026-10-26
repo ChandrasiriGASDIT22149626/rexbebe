@@ -65,28 +65,88 @@ export function WebSiteJsonLd() {
   );
 }
 
+export function LocalBusinessJsonLd() {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'ClothingStore',
+    name: 'REXBEBE Baby Boutique Flagship Store',
+    description:
+      'Premier baby and toddler boutique in Colombo, Sri Lanka featuring certified organic cotton baby clothes, newborn sets, and wooden nursery essentials.',
+    url: SITE_URL,
+    logo: LOGO_CLEAN_URL,
+    image: `${SITE_URL}/images/hero/world_bg.webp`,
+    telephone: STORE_PHONE,
+    email: STORE_EMAIL,
+    priceRange: 'LKR 450 - LKR 15000',
+    currenciesAccepted: 'LKR',
+    paymentAccepted: 'Cash, Credit Card, PayHere, Bank Transfer, Cash on Delivery',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '142 Galle Road',
+      addressLocality: 'Colombo 03',
+      addressRegion: 'Western Province',
+      postalCode: '00300',
+      addressCountry: 'LK',
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 6.9044,
+      longitude: 79.8540,
+    },
+    openingHoursSpecification: [
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        opens: '09:30',
+        closes: '19:30',
+      },
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Sunday'],
+        opens: '10:00',
+        closes: '17:00',
+      },
+    ],
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 export function ProductJsonLd({ product }: { product: Product }) {
   const primaryImage = product.images?.[0]?.url
     ? generateAbsoluteImageUrl(product.images[0].url)
-    : `${SITE_URL}/images/products/organic-onesie.jpg`;
+    : `${SITE_URL}/images/products/organic-onesie.webp`;
 
   const allImages = product.images?.length
     ? product.images.map((img) => generateAbsoluteImageUrl(img.url))
     : [primaryImage];
 
-  const inStock = product.variants?.some((v) => v.stockQuantity > 0) ?? true;
+  const inStock = product.variants?.some((v) => v.stockQuantity > 0) ?? ((product.stockQuantity ?? 1) > 0);
+
+  // Requirement: Add review ratings only when genuine review data exists
+  const hasGenuineReviews = Boolean(
+    product.rating &&
+    product.reviewCount &&
+    product.reviewCount > 0 &&
+    (product.reviewsList?.length || product.reviewCount > 0)
+  );
 
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     image: allImages,
-    description: product.description,
-    sku: product.variants?.[0]?.sku || product.id,
+    description: product.description || `${product.name} luxury baby clothing by REXBEBE.`,
+    sku: product.variants?.[0]?.sku || product.sku || product.id,
     mpn: product.id,
     brand: {
       '@type': 'Brand',
-      name: BRAND_NAME,
+      name: product.brand || BRAND_NAME,
     },
     category: product.category?.name || 'Baby Clothing',
     offers: {
@@ -105,7 +165,7 @@ export function ProductJsonLd({ product }: { product: Product }) {
       },
       hasMerchantReturnPolicy: {
         '@type': 'MerchantReturnPolicy',
-        applicableCountry: 'US',
+        applicableCountry: 'LK',
         returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
         merchantReturnDays: 30,
         returnMethod: 'https://schema.org/ReturnByMail',
@@ -115,20 +175,35 @@ export function ProductJsonLd({ product }: { product: Product }) {
         '@type': 'OfferShippingDetails',
         shippingRate: {
           '@type': 'MonetaryAmount',
-          value: '0',
+          value: '650',
           currency: DEFAULT_CURRENCY,
         },
         shippingDestination: {
           '@type': 'DefinedRegion',
           addressCountry: 'LK',
         },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 0,
+            maxValue: 1,
+            unitCode: 'd',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 3,
+            unitCode: 'd',
+          },
+        },
       },
     },
-    aggregateRating: product.rating
+    aggregateRating: hasGenuineReviews
       ? {
           '@type': 'AggregateRating',
           ratingValue: product.rating,
-          reviewCount: product.reviewCount || 24,
+          reviewCount: product.reviewCount,
           bestRating: '5',
           worstRating: '1',
         }

@@ -448,12 +448,53 @@ export class ProductRepository {
         ? Math.round((1 - price / comparePrice) * 100)
         : undefined;
 
+    // Handle slug change safely and record 301 redirect
+    let newSlug = current.slug;
+    if (updateData.slug && typeof updateData.slug === 'string') {
+      const cleanNewSlug = updateData.slug
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      if (cleanNewSlug && cleanNewSlug !== current.slug) {
+        let uniqueSlug = cleanNewSlug;
+        let counter = 1;
+        while (this.products.some((p) => p.slug === uniqueSlug && p.id !== id)) {
+          uniqueSlug = `${cleanNewSlug}-${counter++}`;
+        }
+        newSlug = uniqueSlug;
+
+        // Record 301 permanent redirect
+        try {
+          const redirectsPath = path.resolve(__dirname, '../../data/redirects.json');
+          const frontRedirectsPath = path.resolve(__dirname, '../../../frontend/data/redirects.json');
+          const redirects = fs.existsSync(redirectsPath) ? JSON.parse(fs.readFileSync(redirectsPath, 'utf-8')) : [];
+          redirects.unshift({
+            id: `red-${Date.now()}`,
+            fromPath: `/products/${current.slug}`,
+            toPath: `/products/${newSlug}`,
+            statusCode: 301,
+            active: true,
+            createdAt: new Date().toISOString(),
+          });
+          fs.writeFileSync(redirectsPath, JSON.stringify(redirects, null, 2), 'utf-8');
+          if (fs.existsSync(path.dirname(frontRedirectsPath))) {
+            fs.writeFileSync(frontRedirectsPath, JSON.stringify(redirects, null, 2), 'utf-8');
+          }
+        } catch (redirErr) {
+          console.warn('[ProductRepository] Error recording slug redirect:', redirErr);
+        }
+      }
+    }
+
     this.products[idx] = {
       ...current,
       ...updateData,
+      slug: newSlug,
       price,
       comparePrice,
       discountPercentage,
+      seoTitle: updateData.seoTitle !== undefined ? updateData.seoTitle : current.seoTitle,
+      seoDescription: updateData.seoDescription !== undefined ? updateData.seoDescription : current.seoDescription,
     };
 
     this.saveToDisk();

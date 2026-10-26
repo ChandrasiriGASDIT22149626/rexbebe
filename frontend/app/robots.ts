@@ -6,15 +6,31 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: [
+          '/',
+          '/images/',
+          '/uploads/',
+          '/_next/static/',
+          '/_next/image',
+          '/favicon.ico',
+        ],
         disallow: [
           '/admin/',
+          '/admin',
           '/cart/',
+          '/cart',
           '/checkout/',
+          '/checkout',
           '/account/',
+          '/account',
           '/order-tracking/',
+          '/order-tracking',
+          '/track-order/',
+          '/track-order',
           '/order/',
+          '/order',
           '/api/',
+          '/api',
         ],
       },
     ],
@@ -22,3 +38,4 @@ export default function robots(): MetadataRoute.Robots {
     host: SITE_URL,
   };
 }
+

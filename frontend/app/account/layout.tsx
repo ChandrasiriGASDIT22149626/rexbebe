@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Client Account | REXBEBE',
+  title: 'Client Account',
   robots: {
     index: false,
     follow: false,

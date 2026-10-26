@@ -1,9 +1,13 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect, RedirectType } from 'next/navigation';
 import { CategoryShoppingTemplate } from '../../components/products/CategoryShoppingTemplate';
 import { BreadcrumbJsonLd } from '../../components/seo/JsonLd';
 import { generateCategoryMetadata } from '../../config/seoConfig';
+import {
+  getServerCategoryBySlug,
+  checkServerRedirect,
+} from '../../services/serverSeoService';
 
 interface Props {
   params: { categoryPath: string[] };
@@ -25,14 +29,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {};
   }
 
+  const fullPath = `/${pathParts.join('/')}`;
+  const redirectTarget = checkServerRedirect(fullPath);
+  if (redirectTarget) {
+    return { robots: { index: false, follow: true } };
+  }
+
   const targetSlug = pathParts[pathParts.length - 1];
+  const category = getServerCategoryBySlug(targetSlug);
   const cleanCategory = targetSlug.replace(/-/g, ' ');
   const formattedTitle = cleanCategory.replace(/\b\w/g, (l) => l.toUpperCase());
 
+  const title = category?.seoTitle?.trim() || `${category?.name || formattedTitle} - Baby Boutique Collection`;
+  const description =
+    category?.seoDescription?.trim() ||
+    category?.description?.trim() ||
+    `Shop our curated ${category?.name || cleanCategory} collection for babies and toddlers at REXBEBE. Certified organic cashmere, pure linen, and gentle pastel hues with islandwide delivery in Sri Lanka.`;
+
   return generateCategoryMetadata({
-    title: `${formattedTitle} - Baby Boutique Collection`,
-    description: `Shop our curated ${cleanCategory} collection for babies and toddlers at REXBEBE. Certified organic cashmere, pure linen, and gentle pastel hues.`,
-    path: `/${pathParts.join('/')}`,
+    title,
+    description,
+    path: fullPath,
+    image: category?.bannerImage || category?.thumbnailImage || '/images/hero/world_bg.webp',
   });
 }
 
@@ -42,10 +60,17 @@ export default function DynamicCategoryFallbackPage({ params }: Props) {
     notFound();
   }
 
+  const fullPath = `/${pathParts.join('/')}`;
+  const redirectTarget = checkServerRedirect(fullPath);
+  if (redirectTarget) {
+    redirect(redirectTarget, RedirectType.replace);
+  }
+
   // The leaf category slug is the last segment (e.g. 'krish-boxer' from ['krish-home-wear', 'krish-boxer'])
   const targetSlug = pathParts[pathParts.length - 1];
+  const category = getServerCategoryBySlug(targetSlug);
   const cleanCategory = targetSlug.replace(/-/g, ' ');
-  const formattedTitle = cleanCategory.replace(/\b\w/g, (l) => l.toUpperCase());
+  const formattedTitle = category?.name || cleanCategory.replace(/\b\w/g, (l) => l.toUpperCase());
 
   const parentName = pathParts.length > 1
     ? pathParts[0].replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())

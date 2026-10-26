@@ -18,27 +18,15 @@ import {
 } from 'lucide-react';
 import { Header } from '../../components/layout/Header';
 import { Footer } from '../../components/layout/Footer';
+import { generateStaticPageMetadata } from '../../config/seoConfig';
 
-export const metadata: Metadata = {
-  title: 'About Us | REXBEBE & Parent Company Classen Holdings',
+export const metadata: Metadata = generateStaticPageMetadata({
+  title: 'About Us | REXBEBE Atelier & Classen Holdings',
   description:
-    'Discover the story of REXBEBE and parent company Classen Holdings. From our 2010 fashion beginnings to multi-sector excellence in apparel, embellishments, gems, logistics, and construction.',
-  openGraph: {
-    title: 'About Us | REXBEBE & Classen Holdings',
-    description:
-      'Learn about REXBEBE baby clothing and Classen Holdings — driving innovation, integrity, and quality across diversified industries.',
-    url: 'https://rexbebe.lk/about',
-    siteName: 'REXBEBE',
-    images: [
-      {
-        url: '/images/about-hero.jpg',
-        width: 1200,
-        height: 675,
-        alt: 'REXBEBE Baby Clothing Atelier and Heritage',
-      },
-    ],
-  },
-};
+    'Discover the story of REXBEBE luxury baby boutique and parent company Classen Holdings. Multi-sector excellence in baby apparel, French flax linen, embellishments, and ethical craftsmanship.',
+  path: '/about',
+  image: '/images/hero/world_bg.webp',
+});
 
 const BUSINESS_SECTORS = [
   {

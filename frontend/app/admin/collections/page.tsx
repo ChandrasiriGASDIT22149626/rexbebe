@@ -83,17 +83,25 @@ export default function AdminCollectionsPage() {
       slug: '',
       description: '',
       bannerImage: '/images/products/organic-onesie.jpg',
+      bannerImageAlt: '',
       assignedProductIds: [],
       order: collections.length + 1,
       status: 'published',
       badge: '',
+      seoTitle: '',
+      seoDescription: '',
     };
     setEditingCollection(newCol);
     setIsEditorOpen(true);
   };
 
   const handleOpenEdit = (col: CollectionItem) => {
-    setEditingCollection({ ...col });
+    setEditingCollection({
+      ...col,
+      bannerImageAlt: col.bannerImageAlt || `${col.name} Collection Banner`,
+      seoTitle: col.seoTitle || '',
+      seoDescription: col.seoDescription || '',
+    });
     setIsEditorOpen(true);
   };
 
@@ -556,6 +564,134 @@ export default function AdminCollectionsPage() {
                     <p className="text-[11px] text-stone-500">
                       Recommended: 1200 x 480px horizontal image.
                     </p>
+                  </div>
+                </div>
+
+                {/* Banner Alt Text */}
+                <div className="pt-2">
+                  <label className="text-stone-700 font-bold block mb-1">
+                    Banner Image Alt Text (SEO & Accessibility)
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCollection.bannerImageAlt || ''}
+                    onChange={(e) =>
+                      setEditingCollection({
+                        ...editingCollection,
+                        bannerImageAlt: e.target.value,
+                      })
+                    }
+                    placeholder="e.g. Everyday baby essentials and organic rompers collection banner"
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 font-medium"
+                  />
+                  <p className="text-[11px] text-stone-400 mt-1">
+                    Descriptive text for image search indexing and screen readers.
+                  </p>
+                </div>
+              </div>
+
+              {/* Dedicated SEO Settings Card */}
+              <div className="rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50/40 via-white to-orange-50/20 p-4 space-y-3.5">
+                <div className="flex items-center space-x-2">
+                  <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs">
+                    🔍
+                  </span>
+                  <div>
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-stone-800">
+                      Collection SEO Metadata
+                    </h4>
+                    <p className="text-[11px] text-stone-500">
+                      Configure title and description tags for Google search results.
+                    </p>
+                  </div>
+                </div>
+
+                {/* SEO Meta Title */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                      Custom SEO Title
+                    </label>
+                    <span
+                      className={`text-[10px] font-bold ${
+                        (editingCollection.seoTitle?.length || 0) > 60
+                          ? 'text-amber-600'
+                          : 'text-stone-400'
+                      }`}
+                    >
+                      {editingCollection.seoTitle?.length || 0}/60 chars
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    value={editingCollection.seoTitle || ''}
+                    onChange={(e) =>
+                      setEditingCollection({
+                        ...editingCollection,
+                        seoTitle: e.target.value,
+                      })
+                    }
+                    placeholder={
+                      editingCollection.name
+                        ? `${editingCollection.name} Capsule Collection | REXBEBE`
+                        : 'Everyday Essentials | Luxury Baby Boutique Sri Lanka'
+                    }
+                    className="w-full p-2.5 bg-white border border-stone-200 rounded-xl text-stone-900 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                  />
+                </div>
+
+                {/* SEO Meta Description */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                      Meta Description
+                    </label>
+                    <span
+                      className={`text-[10px] font-bold ${
+                        (editingCollection.seoDescription?.length || 0) > 160
+                          ? 'text-amber-600'
+                          : 'text-stone-400'
+                      }`}
+                    >
+                      {editingCollection.seoDescription?.length || 0}/160 chars
+                    </span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={editingCollection.seoDescription || ''}
+                    onChange={(e) =>
+                      setEditingCollection({
+                        ...editingCollection,
+                        seoDescription: e.target.value,
+                      })
+                    }
+                    placeholder={`Explore the ${editingCollection.name || 'baby collection'} at REXBEBE Sri Lanka. Handcrafted pure fabrics, heirloom details, and islandwide delivery.`}
+                    className="w-full p-2.5 bg-white border border-stone-200 rounded-xl text-stone-900 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                  />
+                </div>
+
+                {/* Google Search Result Preview */}
+                <div className="bg-white p-3 rounded-xl border border-stone-200/90 shadow-2xs space-y-1">
+                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-stone-400">
+                    Google Search Result Preview
+                  </div>
+                  <div className="flex items-center space-x-1.5 text-[11px] text-emerald-800 font-mono truncate">
+                    <span>https://rexbebe.com</span>
+                    <span>›</span>
+                    <span>collections</span>
+                    <span>›</span>
+                    <span className="font-bold">
+                      {editingCollection.slug || 'collection-slug'}
+                    </span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-semibold text-blue-700 hover:underline truncate">
+                    {editingCollection.seoTitle?.trim() ||
+                      `${editingCollection.name || 'Collection Title'} Capsule Collection | REXBEBE`}
+                  </div>
+                  <div className="text-[11px] text-stone-600 line-clamp-2 leading-relaxed">
+                    {editingCollection.seoDescription?.trim() ||
+                      editingCollection.description?.trim() ||
+                      `Discover the ${editingCollection.name || 'exclusive'} capsule collection at REXBEBE Sri Lanka. Pure organic cashmere, handcrafted wooden nursery gym sets, and timeless Scandinavian aesthetics.`}
                   </div>
                 </div>
               </div>
