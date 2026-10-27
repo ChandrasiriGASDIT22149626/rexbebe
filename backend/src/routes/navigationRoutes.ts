@@ -7,7 +7,14 @@ const router = Router();
 // Public: Get published active navigation tree
 router.get('/', (req: Request, res: Response) => {
   try {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    const isAuth = Boolean(req.headers.authorization || req.query._admin === 'true');
+    if (isAuth) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
+    }
     navigationStorage.syncWithCategoryRecords(categoryRepository.getAll());
     const publicNav = navigationStorage.getPublic();
     return sendSuccess(res, publicNav, 'Public navigation structure retrieved');

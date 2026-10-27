@@ -122,6 +122,17 @@ export class ProductRepository {
   private products: ProductRecord[] = [];
   private static cachedProducts: ProductRecord[] | null = null;
   private static lastFileMtime: number = 0;
+  private static idIndex: Map<string, ProductRecord> = new Map();
+  private static slugIndex: Map<string, ProductRecord> = new Map();
+
+  private static rebuildIndexes(products: ProductRecord[]): void {
+    ProductRepository.idIndex.clear();
+    ProductRepository.slugIndex.clear();
+    for (const p of products) {
+      if (p.id) ProductRepository.idIndex.set(p.id, p);
+      if (p.slug) ProductRepository.slugIndex.set(p.slug.toLowerCase(), p);
+    }
+  }
 
   constructor() {
     this.products = this.loadFromDisk();
@@ -143,6 +154,7 @@ export class ProductRepository {
           if (Array.isArray(parsed)) {
             ProductRepository.cachedProducts = parsed;
             ProductRepository.lastFileMtime = stats.mtimeMs;
+            ProductRepository.rebuildIndexes(parsed);
             return parsed;
           }
         } catch (e) {
@@ -180,6 +192,7 @@ export class ProductRepository {
       }
       fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(this.products, null, 2), 'utf-8');
       ProductRepository.cachedProducts = this.products;
+      ProductRepository.rebuildIndexes(this.products);
       try {
         ProductRepository.lastFileMtime = fs.statSync(STORAGE_FILE_PATH).mtimeMs;
       } catch {}
@@ -309,17 +322,29 @@ export class ProductRepository {
       );
     }
 
+    if (query?.limit !== undefined) {
+      const limit = Math.max(1, parseInt(String(query.limit), 10) || 50);
+      const page = Math.max(1, parseInt(String(query.page || 1), 10) || 1);
+      const startIndex = (page - 1) * limit;
+      return result.slice(startIndex, startIndex + limit);
+    }
+
     return result;
   }
 
   async findBySlug(slug: string): Promise<ProductRecord | null> {
     this.products = this.loadFromDisk();
-    const product = this.products.find((p) => p.slug === slug);
+    const cleanSlug = String(slug || '').toLowerCase();
+    const indexed = ProductRepository.slugIndex.get(cleanSlug);
+    if (indexed) return indexed;
+    const product = this.products.find((p) => p.slug?.toLowerCase() === cleanSlug);
     return product || null;
   }
 
   async findById(id: string): Promise<ProductRecord | null> {
     this.products = this.loadFromDisk();
+    const indexed = ProductRepository.idIndex.get(id);
+    if (indexed) return indexed;
     const product = this.products.find((p) => p.id === id);
     return product || null;
   }

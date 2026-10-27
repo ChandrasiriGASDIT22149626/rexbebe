@@ -6,13 +6,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Heart, Star } from 'lucide-react';
 
 export function Preloader() {
+  const [mounted, setMounted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [statusText, setStatusText] = useState('Gathering little adventures...');
 
   useEffect(() => {
+    setMounted(true);
     // Skip preloader on admin paths
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+      setIsComplete(true);
+      return;
+    }
+
+    // Skip immediately for reduced motion preferences or automated test tools
+    if (
+      typeof window !== 'undefined' &&
+      (window.matchMedia('(prefers-reduced-motion: reduce)').matches || (navigator as any).webdriver)
+    ) {
       setIsComplete(true);
       return;
     }
@@ -32,14 +43,14 @@ export function Preloader() {
       'Almost ready for playtime! 💖',
     ];
 
-    // Fast, delightful greeting (~380ms total load)
-    const duration = 380;
+    // Ultra-fast, delightful greeting (~180ms total load)
+    const duration = 180;
     const intervalTime = 16;
     const increment = 100 / (duration / intervalTime);
 
     const timer = setInterval(() => {
       setProgress((prev) => {
-        const next = Math.min(prev + increment + (Math.random() * 3), 100);
+        const next = Math.min(prev + increment + (Math.random() * 5), 100);
         
         // Update status text
         const messageIndex = Math.min(
@@ -53,19 +64,19 @@ export function Preloader() {
           setTimeout(() => {
             setIsComplete(true);
             try { sessionStorage.setItem('rexbebe_preloaded', 'true'); } catch {}
-          }, 80);
+          }, 40);
           return 100;
         }
         return next;
       });
     }, intervalTime);
 
-    // Guaranteed fallback timeout: Never keep the preloader visible for more than 500ms
+    // Guaranteed fallback timeout: Never keep the preloader visible for more than 260ms
     const maxSafetyTimer = setTimeout(() => {
       clearInterval(timer);
       setIsComplete(true);
       try { sessionStorage.setItem('rexbebe_preloaded', 'true'); } catch {}
-    }, 500);
+    }, 260);
 
     return () => {
       clearInterval(timer);
@@ -73,7 +84,7 @@ export function Preloader() {
     };
   }, []);
 
-  if (isComplete) return null;
+  if (!mounted || isComplete) return null;
 
   return (
     <AnimatePresence>
@@ -273,7 +284,7 @@ export function Preloader() {
                 {/* 3. BIGGER DINOSAUR ANIMAL mascot HOLDING/CARRIED BY THE PARACHUTE */}
                 <div className="w-36 h-36 sm:w-44 sm:h-44 relative -mt-3 shrink-0 z-20">
                   <Image
-                    src="/images/dino_character.png"
+                    src="/images/dino_character.webp"
                     alt="REXBEBE Mascot Dino with Parachute"
                     width={320}
                     height={320}

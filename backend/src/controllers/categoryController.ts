@@ -239,6 +239,15 @@ function syncCategoryWithNavigation(cat: CategoryRecord, action: 'save' | 'delet
 
 export const getCategories = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const isAuth = Boolean(req.headers.authorization || req.query._admin === 'true');
+    if (isAuth) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
+    }
+
     const all = categoryRepository.getAll();
     const { status, parentId } = req.query;
 
@@ -260,7 +269,14 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
 
 export const getCategoryTree = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    const isAuth = Boolean(req.headers.authorization || req.query._admin === 'true');
+    if (isAuth) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
+    }
     const rootId = (req.query.rootId as string) || null;
     const publishedOnly = req.query.publishedOnly === 'true' || req.query.status === 'published';
     const tree = categoryRepository.getTree(rootId, { publishedOnly });
@@ -291,6 +307,14 @@ export const getCategoryAncestors = async (req: Request, res: Response, next: Ne
 
 export const getCategoryById = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const isAuth = Boolean(req.headers.authorization || req.query._admin === 'true');
+    if (isAuth) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
+    }
     const { id } = req.params;
     const all = categoryRepository.getAll();
     const found = categoryRepository.findById(id) || categoryRepository.findBySlug(id);

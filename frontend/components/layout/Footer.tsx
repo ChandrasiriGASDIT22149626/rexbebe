@@ -54,7 +54,7 @@ export function Footer() {
       {/* Header / Hero 3D Pastel World Background Image */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
-          src="/images/hero/world_bg.jpg"
+          src="/images/hero/world_bg.webp"
           alt="REXBEBE Pastel World Background"
           fill
           loading="lazy"

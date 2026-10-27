@@ -141,3 +141,51 @@ To activate live search indexing and performance monitoring after deploying to p
    - Collection: `https://rexbebe.com/collections/everyday-essentials`
 3. Verify that `Product`, `Offer`, `BreadcrumbList`, `Organization`, and `ClothingStore` schemas show "Valid".
 
+---
+
+## Advanced Performance & Core Web Vitals Optimization
+
+The REXBEBE platform features high-tier performance optimizations designed to balance luxury aesthetics, 3D animated hero elements, and ultra-fast Core Web Vitals loading metrics.
+
+### 1. Key Performance Targets
+- **Largest Contentful Paint (LCP)**: $\le$ 2.5 seconds (Prioritized hero backdrop with `fetchPriority="high"` and Next.js WebP image pipeline).
+- **Interaction to Next Paint (INP)**: $\le$ 200 milliseconds (Frame-optimized springs, paused off-screen loops, code-split below-the-fold bundles).
+- **Cumulative Layout Shift (CLS)**: $\le$ 0.1 (Strict geometric aspect ratio containers `aspect-[1312/1199]` on all product cards, preventing layout shifts).
+
+### 2. Image Optimization & Delivery
+- **WebP Image Pipeline**: Photographic products converted to optimized WebP format with sharp 82–85 quality factor and lossless graphics preservation.
+- **Thumbnail Resolution**: Grid and gallery carousels utilize `-thumb.webp` variants (~8–15KB) instead of downloading full 100KB+ high-resolution photographs.
+- **No Head/Clothing Cropping**: Product cards utilize contain/cover balance with uniform aspect ratios, guaranteeing baby head and clothing are never cropped or distorted.
+- **Lazy Loading**: Native `loading="lazy"` and `decoding="async"` applied to all below-the-fold components, with immediate high-priority fetching reserved exclusively for the LCP hero.
+
+### 3. 3D Animation & Hero Lifecycle Management
+- **Viewport-Aware Execution**: Framer Motion loops for clouds, hot air balloons, mascots, and blossom particles automatically suspend when scrolled out of view using `useInView`.
+- **Accessibility & Reduced Motion**: Automatically queries and respects `prefers-reduced-motion: reduce`, replacing continuous parallax physics with gentle static states.
+- **Mobile Hardware Acceleration**: Disables expensive mouse-driven spring calculations on touch-primary viewports to maintain smooth 60fps scrolling.
+
+### 4. Frontend Code-Splitting & Bundle Reduction
+- **Dynamic Section Splitting**: All below-the-fold homepage sections (`CategorySection`, `BrandStory`, `CustomerReviews`, `InstagramSection`, `Footer`) split via `next/dynamic` with `{ ssr: true }`, maintaining 100% SEO indexability while slashing initial JavaScript execution.
+- **Package Import Optimization**: Next.js compiler configured with `optimizePackageImports` for `lucide-react` and `framer-motion`.
+- **Console Stripping**: Automatic removal of `console.*` statements in production bundles.
+
+### 5. Backend Caching, Indexing & API Performance
+- **O(1) In-Memory Lookup Maps**: Static `idIndex` and `slugIndex` hash maps in `productRepository` provide instant $O(1)$ catalog item retrieval without linear file scans.
+- **Public HTTP Cache Headers**:
+  - Catalog & Categories: `Cache-Control: public, max-age=120, stale-while-revalidate=600`
+  - Collections & Navigation: `Cache-Control: public, max-age=120, stale-while-revalidate=600`
+  - Delivery Estimates: `Cache-Control: public, max-age=300, stale-while-revalidate=900`
+- **Private Data Protection**: Strict `no-store, no-cache` preserved for cart operations, customer checkout sessions, payment processing, and admin mutations.
+
+### 6. Automated Performance Verification Suite
+To audit and verify performance metrics locally:
+```bash
+cd frontend
+npm run test:perf
+```
+Validates:
+1. WebP format usage across public images.
+2. Aspect ratio constraints across product and hero containers.
+3. Animation suspension hooks in hero scenes.
+4. Dynamic code splitting in page entries.
+5. Server response times and caching headers on live endpoints.
+

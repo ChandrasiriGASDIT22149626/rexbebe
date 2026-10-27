@@ -194,6 +194,10 @@ export function ProductGallery({
           <div className="flex space-x-3 sm:space-x-4 overflow-x-auto touch-scroll no-scrollbar py-1 px-0.5">
             {images.map((img, idx) => {
               const isSelected = selectedImage === img.url;
+              const thumbSrc =
+                img.url && !img.url.includes('-thumb.') && (img.url.endsWith('.webp') || img.url.endsWith('.jpg') || img.url.endsWith('.png'))
+                  ? img.url.replace(/\.[^.]+$/, '-thumb.webp')
+                  : img.url;
               return (
                 <button
                   key={img.id || idx}
@@ -208,11 +212,19 @@ export function ProductGallery({
                 >
                   <div className="relative w-full h-full">
                     <Image
-                      src={img.url}
+                      src={thumbSrc}
                       alt={img.alt || `${productName} thumbnail ${idx + 1}`}
                       fill
+                      loading="lazy"
+                      decoding="async"
                       className="object-contain object-center"
                       sizes="96px"
+                      onError={(e: any) => {
+                        // Fallback to original image if thumb is missing
+                        if (e?.target?.src && !e.target.src.includes(img.url)) {
+                          e.target.src = img.url;
+                        }
+                      }}
                     />
                   </div>
                   {img.colorName && (

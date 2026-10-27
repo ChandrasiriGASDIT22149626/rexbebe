@@ -68,13 +68,13 @@ export const metadata: Metadata = {
     description:
       'Curated organic cashmere rompers, French flax linen swaddles, handcrafted wooden nursery toys, and pastel baby clothes online at REXBEBE.',
     url: SITE_URL,
-    image: '/images/hero/world_bg.jpg',
+    image: '/images/hero/world_bg.webp',
   }),
   twitter: generateTwitter({
     title: 'REXBEBE | Luxury Baby & Toddler Boutique Online',
     description:
       'Curated organic cashmere rompers, French flax linen swaddles, handcrafted wooden nursery toys, and pastel baby clothes online at REXBEBE.',
-    image: '/images/hero/world_bg.jpg',
+    image: '/images/hero/world_bg.webp',
   }),
   icons: {
     icon: [

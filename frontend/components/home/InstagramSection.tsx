@@ -2,21 +2,21 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 import { Instagram, Heart, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useAdminData } from '../../hooks/AdminContext';
 
 const DEFAULT_INSTA_POSTS = [
-  { id: 1, image: '/images/products/insta-peppa-wooden-bear.jpg', likes: '2.8k', handle: '@peppa_smiles' },
-  { id: 2, image: '/images/products/insta-cocomelon-family-cream.jpg', likes: '3.5k', handle: '@cocomelon_cozy' },
-  { id: 3, image: '/images/products/insta-cocomelon-mom-baby.jpg', likes: '4.2k', handle: '@mama_and_mini' },
-  { id: 4, image: '/images/products/insta-cocomelon-pink-gift.jpg', likes: '1.9k', handle: '@gift_of_gentle' },
-  { id: 5, image: '/images/products/insta-labubu-parents.jpg', likes: '3.7k', handle: '@samantha_and_noah' },
-  { id: 6, image: '/images/products/insta-family-stitch-dinoboy.jpg', likes: '5.1k', handle: '@family_moments_lk' },
-  { id: 7, image: '/images/products/insta-labubu-baby-girl.jpg', likes: '2.6k', handle: '@little_labubu' },
-  { id: 8, image: '/images/products/insta-cocomelon-pouf.jpg', likes: '3.3k', handle: '@cloud_soft_baby' },
-  { id: 9, image: '/images/products/insta-baby-bluey-gym.jpg', likes: '4.8k', handle: '@bluey_playtime' },
-  { id: 10, image: '/images/products/insta-peppa-baby-friends.jpg', likes: '2.9k', handle: '@little_explorers' },
+  { id: 1, image: '/images/products/insta-peppa-wooden-bear.webp', likes: '2.8k', handle: '@peppa_smiles' },
+  { id: 2, image: '/images/products/insta-cocomelon-family-cream.webp', likes: '3.5k', handle: '@cocomelon_cozy' },
+  { id: 3, image: '/images/products/insta-cocomelon-mom-baby.webp', likes: '4.2k', handle: '@mama_and_mini' },
+  { id: 4, image: '/images/products/insta-cocomelon-pink-gift.webp', likes: '1.9k', handle: '@gift_of_gentle' },
+  { id: 5, image: '/images/products/insta-labubu-parents.webp', likes: '3.7k', handle: '@samantha_and_noah' },
+  { id: 6, image: '/images/products/insta-family-stitch-dinoboy.webp', likes: '5.1k', handle: '@family_moments_lk' },
+  { id: 7, image: '/images/products/insta-labubu-baby-girl.webp', likes: '2.6k', handle: '@little_labubu' },
+  { id: 8, image: '/images/products/insta-cocomelon-pouf.webp', likes: '3.3k', handle: '@cloud_soft_baby' },
+  { id: 9, image: '/images/products/insta-baby-bluey-gym.webp', likes: '4.8k', handle: '@bluey_playtime' },
+  { id: 10, image: '/images/products/insta-peppa-baby-friends.webp', likes: '2.9k', handle: '@little_explorers' },
 ];
 
 export function InstagramSection() {
@@ -33,7 +33,11 @@ export function InstagramSection() {
     ...postsList,
   ];
 
+  const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(sectionRef, { margin: '150px' });
+  const shouldReduceMotion = useReducedMotion();
+
   const [isPaused, setIsPaused] = useState(false);
   const isMouseDownRef = useRef(false);
   const startXRef = useRef(0);
@@ -50,13 +54,10 @@ export function InstagramSection() {
     }
   }, []);
 
-  // Continuous auto-sliding RAF loop
+  // Continuous auto-sliding RAF loop - only active when in view and motion is enabled
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
-
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (mediaQuery.matches) return;
+    if (!container || !isInView || shouldReduceMotion) return;
 
     let animationFrameId: number;
 
@@ -82,7 +83,7 @@ export function InstagramSection() {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isPaused]);
+  }, [isPaused, isInView, shouldReduceMotion]);
 
   const resetResumeTimer = () => {
     if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
@@ -130,7 +131,7 @@ export function InstagramSection() {
   };
 
   return (
-    <section className="py-14 sm:py-20 relative overflow-hidden select-none bg-user-pastel-header border-y border-white/60">
+    <section ref={sectionRef} className="py-14 sm:py-20 relative overflow-hidden select-none bg-user-pastel-header border-y border-white/60">
       
       {/* Translucent Soft Dreamy Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/10 to-white/30 backdrop-blur-md pointer-events-none" />
@@ -138,32 +139,48 @@ export function InstagramSection() {
       {/* FLOATING CUTE ANIMATED BACKGROUND ANIMAL ORNAMENTS */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div
-          animate={{ y: [0, -12, 0], rotate: [-4, 4, -4], scale: [1, 1.08, 1] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+          animate={
+            isInView && !shouldReduceMotion
+              ? { y: [0, -12, 0], rotate: [-4, 4, -4], scale: [1, 1.08, 1] }
+              : { y: 0, rotate: 0, scale: 1 }
+          }
+          transition={{ duration: 5, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut' }}
           className="absolute top-6 left-8 text-2xl opacity-75 hidden sm:block"
         >
           🧸
         </motion.div>
 
         <motion.div
-          animate={{ y: [0, -14, 0], rotate: [5, -5, 5], scale: [1, 1.1, 1] }}
-          transition={{ duration: 5.8, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+          animate={
+            isInView && !shouldReduceMotion
+              ? { y: [0, -14, 0], rotate: [5, -5, 5], scale: [1, 1.1, 1] }
+              : { y: 0, rotate: 0, scale: 1 }
+          }
+          transition={{ duration: 5.8, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut', delay: 0.8 }}
           className="absolute top-10 right-36 text-2xl opacity-75 hidden md:block"
         >
           👶
         </motion.div>
 
         <motion.div
-          animate={{ y: [0, -10, 0], rotate: [-3, 3, -3] }}
-          transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut', delay: 1.4 }}
+          animate={
+            isInView && !shouldReduceMotion
+              ? { y: [0, -10, 0], rotate: [-3, 3, -3] }
+              : { y: 0, rotate: 0 }
+          }
+          transition={{ duration: 4.8, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut', delay: 1.4 }}
           className="absolute bottom-8 left-12 text-2xl opacity-70 hidden lg:block"
         >
           🐰
         </motion.div>
 
         <motion.div
-          animate={{ y: [0, -15, 0], rotate: [4, -4, 4] }}
-          transition={{ duration: 5.4, repeat: Infinity, ease: 'easeInOut', delay: 2.1 }}
+          animate={
+            isInView && !shouldReduceMotion
+              ? { y: [0, -15, 0], rotate: [4, -4, 4] }
+              : { y: 0, rotate: 0 }
+          }
+          transition={{ duration: 5.4, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut', delay: 2.1 }}
           className="absolute bottom-6 right-16 text-2xl opacity-75 hidden md:block"
         >
           🐥
@@ -314,7 +331,8 @@ export function InstagramSection() {
                     src={post.image}
                     alt="REXBEBE Instagram moment"
                     fill
-                    unoptimized
+                    loading="lazy"
+                    sizes="(max-width: 640px) 210px, (max-width: 1024px) 275px, 295px"
                     className="object-cover object-top group-hover/item:scale-108 transition-transform duration-700 ease-out"
                   />
                   

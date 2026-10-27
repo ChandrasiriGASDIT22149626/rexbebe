@@ -24,6 +24,14 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
 
 export const getProductBySlug = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const isAuth = Boolean(req.headers.authorization || req.query._admin === 'true');
+    if (isAuth) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
+    }
     const { slug } = req.params;
     const product = await productService.getProductBySlug(slug);
     if (!product) {

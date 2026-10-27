@@ -36,24 +36,47 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
   const url = `${baseUrl}${cleanEndpoint}`;
   
-  const token = typeof window !== 'undefined' 
-    ? (localStorage.getItem('rexbebe_admin_token') || localStorage.getItem('auth_token') || localStorage.getItem('token')) 
-    : null;
+  let token: string | null = null;
+  if (typeof window !== 'undefined') {
+    try {
+      token =
+        localStorage.getItem('rexbebe_admin_token') ||
+        localStorage.getItem('rexbebe_customer_token') ||
+        localStorage.getItem('auth_token') ||
+        localStorage.getItem('token');
+    } catch {}
+  }
+
+  const isMutation = options.method && options.method.toUpperCase() !== 'GET';
+  const isPrivateOrAdmin =
+    Boolean(token) ||
+    cleanEndpoint.startsWith('/admin') ||
+    cleanEndpoint.startsWith('/auth') ||
+    cleanEndpoint.startsWith('/cart') ||
+    cleanEndpoint.startsWith('/orders') ||
+    cleanEndpoint.startsWith('/checkout') ||
+    cleanEndpoint.startsWith('/payments');
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0',
+    ...(isMutation || isPrivateOrAdmin
+      ? {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        }
+      : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...((options.headers as Record<string, string>) || {}),
   };
+
+  const fetchCacheMode: RequestCache = isMutation || isPrivateOrAdmin ? 'no-store' : (options.cache || 'default');
 
   try {
     let response: Response;
     try {
       response = await fetch(url, {
-        cache: 'no-store',
+        cache: fetchCacheMode,
         ...options,
         headers,
       });
@@ -62,7 +85,7 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
       if (typeof window !== 'undefined' && url.startsWith('http')) {
         console.warn(`[fetchApi] Direct request to ${url} failed; falling back to same-origin rewrite /api${cleanEndpoint}`);
         response = await fetch(`/api${cleanEndpoint}`, {
-          cache: 'no-store',
+          cache: fetchCacheMode,
           ...options,
           headers,
         });

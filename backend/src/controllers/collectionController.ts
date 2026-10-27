@@ -61,9 +61,42 @@ function recordAudit(action: string, details: string) {
   writeJson(auditLogsFilePath, logs);
 }
 
+let cachedCollections: CollectionRecord[] | null = null;
+let lastCollectionsMtime = 0;
+
+function getCollectionsData(): CollectionRecord[] {
+  try {
+    if (fs.existsSync(collectionsFilePath)) {
+      const stats = fs.statSync(collectionsFilePath);
+      if (cachedCollections && stats.mtimeMs === lastCollectionsMtime) {
+        return cachedCollections;
+      }
+      const raw = fs.readFileSync(collectionsFilePath, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        cachedCollections = parsed;
+        lastCollectionsMtime = stats.mtimeMs;
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error('[Collection] Error reading collections from disk:', err);
+  }
+  return cachedCollections || [];
+}
+
 export const getCollections = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const collections = readJson<CollectionRecord[]>(collectionsFilePath, []);
+    const isAuth = Boolean(req.headers.authorization || req.query._admin === 'true');
+    if (isAuth) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
+    }
+
+    const collections = getCollectionsData();
     const { status } = req.query;
     if (status && status !== 'all') {
       const filtered = collections.filter(c => c.status === status);
@@ -77,8 +110,17 @@ export const getCollections = async (req: Request, res: Response, next: NextFunc
 
 export const getCollectionById = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const isAuth = Boolean(req.headers.authorization || req.query._admin === 'true');
+    if (isAuth) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
+    }
+
     const { id } = req.params;
-    const collections = readJson<CollectionRecord[]>(collectionsFilePath, []);
+    const collections = getCollectionsData();
     const found = collections.find(c => c.id === id || c.slug === id);
     if (!found) {
       throw new NotFoundError(`Collection with identifier '${id}' not found`);

@@ -3,12 +3,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, useInView, useReducedMotion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { useAdminData } from '../../hooks/AdminContext';
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { margin: '100px' });
+  const shouldReduceMotion = useReducedMotion();
+
   const { homepageConfig } = useAdminData();
   const hero = homepageConfig.hero;
   const [isHoveredDino, setIsHoveredDino] = useState(false);
@@ -44,7 +47,7 @@ export function Hero() {
   const rafRef = useRef<number | null>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || shouldReduceMotion || !isInView) return;
     if (rafRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
@@ -90,14 +93,15 @@ export function Hero() {
       {/* 1. LAYER 0: FULL-WIDTH 3D ENVIRONMENT BACKGROUND & ATMOSPHERE            */}
       {/* ========================================================================= */}
       <motion.div
-        style={{ x: bgX, y: bgY }}
+        style={{ x: shouldReduceMotion ? 0 : bgX, y: shouldReduceMotion ? 0 : bgY }}
         className="absolute inset-0 w-[108%] h-[108%] -left-[4%] -top-[4%] z-0"
       >
         <Image
-          src="/images/hero/world_bg.jpg"
+          src="/images/hero/world_bg.webp"
           alt="REXBEBE 3D Pastel World"
           fill
           priority
+          fetchPriority="high"
           sizes="100vw"
           quality={85}
           className="object-cover object-center transform scale-105 filter brightness-[1.02] contrast-[1.01]"
@@ -115,11 +119,11 @@ export function Hero() {
       {/* ========================================================================= */}
       {/* 2. LAYER 1: DRIFTING CLOUDS & SWAYING MIDGROUND ELEMENTS                 */}
       {/* ========================================================================= */}
-      <motion.div style={{ x: midX, y: midY }} className="absolute inset-0 z-10 pointer-events-none">
+      <motion.div style={{ x: shouldReduceMotion ? 0 : midX, y: shouldReduceMotion ? 0 : midY }} className="absolute inset-0 z-10 pointer-events-none">
         
         {/* Drifting Cloud 1 */}
         <motion.div
-          animate={{ x: ['-10%', '110%'] }}
+          animate={isInView && !shouldReduceMotion ? { x: ['-10%', '110%'] } : { x: '10%' }}
           transition={{ duration: 32, repeat: Infinity, ease: 'linear' }}
           className="absolute top-12 left-0 w-64 h-32 opacity-80 filter drop-shadow-md"
         >
@@ -130,7 +134,7 @@ export function Hero() {
 
         {/* Drifting Cloud 2 */}
         <motion.div
-          animate={{ x: ['110%', '-20%'] }}
+          animate={isInView && !shouldReduceMotion ? { x: ['110%', '-20%'] } : { x: '60%' }}
           transition={{ duration: 42, repeat: Infinity, ease: 'linear' }}
           className="absolute top-28 right-0 w-80 h-40 opacity-70 filter drop-shadow-sm"
         >
@@ -141,10 +145,14 @@ export function Hero() {
 
         {/* Floating Pastel Hot Air Balloon */}
         <motion.div
-          animate={{
-            y: [0, -18, 0],
-            rotate: [-2, 2, -2],
-          }}
+          animate={
+            isInView && !shouldReduceMotion
+              ? {
+                  y: [0, -18, 0],
+                  rotate: [-2, 2, -2],
+                }
+              : { y: 0, rotate: 0 }
+          }
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute top-16 right-[22%] w-24 h-32 hidden md:block filter drop-shadow-lg"
         >
@@ -161,7 +169,7 @@ export function Hero() {
       {/* ========================================================================= */}
       {/* 3. LAYER 2: INTERACTIVE CHARACTERS (REXBEBE DINO & KITTY MASCOT)         */}
       {/* ========================================================================= */}
-      <motion.div style={{ x: charX, y: charY }} className="absolute inset-0 z-20 pointer-events-none">
+      <motion.div style={{ x: shouldReduceMotion ? 0 : charX, y: shouldReduceMotion ? 0 : charY }} className="absolute inset-0 z-20 pointer-events-none">
         
         {/* REXBEBE 3D Dinosaur Mascot Character */}
         <div className="absolute bottom-2 right-2 sm:bottom-6 sm:right-[4%] lg:right-[8%] w-[160px] min-[400px]:w-[200px] sm:w-[320px] lg:w-[440px] aspect-square pointer-events-auto group cursor-pointer">
@@ -184,11 +192,13 @@ export function Hero() {
             animate={
               isHoveredDino
                 ? { y: [0, -25, 0], rotate: [0, -5, 5, 0], scale: 1.05 }
-                : { y: [0, -12, 0], rotate: [-1.5, 1.5, -1.5], scale: 1 }
+                : isInView && !shouldReduceMotion
+                ? { y: [0, -12, 0], rotate: [-1.5, 1.5, -1.5], scale: 1 }
+                : { y: 0, rotate: 0, scale: 1 }
             }
             transition={{
               duration: isHoveredDino ? 0.6 : 4,
-              repeat: isHoveredDino ? 1 : Infinity,
+              repeat: isHoveredDino || (isInView && !shouldReduceMotion) ? Infinity : 0,
               ease: 'easeInOut',
             }}
             onMouseEnter={handleDinoHover}
@@ -196,7 +206,7 @@ export function Hero() {
             className="relative w-full h-full drop-shadow-2xl"
           >
             <Image
-              src="/images/hero/dino_mascot.png"
+              src="/images/hero/dino_mascot.webp"
               alt="REXBEBE Mascot Dino"
               fill
               sizes="(max-width: 640px) 200px, (max-width: 1024px) 320px, 440px"
@@ -214,11 +224,13 @@ export function Hero() {
             animate={
               isHoveredKitty
                 ? { y: [0, -18, 0], rotate: [0, 8, -8, 0] }
-                : { y: [0, -8, 0], rotate: [1, -1, 1] }
+                : isInView && !shouldReduceMotion
+                ? { y: [0, -8, 0], rotate: [1, -1, 1] }
+                : { y: 0, rotate: 0 }
             }
             transition={{
               duration: isHoveredKitty ? 0.5 : 3.5,
-              repeat: isHoveredKitty ? 1 : Infinity,
+              repeat: isHoveredKitty || (isInView && !shouldReduceMotion) ? Infinity : 0,
               ease: 'easeInOut',
             }}
             onMouseEnter={() => setIsHoveredKitty(true)}
@@ -226,7 +238,7 @@ export function Hero() {
             className="relative w-full h-full drop-shadow-xl"
           >
             <Image
-              src="/images/hero/kitty_mascot.png"
+              src="/images/hero/kitty_mascot.webp"
               alt="REXBEBE Companion Kitty"
               fill
               sizes="(max-width: 1024px) 160px, 210px"
@@ -259,16 +271,24 @@ export function Hero() {
               
               {/* Cute Floating Pastel Cherry Blossom & Heart Accents matching the reference vibe */}
               <motion.div
-                animate={{ y: [0, -8, 0], rotate: [-5, 5, -5] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                animate={
+                  isInView && !shouldReduceMotion
+                    ? { y: [0, -8, 0], rotate: [-5, 5, -5] }
+                    : { y: 0, rotate: 0 }
+                }
+                transition={{ duration: 4, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut' }}
                 className="absolute -top-7 -left-3 text-lg sm:text-2xl pointer-events-none select-none filter drop-shadow-sm opacity-90"
               >
                 🌸
               </motion.div>
 
               <motion.div
-                animate={{ y: [0, -6, 0], scale: [1, 1.08, 1] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+                animate={
+                  isInView && !shouldReduceMotion
+                    ? { y: [0, -6, 0], scale: [1, 1.08, 1] }
+                    : { y: 0, scale: 1 }
+                }
+                transition={{ duration: 3.5, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut', delay: 1 }}
                 className="absolute -top-5 right-12 text-sm sm:text-lg pointer-events-none select-none filter drop-shadow-sm opacity-85"
               >
                 💕
@@ -296,15 +316,19 @@ export function Hero() {
                 {/* Matching 3D Baby Mint Dinosaur Mascot Graphic */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ 
-                    opacity: 1, 
-                    scale: [0.8, 1, 1.04, 1],
-                    y: [0, -3, 0]
-                  }}
+                  animate={
+                    isInView && !shouldReduceMotion
+                      ? { 
+                          opacity: 1, 
+                          scale: [0.8, 1, 1.04, 1],
+                          y: [0, -3, 0]
+                        }
+                      : { opacity: 1, scale: 1, y: 0 }
+                  }
                   transition={{
                     opacity: { duration: 0.6, delay: 0.3 },
-                    scale: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
-                    y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }
+                    scale: { duration: 4, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut' },
+                    y: { duration: 4, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut' }
                   }}
                   className="relative inline-block align-middle ml-1 sm:ml-2 transform -translate-y-1 drop-shadow-[0_4px_10px_rgba(58,184,131,0.4)]"
                 >

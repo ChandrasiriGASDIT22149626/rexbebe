@@ -145,7 +145,7 @@ export function BrandStory() {
               {/* Primary Atmospheric Image */}
               <div className="relative aspect-[1024/655] rounded-[34px] overflow-hidden shadow-2xl border-6 border-white/95 bg-pink-50">
                 <Image
-                  src="/images/products/plush-bears-tshirts.jpg"
+                  src="/images/products/plush-bears-tshirts.webp"
                   alt="Plush Animals Wearing REXBEBE T-Shirts"
                   fill
                   loading="lazy"
@@ -164,7 +164,7 @@ export function BrandStory() {
                 className="absolute -bottom-6 -right-2 sm:-right-10 lg:-right-12 w-32 sm:w-44 aspect-square rounded-[24px] overflow-hidden shadow-2xl border-4 border-white/95 bg-white z-20"
               >
                 <Image
-                  src="/images/products/baby-bluey-gym.jpg"
+                  src="/images/products/baby-bluey-gym.webp"
                   alt="Baby in Bluey T-shirt Playing under Wooden Gym"
                   fill
                   className="object-cover transition-transform duration-700 hover:scale-105"

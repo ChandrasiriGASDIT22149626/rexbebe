@@ -139,7 +139,7 @@ export function LittleEssentials() {
                 className="relative aspect-[1024/935] rounded-[34px] overflow-hidden shadow-2xl border-6 border-white/95 bg-gradient-to-tr from-pink-100 to-sky-100"
               >
                 <Image
-                  src="/images/products/pooh-baby-lifestyle.jpg"
+                  src="/images/products/pooh-baby-lifestyle.webp"
                   alt="REXBEBE Little Essentials"
                   fill
                   loading="lazy"
@@ -160,7 +160,7 @@ export function LittleEssentials() {
               >
                 <div className="relative aspect-square rounded-2xl overflow-hidden bg-amber-50 border border-amber-100">
                   <Image
-                    src="/images/products/yellow-pooh-baby-card.jpg"
+                    src="/images/products/yellow-pooh-baby-card.webp"
                     alt="Sunshine Cotton Pooh Tee"
                     fill
                     className="object-cover object-[center_20%]"

@@ -9,7 +9,8 @@
     "lint": "next lint",
     "optimize:images": "node scripts/migrate-images-and-catalog.js",
     "test:seo": "node scripts/validate-seo.js",
-    "test:responsive": "node scripts/validate-responsive.js"
+    "test:responsive": "node scripts/validate-responsive.js",
+    "test:perf": "node scripts/audit-performance.js"
   },
   "dependencies": {
     "framer-motion": "^11.0.8",

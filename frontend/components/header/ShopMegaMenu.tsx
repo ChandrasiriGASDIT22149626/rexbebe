@@ -151,7 +151,7 @@ export function ShopMegaMenu({ item, isOpen, onClose }: ShopMegaMenuProps) {
                 <div className="space-y-3">
                   <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden shadow-xs border border-white/80 dark:border-stone-600">
                     <Image
-                      src="/images/products/baby-girl-fashion.jpg"
+                      src="/images/products/baby-girl-fashion.webp"
                       alt="Featured Atelier Edit"
                       fill
                       className="object-cover"

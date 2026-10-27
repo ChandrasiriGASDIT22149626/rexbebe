@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useAdminData } from '../../hooks/AdminContext';
 
@@ -12,7 +12,7 @@ const DEFAULT_CATEGORIES = [
     name: 'NEWBORN',
     subtitle: 'First little moments',
     href: '/baby',
-    image: '/images/products/insta-cocomelon-family-cream.jpg',
+    image: '/images/products/insta-cocomelon-family-cream.webp',
     bg: 'from-pink-100/80 via-rose-50/70 to-pink-50/60',
     ringBorder: 'border-pink-300 group-hover:border-pink-400',
     dotBg: 'bg-pink-400',
@@ -22,7 +22,7 @@ const DEFAULT_CATEGORIES = [
     name: 'BABY GIRLS',
     subtitle: 'Sweet little looks',
     href: '/girls',
-    image: '/images/products/insta-labubu-baby-girl.jpg',
+    image: '/images/products/insta-labubu-baby-girl.webp',
     bg: 'from-purple-100/80 via-pink-50/70 to-peach-50/60',
     ringBorder: 'border-purple-300 group-hover:border-purple-400',
     dotBg: 'bg-purple-400',
@@ -32,7 +32,7 @@ const DEFAULT_CATEGORIES = [
     name: 'BABY BOYS',
     subtitle: 'Everyday adventures',
     href: '/boys',
-    image: '/images/products/insta-peppa-wooden-bear.jpg',
+    image: '/images/products/insta-peppa-wooden-bear.webp',
     bg: 'from-sky-100/80 via-blue-50/70 to-cyan-50/60',
     ringBorder: 'border-sky-300 group-hover:border-sky-400',
     dotBg: 'bg-sky-400',
@@ -42,7 +42,7 @@ const DEFAULT_CATEGORIES = [
     name: 'DRESSES',
     subtitle: 'Made to twirl',
     href: '/shop?category=Dresses',
-    image: '/images/products/insta-cocomelon-mom-baby.jpg',
+    image: '/images/products/insta-cocomelon-mom-baby.webp',
     bg: 'from-rose-100/80 via-pink-50/70 to-rose-50/60',
     ringBorder: 'border-rose-300 group-hover:border-rose-400',
     dotBg: 'bg-rose-400',
@@ -52,7 +52,7 @@ const DEFAULT_CATEGORIES = [
     name: 'ROMPERS',
     subtitle: 'Soft everyday comfort',
     href: '/shop?category=Rompers',
-    image: '/images/products/insta-cocomelon-pouf.jpg',
+    image: '/images/products/insta-cocomelon-pouf.webp',
     bg: 'from-emerald-100/80 via-mint-50/70 to-teal-50/60',
     ringBorder: 'border-emerald-300 group-hover:border-emerald-400',
     dotBg: 'bg-emerald-400',
@@ -62,7 +62,7 @@ const DEFAULT_CATEGORIES = [
     name: 'NURSERY & TOYS',
     subtitle: 'Gentle Montessori play',
     href: '/shop?category=nursery-toys',
-    image: '/images/products/insta-baby-bluey-gym.jpg',
+    image: '/images/products/insta-baby-bluey-gym.webp',
     bg: 'from-amber-100/80 via-orange-50/70 to-yellow-50/60',
     ringBorder: 'border-amber-300 group-hover:border-amber-400',
     dotBg: 'bg-amber-400',
@@ -84,7 +84,11 @@ export function CategorySection() {
     ...categoriesList,
   ];
 
+  const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(sectionRef, { margin: '150px' });
+  const shouldReduceMotion = useReducedMotion();
+
   const [isPaused, setIsPaused] = useState(false);
   const isMouseDownRef = useRef(false);
   const startXRef = useRef(0);
@@ -101,13 +105,10 @@ export function CategorySection() {
     }
   }, []);
 
-  // Continuous auto-sliding RAF loop
+  // Continuous auto-sliding RAF loop - only active when in view and motion is enabled
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
-
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (mediaQuery.matches) return;
+    if (!container || !isInView || shouldReduceMotion) return;
 
     let animationFrameId: number;
 
@@ -133,7 +134,7 @@ export function CategorySection() {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isPaused]);
+  }, [isPaused, isInView, shouldReduceMotion]);
 
   const resetResumeTimer = () => {
     if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
@@ -189,7 +190,7 @@ export function CategorySection() {
   };
 
   return (
-    <section className="py-14 sm:py-18 relative overflow-hidden select-none bg-user-pastel-header border-y border-white/60">
+    <section ref={sectionRef} className="py-14 sm:py-18 relative overflow-hidden select-none bg-user-pastel-header border-y border-white/60">
       
       {/* Translucent Soft Dreamy Overlay for Depth */}
       <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/10 to-white/30 backdrop-blur-md pointer-events-none" />
@@ -197,32 +198,48 @@ export function CategorySection() {
       {/* FLOATING CUTE ANIMATED BACKGROUND ANIMAL & BABY ORNAMENTS */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div
-          animate={{ y: [0, -12, 0], rotate: [-4, 4, -4], scale: [1, 1.08, 1] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+          animate={
+            isInView && !shouldReduceMotion
+              ? { y: [0, -12, 0], rotate: [-4, 4, -4], scale: [1, 1.08, 1] }
+              : { y: 0, rotate: 0, scale: 1 }
+          }
+          transition={{ duration: 5, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut' }}
           className="absolute top-4 left-6 text-2xl opacity-70 filter drop-shadow-sm hidden sm:block"
         >
           🧸
         </motion.div>
 
         <motion.div
-          animate={{ y: [0, -14, 0], rotate: [5, -5, 5], scale: [1, 1.1, 1] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+          animate={
+            isInView && !shouldReduceMotion
+              ? { y: [0, -14, 0], rotate: [5, -5, 5], scale: [1, 1.1, 1] }
+              : { y: 0, rotate: 0, scale: 1 }
+          }
+          transition={{ duration: 6, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut', delay: 0.8 }}
           className="absolute top-12 right-36 text-2xl opacity-75 filter drop-shadow-sm hidden md:block"
         >
           👶
         </motion.div>
 
         <motion.div
-          animate={{ y: [0, -10, 0], rotate: [-3, 3, -3] }}
-          transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut', delay: 1.4 }}
+          animate={
+            isInView && !shouldReduceMotion
+              ? { y: [0, -10, 0], rotate: [-3, 3, -3] }
+              : { y: 0, rotate: 0 }
+          }
+          transition={{ duration: 4.8, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut', delay: 1.4 }}
           className="absolute bottom-6 left-12 text-2xl opacity-65 filter drop-shadow-sm hidden lg:block"
         >
           🐰
         </motion.div>
 
         <motion.div
-          animate={{ y: [0, -15, 0], rotate: [4, -4, 4] }}
-          transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 2.1 }}
+          animate={
+            isInView && !shouldReduceMotion
+              ? { y: [0, -15, 0], rotate: [4, -4, 4] }
+              : { y: 0, rotate: 0 }
+          }
+          transition={{ duration: 5.5, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut', delay: 2.1 }}
           className="absolute bottom-8 right-16 text-2xl opacity-70 filter drop-shadow-sm hidden md:block"
         >
           🐥
@@ -417,8 +434,12 @@ export function CategorySection() {
                 
                 {/* Circle Container with Subtle Floating Animation */}
                 <motion.div
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: (idx % 6) * 0.3 }}
+                  animate={
+                    isInView && !shouldReduceMotion
+                      ? { y: [0, -5, 0] }
+                      : { y: 0 }
+                  }
+                  transition={{ duration: 4.5, repeat: isInView && !shouldReduceMotion ? Infinity : 0, ease: 'easeInOut', delay: (idx % 6) * 0.3 }}
                   className="relative w-[160px] h-[160px] sm:w-[195px] sm:h-[195px] md:w-[215px] md:h-[215px] lg:w-[245px] lg:h-[245px] mx-auto transition-all duration-300 ease-out transform group-hover:scale-[1.04] group-hover:-translate-y-[4px]"
                 >
                   
@@ -429,7 +450,7 @@ export function CategorySection() {
                         src={cat.image}
                         alt={cat.name}
                         fill
-                        unoptimized
+                        loading="lazy"
                         sizes="(max-width: 640px) 195px, 245px"
                         className="object-cover group-hover:scale-106 transition-transform duration-700 ease-out"
                       />

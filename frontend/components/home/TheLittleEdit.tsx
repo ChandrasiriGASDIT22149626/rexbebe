@@ -173,7 +173,7 @@ export function TheLittleEdit() {
               <div className="lg:col-span-7 relative z-10 flex justify-center">
                 <div className="relative w-full max-w-lg aspect-[1024/935] rounded-[30px] overflow-hidden shadow-2xl border-4 border-white/95 bg-gradient-to-br from-sky-50 to-pink-50">
                     <Image
-                      src="/images/products/cocomelon-tshirt-lifestyle.jpg"
+                      src="/images/products/cocomelon-tshirt-lifestyle.webp"
                       alt="The Little Edit Cocomelon T-Shirt"
                       fill
                       loading="lazy"
@@ -190,7 +190,7 @@ export function TheLittleEdit() {
                   >
                     <div className="w-11 h-11 rounded-xl overflow-hidden relative flex-shrink-0 border border-pink-100 shadow-inner">
                       <Image
-                        src="/images/products/cocomelon-tshirt-thumb.jpg"
+                        src="/images/products/cocomelon-tshirt-thumb.webp"
                         alt="Cocomelon T-Shirt"
                         fill
                         className="object-cover"

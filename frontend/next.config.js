@@ -1,8 +1,39 @@
+const path = require('path');
+const fs = require('fs');
+const mod = require('module');
+
+// Fallback resolver for Node 22+ webpack server chunk resolution
+if (mod && mod._resolveFilename) {
+  const originalResolveFilename = mod._resolveFilename;
+  mod._resolveFilename = function (request, parent, isMain, options) {
+    try {
+      return originalResolveFilename.call(mod, request, parent, isMain, options);
+    } catch (err) {
+      if (
+        request &&
+        typeof request === 'string' &&
+        request.startsWith('./') &&
+        request.endsWith('.js') &&
+        parent &&
+        parent.filename &&
+        parent.filename.includes('webpack-runtime')
+      ) {
+        const chunksPath = path.resolve(path.dirname(parent.filename), 'chunks', request.slice(2));
+        if (fs.existsSync(chunksPath)) {
+          return chunksPath;
+        }
+      }
+      throw err;
+    }
+  };
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
+  distDir: process.env.NEXT_BUILD_DIR || '.next',
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [360, 480, 640, 750, 828, 1080, 1200, 1920],
@@ -58,6 +89,12 @@ const nextConfig = {
         ],
       },
     ];
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+  },
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
   eslint: {
     ignoreDuringBuilds: true,

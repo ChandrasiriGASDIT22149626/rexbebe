@@ -7,6 +7,14 @@ const deliveryService = new DeliveryService();
 
 export const getDeliverySettings = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const isAuth = Boolean(req.headers.authorization || req.query._admin === 'true');
+    if (isAuth) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=900');
+    }
     const settings = await deliveryService.getSettings();
     return sendSuccess(res, settings, 'Delivery settings retrieved');
   } catch (err) {
@@ -47,6 +55,14 @@ export const calculateDelivery = async (req: Request, res: Response, next: NextF
 
 export const getDeliveryZones = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const isAuth = Boolean(req.headers.authorization || req.query._admin === 'true');
+    if (isAuth) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=900');
+    }
     const zones = await deliveryService.getDeliveryZones();
     return sendSuccess(res, zones, 'Delivery zones retrieved successfully');
   } catch (err) {
