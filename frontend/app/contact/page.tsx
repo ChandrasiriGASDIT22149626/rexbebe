@@ -195,10 +195,11 @@ export default function ContactPage() {
               <div className="lg:col-span-5 relative">
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 aspect-[4/3] sm:aspect-[16/11]">
                   <Image
-                    src="/images/contact-hero.jpg"
-                    alt="REXBEBE Concierge and Customer Care Lounge"
+                    src="/images/contact-hero.webp?v=family-care"
+                    alt="Happy family and baby supported by REXBEBE Concierge Customer Care"
                     fill
                     priority
+                    sizes="(max-width: 1024px) 100vw, 540px"
                     className="object-cover object-center transform transition-transform duration-700 hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />

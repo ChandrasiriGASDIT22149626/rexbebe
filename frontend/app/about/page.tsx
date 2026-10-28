@@ -147,13 +147,14 @@ export default function AboutPage() {
 
               {/* Right Column: Hero Visual Rack Image */}
               <div className="lg:col-span-5 relative">
-                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 aspect-[4/3] sm:aspect-[16/11]">
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 aspect-[4/3] sm:aspect-[16/13]">
                   <Image
-                    src="/images/about-hero.jpg"
-                    alt="REXBEBE Atelier Babywear Collection & Quality Craftsmanship"
+                    src="/images/about-hero.webp?v=mom-baby"
+                    alt="Happy mother and smiling baby in REXBEBE luxury boutique babywear"
                     fill
                     priority
-                    className="object-cover object-center transform transition-transform duration-700 hover:scale-105"
+                    sizes="(max-width: 1024px) 100vw, 540px"
+                    className="object-cover object-[center_28%] transform transition-transform duration-700 hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
                   

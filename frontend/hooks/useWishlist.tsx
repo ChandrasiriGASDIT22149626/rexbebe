@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { Product } from '../types/product';
 import { useAdminData } from './AdminContext';
+import { fetchApi } from '../services/api';
 
 interface WishlistContextType {
   wishlistItems: Product[];
@@ -50,14 +51,14 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     }
     setIsLoaded(true);
 
-    // Sync with backend API in background if available
+    // Sync with backend API in background
     const sessionId = getWishlistSessionId();
-    fetch(`/api/wishlist?wishlistId=${encodeURIComponent(sessionId)}`)
-      .then((res) => (res.ok ? res.json() : null))
+    fetchApi<{ success: boolean; data: { productIds: string[] } }>(
+      `/wishlist?wishlistId=${encodeURIComponent(sessionId)}`
+    )
       .then((data) => {
         if (data?.data?.productIds && Array.isArray(data.data.productIds)) {
           setWishlistIds((prev) => {
-            // Merge local and backend IDs
             const merged = Array.from(new Set([...prev, ...data.data.productIds]));
             try {
               localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(merged));
@@ -67,7 +68,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .catch(() => {
-        // Backend offline or unreachable, local persistence remains active
+        // Local persistence remains active if backend is temporarily unreachable
       });
   }, []);
 
@@ -78,11 +79,10 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(newIds));
     } catch {}
 
-    // Sync to backend asynchronously
+    // Sync to backend asynchronously via authoritative fetchApi
     const sessionId = getWishlistSessionId();
-    fetch('/api/wishlist/sync', {
+    fetchApi('/wishlist/sync', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ wishlistId: sessionId, productIds: newIds }),
     }).catch(() => {});
   }, []);
@@ -98,16 +98,15 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(next));
         } catch {}
 
-        // Backend sync
+        // Backend sync using authoritative fetchApi
         const sessionId = getWishlistSessionId();
         if (exists) {
-          fetch(`/api/wishlist/${encodeURIComponent(pid)}?wishlistId=${encodeURIComponent(sessionId)}`, {
+          fetchApi(`/wishlist/${encodeURIComponent(pid)}?wishlistId=${encodeURIComponent(sessionId)}`, {
             method: 'DELETE',
           }).catch(() => {});
         } else {
-          fetch('/api/wishlist', {
+          fetchApi('/wishlist', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ wishlistId: sessionId, productId: pid }),
           }).catch(() => {});
         }
@@ -136,6 +135,10 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
   const clearWishlist = useCallback(() => {
     saveIds([]);
+    const sessionId = getWishlistSessionId();
+    fetchApi(`/wishlist?wishlistId=${encodeURIComponent(sessionId)}`, {
+      method: 'DELETE',
+    }).catch(() => {});
   }, [saveIds]);
 
   // Map wishlistIds to authoritative, active Product objects from AdminContext/database

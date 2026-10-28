@@ -3,6 +3,7 @@
 import React, { useState, useEffect, createContext, useContext, useCallback, useMemo } from 'react';
 import { Product, ProductVariant } from '../types/product';
 import { useAdminData } from './AdminContext';
+import { fetchApi } from '../services/api';
 import { INITIAL_PRODUCTS } from '../data/products';
 export { INITIAL_PRODUCTS };
 
@@ -90,9 +91,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     // Backend sync
     const sessionId = getCartSessionId();
-    fetch('/api/cart/validate', {
+    fetchApi('/cart/validate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         cartId: sessionId,
         items: cartItems.map((i) => ({ variantId: i.variant.id, quantity: i.quantity })),
@@ -275,7 +275,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(CART_STORAGE_KEY);
     } catch {}
     const sessionId = getCartSessionId();
-    fetch(`/api/cart?cartId=${encodeURIComponent(sessionId)}`, { method: 'DELETE' }).catch(() => {});
+    fetchApi(`/cart?cartId=${encodeURIComponent(sessionId)}`, { method: 'DELETE' }).catch(() => {});
     showNotification('Shopping bag cleared', 'info');
   }, [showNotification]);
 

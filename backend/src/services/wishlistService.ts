@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { ProductRepository, ProductRecord } from '../repositories/productRepository';
+import { prisma } from '../config/database';
 
 export interface WishlistSession {
   id: string;
@@ -60,13 +61,44 @@ export class WishlistService {
     };
   }
 
-  async getWishlist(wishlistId: string): Promise<WishlistSession> {
+  /**
+   * Retrieves wishlist by session ID or customer ID.
+   * Checks persistent PostgreSQL database via Prisma if connected, falling back to durable JSON storage.
+   */
+  async getWishlist(wishlistId: string, customerId?: string): Promise<WishlistSession> {
     const wishlists = this.loadWishlistsFromDisk();
-    const raw = wishlists[wishlistId] || { id: wishlistId, productIds: [] };
-    return this.enrichWishlist(wishlistId, raw.productIds);
+    let productIds: string[] = wishlists[wishlistId]?.productIds || [];
+
+    // Attempt PostgreSQL fetch if customerId is present
+    if (customerId) {
+      try {
+        const dbWishlist = await prisma.wishlist.findFirst({
+          where: { customerId },
+          include: { items: true },
+        });
+        if (dbWishlist && dbWishlist.items.length > 0) {
+          const dbIds = dbWishlist.items.map((i) => i.productId);
+          // Merge with session IDs
+          productIds = Array.from(new Set([...productIds, ...dbIds]));
+          wishlists[wishlistId] = {
+            id: wishlistId,
+            productIds,
+            updatedAt: new Date().toISOString(),
+          };
+          this.saveWishlistsToDisk(wishlists);
+        }
+      } catch (dbErr) {
+        // Fallback to disk persistence if database is offline
+      }
+    }
+
+    return this.enrichWishlist(wishlistId, productIds);
   }
 
-  async addItem(wishlistId: string, productId: string): Promise<WishlistSession> {
+  /**
+   * Adds product to wishlist. Persists to both PostgreSQL (Prisma) and local JSON storage.
+   */
+  async addItem(wishlistId: string, productId: string, customerId?: string): Promise<WishlistSession> {
     const wishlists = this.loadWishlistsFromDisk();
     if (!wishlists[wishlistId]) {
       wishlists[wishlistId] = { id: wishlistId, productIds: [], updatedAt: new Date().toISOString() };
@@ -78,10 +110,33 @@ export class WishlistService {
       this.saveWishlistsToDisk(wishlists);
     }
 
+    // Persist to PostgreSQL via Prisma if customerId exists
+    if (customerId) {
+      try {
+        let dbWishlist = await prisma.wishlist.findFirst({ where: { customerId } });
+        if (!dbWishlist) {
+          dbWishlist = await prisma.wishlist.create({ data: { customerId } });
+        }
+        const existing = await prisma.wishlistItem.findFirst({
+          where: { wishlistId: dbWishlist.id, productId },
+        });
+        if (!existing) {
+          await prisma.wishlistItem.create({
+            data: { wishlistId: dbWishlist.id, productId },
+          });
+        }
+      } catch (dbErr) {
+        // Fallback safely if PostgreSQL is offline
+      }
+    }
+
     return this.enrichWishlist(wishlistId, wishlists[wishlistId].productIds);
   }
 
-  async removeItem(wishlistId: string, productId: string): Promise<WishlistSession> {
+  /**
+   * Removes product from wishlist.
+   */
+  async removeItem(wishlistId: string, productId: string, customerId?: string): Promise<WishlistSession> {
     const wishlists = this.loadWishlistsFromDisk();
     if (wishlists[wishlistId]) {
       wishlists[wishlistId].productIds = wishlists[wishlistId].productIds.filter((id: string) => id !== productId);
@@ -89,20 +144,53 @@ export class WishlistService {
       this.saveWishlistsToDisk(wishlists);
     }
 
+    if (customerId) {
+      try {
+        const dbWishlist = await prisma.wishlist.findFirst({ where: { customerId } });
+        if (dbWishlist) {
+          await prisma.wishlistItem.deleteMany({
+            where: { wishlistId: dbWishlist.id, productId },
+          });
+        }
+      } catch (dbErr) {
+        // Fallback safely
+      }
+    }
+
     return this.enrichWishlist(wishlistId, wishlists[wishlistId]?.productIds || []);
   }
 
-  async clearWishlist(wishlistId: string): Promise<WishlistSession> {
+  /**
+   * Clears all items from the wishlist.
+   */
+  async clearWishlist(wishlistId: string, customerId?: string): Promise<WishlistSession> {
     const wishlists = this.loadWishlistsFromDisk();
     if (wishlists[wishlistId]) {
       wishlists[wishlistId].productIds = [];
       wishlists[wishlistId].updatedAt = new Date().toISOString();
       this.saveWishlistsToDisk(wishlists);
     }
+
+    if (customerId) {
+      try {
+        const dbWishlist = await prisma.wishlist.findFirst({ where: { customerId } });
+        if (dbWishlist) {
+          await prisma.wishlistItem.deleteMany({
+            where: { wishlistId: dbWishlist.id },
+          });
+        }
+      } catch (dbErr) {
+        // Fallback safely
+      }
+    }
+
     return this.enrichWishlist(wishlistId, []);
   }
 
-  async syncWishlist(wishlistId: string, productIds: string[]): Promise<WishlistSession> {
+  /**
+   * Synchronizes product IDs from client to backend.
+   */
+  async syncWishlist(wishlistId: string, productIds: string[], customerId?: string): Promise<WishlistSession> {
     const wishlists = this.loadWishlistsFromDisk();
     const cleanIds = Array.from(new Set(productIds.filter(Boolean)));
     wishlists[wishlistId] = {
@@ -111,6 +199,24 @@ export class WishlistService {
       updatedAt: new Date().toISOString(),
     };
     this.saveWishlistsToDisk(wishlists);
+
+    if (customerId) {
+      try {
+        let dbWishlist = await prisma.wishlist.findFirst({ where: { customerId } });
+        if (!dbWishlist) {
+          dbWishlist = await prisma.wishlist.create({ data: { customerId } });
+        }
+        await prisma.wishlistItem.deleteMany({ where: { wishlistId: dbWishlist.id } });
+        for (const pid of cleanIds) {
+          await prisma.wishlistItem.create({
+            data: { wishlistId: dbWishlist.id, productId: pid },
+          });
+        }
+      } catch (dbErr) {
+        // Fallback safely
+      }
+    }
+
     return this.enrichWishlist(wishlistId, cleanIds);
   }
 }

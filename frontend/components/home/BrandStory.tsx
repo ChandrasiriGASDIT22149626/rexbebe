@@ -167,6 +167,8 @@ export function BrandStory() {
                   src="/images/products/baby-bluey-gym.webp"
                   alt="Baby in Bluey T-shirt Playing under Wooden Gym"
                   fill
+                  loading="lazy"
+                  sizes="(max-width: 640px) 128px, 176px"
                   className="object-cover transition-transform duration-700 hover:scale-105"
                 />
               </motion.div>

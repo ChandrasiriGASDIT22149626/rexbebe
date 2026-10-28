@@ -202,6 +202,8 @@ export function CustomerReviews() {
                     src={rev.productImage}
                     alt={rev.productName}
                     fill
+                    loading="lazy"
+                    sizes="(max-width: 640px) 280px, 340px"
                     className="object-cover object-top group-hover:scale-108 transition-transform duration-700 ease-out"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent" />

@@ -6,11 +6,16 @@ import { Header } from '../../components/layout/Header';
 import { Footer } from '../../components/layout/Footer';
 import { ProductGrid } from '../../components/products/ProductGrid';
 import { useWishlist } from '../../hooks/useWishlist';
+import { useAdminData } from '../../hooks/AdminContext';
 import { Heart, ArrowRight, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
 export default function SavedWishlistPage() {
-  const { wishlistItems, wishlistCount, clearWishlist, isLoaded } = useWishlist();
+  const { wishlistItems, wishlistIds, clearWishlist, isLoaded } = useWishlist();
+  const { isLoaded: isAdminLoaded } = useAdminData();
+
+  const isLoading = !isLoaded || (!isAdminLoaded && wishlistIds.length > 0);
+  const displayCount = wishlistItems.length;
 
   return (
     <>
@@ -24,9 +29,11 @@ export default function SavedWishlistPage() {
             My Saved Wishlist
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-2">
-            You have {wishlistCount} luxury {wishlistCount === 1 ? 'piece' : 'pieces'} saved in your boutique wishlist.
+            {displayCount > 0
+              ? `You have ${displayCount} luxury ${displayCount === 1 ? 'piece' : 'pieces'} saved in your boutique wishlist.`
+              : 'Save your favorite boutique pieces to review and purchase anytime.'}
           </p>
-          {wishlistCount > 0 && (
+          {displayCount > 0 && (
             <div className="pt-3">
               <button
                 onClick={clearWishlist}
@@ -39,11 +46,11 @@ export default function SavedWishlistPage() {
           )}
         </div>
 
-        {!isLoaded ? (
+        {isLoading ? (
           <div className="py-20 text-center text-xs font-bold text-slate-400 animate-pulse">
             Loading your saved boutique pieces...
           </div>
-        ) : wishlistItems.length === 0 ? (
+        ) : displayCount === 0 ? (
           <div className="text-center py-16 bg-white dark:bg-slate-900/60 rounded-3xl border border-slate-200/80 dark:border-slate-800 max-w-md mx-auto space-y-4 p-8 shadow-xs">
             <p className="font-heading text-lg font-bold text-slate-800 dark:text-slate-200">
               Your wishlist is currently empty

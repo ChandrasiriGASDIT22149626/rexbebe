@@ -169,7 +169,7 @@ export function CategoryHeaderBanner({
                   onClick={() => setActiveGalleryModal(img)}
                   className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 border-white shadow-xs hover:scale-108 transition-all shrink-0 cursor-pointer"
                 >
-                  <Image src={img} alt={`${title} gallery ${idx + 1}`} fill className="object-cover" />
+                  <Image src={img} alt={`${title} gallery ${idx + 1}`} fill sizes="64px" className="object-cover" />
                 </button>
               ))}
             </div>

@@ -156,11 +156,19 @@ export function Hero() {
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute top-16 right-[22%] w-24 h-32 hidden md:block filter drop-shadow-lg"
         >
-          <div className="relative w-full h-full">
-            <div className="w-20 h-24 rounded-full bg-gradient-to-tr from-sky-300 via-pink-200 to-amber-200 border-2 border-white flex items-center justify-center shadow-lg">
-              <div className="w-full h-full rounded-full opacity-30 bg-[radial-gradient(circle,_transparent_30%,_#fff_70%)]" />
+          <div className="relative w-full h-full flex flex-col items-center">
+            {/* Balloon Canopy */}
+            <div className="w-20 h-24 rounded-[50%_50%_45%_45%/60%_60%_40%_40%] bg-gradient-to-tr from-sky-300 via-pink-200 to-amber-200 border-2 border-white flex items-center justify-center shadow-lg relative overflow-hidden">
+              <div className="w-full h-full opacity-35 bg-[radial-gradient(circle_at_top,_#fff_20%,_transparent_75%)]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-black/10" />
             </div>
-            <div className="w-6 h-6 bg-amber-700/80 rounded-sm mx-auto -mt-2 border border-white shadow-md" />
+            {/* Basket Ropes */}
+            <div className="w-7 flex justify-between px-1 -mt-0.5 relative z-0">
+              <div className="w-0.5 h-3 bg-amber-800/40 rounded-full" />
+              <div className="w-0.5 h-3 bg-amber-800/40 rounded-full" />
+            </div>
+            {/* Basket */}
+            <div className="w-5 h-4 bg-gradient-to-b from-amber-600 to-amber-800 rounded-b-md border border-white/80 shadow-xs" />
           </div>
         </motion.div>
 
@@ -206,9 +214,10 @@ export function Hero() {
             className="relative w-full h-full drop-shadow-2xl"
           >
             <Image
-              src="/images/hero/dino_mascot.webp"
+              src="/images/hero/dino_mascot.webp?v=transp2"
               alt="REXBEBE Mascot Dino"
               fill
+              unoptimized
               sizes="(max-width: 640px) 200px, (max-width: 1024px) 320px, 440px"
               className="object-contain"
               priority
@@ -238,9 +247,10 @@ export function Hero() {
             className="relative w-full h-full drop-shadow-xl"
           >
             <Image
-              src="/images/hero/kitty_mascot.webp"
+              src="/images/hero/kitty_mascot.webp?v=transp2"
               alt="REXBEBE Companion Kitty"
               fill
+              unoptimized
               sizes="(max-width: 1024px) 160px, 210px"
               loading="lazy"
               className="object-contain"

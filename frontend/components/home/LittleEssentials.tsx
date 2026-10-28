@@ -163,6 +163,8 @@ export function LittleEssentials() {
                     src="/images/products/yellow-pooh-baby-card.webp"
                     alt="Sunshine Cotton Pooh Tee"
                     fill
+                    loading="lazy"
+                    sizes="200px"
                     className="object-cover object-[center_20%]"
                   />
                   <span className="absolute top-2 left-2 px-2.5 py-0.5 bg-amber-500 text-white text-[9px] font-bold uppercase rounded-full shadow-xs">

@@ -90,6 +90,36 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const backendHost = backendUrl.replace(/\/api\/?$/, '');
+    return [
+      {
+        source: '/api/wishlist/:path*',
+        destination: `${backendHost}/api/wishlist/:path*`,
+      },
+      {
+        source: '/api/wishlist',
+        destination: `${backendHost}/api/wishlist`,
+      },
+      {
+        source: '/api/cart/:path*',
+        destination: `${backendHost}/api/cart/:path*`,
+      },
+      {
+        source: '/api/cart',
+        destination: `${backendHost}/api/cart`,
+      },
+      {
+        source: '/api/orders/:path*',
+        destination: `${backendHost}/api/orders/:path*`,
+      },
+      {
+        source: '/api/orders',
+        destination: `${backendHost}/api/orders`,
+      },
+    ];
+  },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },

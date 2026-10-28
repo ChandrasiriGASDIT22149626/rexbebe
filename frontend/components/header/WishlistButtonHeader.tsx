@@ -6,7 +6,7 @@ import { Heart } from 'lucide-react';
 import { useWishlist } from '../../hooks/useWishlist';
 
 export function WishlistButtonHeader({ className = '' }: { className?: string }) {
-  const { wishlistCount } = useWishlist();
+  const { wishlistCount, isLoaded } = useWishlist();
 
   return (
     <Link
@@ -17,12 +17,12 @@ export function WishlistButtonHeader({ className = '' }: { className?: string })
     >
       <Heart
         className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${
-          wishlistCount > 0
+          isLoaded && wishlistCount > 0
             ? 'fill-pink-500 text-pink-500'
             : 'text-slate-800 dark:text-slate-200'
         }`}
       />
-      {wishlistCount > 0 && (
+      {isLoaded && wishlistCount > 0 && (
         <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-md animate-in fade-in zoom-in duration-200">
           {wishlistCount > 99 ? '99+' : wishlistCount}
         </span>

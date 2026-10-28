@@ -266,7 +266,6 @@ export function FeaturedCollection() {
             let rotateZ = 0;
             let zIndex = 30;
             let opacity = 1;
-            let filterBlur = 'blur(0px)';
 
             if (offset === 0) {
               xPos = '0%';
@@ -274,35 +273,30 @@ export function FeaturedCollection() {
               rotateZ = 0;
               zIndex = 30;
               opacity = 1;
-              filterBlur = 'blur(0px)';
             } else if (offset === -1) {
               xPos = '-29%';
               scale = 0.90;
               rotateZ = -5;
               zIndex = 20;
               opacity = 0.88;
-              filterBlur = 'blur(0px)';
             } else if (offset === 1) {
               xPos = '29%';
               scale = 0.90;
               rotateZ = 5;
               zIndex = 20;
               opacity = 0.88;
-              filterBlur = 'blur(0px)';
             } else if (offset === -2) {
               xPos = '-55%';
               scale = 0.78;
               rotateZ = -10;
               zIndex = 10;
-              opacity = 0.60;
-              filterBlur = 'blur(0.5px)';
+              opacity = 0.58;
             } else if (offset === 2) {
               xPos = '55%';
               scale = 0.78;
               rotateZ = 10;
               zIndex = 10;
-              opacity = 0.60;
-              filterBlur = 'blur(0.5px)';
+              opacity = 0.58;
             }
 
             return (
@@ -314,7 +308,6 @@ export function FeaturedCollection() {
                   scale,
                   rotateZ,
                   opacity,
-                  filter: filterBlur,
                 }}
                 whileHover={{
                   scale: isCenter ? 1.04 : scale + 0.05,

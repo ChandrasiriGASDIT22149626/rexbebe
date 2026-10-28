@@ -193,6 +193,8 @@ export function TheLittleEdit() {
                         src="/images/products/cocomelon-tshirt-thumb.webp"
                         alt="Cocomelon T-Shirt"
                         fill
+                        loading="lazy"
+                        sizes="44px"
                         className="object-cover"
                       />
                     </div>
