@@ -31,4 +31,10 @@ export const config = {
     password: process.env.SMTP_PASSWORD || '',
     from: process.env.SMTP_FROM || 'noreply@rexbebe.com',
   },
+  koombiyo: {
+    apiKey: process.env.KOOMBIYO_API_KEY || '',
+    apiPassword: process.env.KOOMBIYO_API_PASSWORD || '',
+    baseUrl: process.env.KOOMBIYO_BASE_URL || 'https://client.koombiyodelivery.lk/clientapi/v2',
+    webhookSecret: process.env.KOOMBIYO_WEBHOOK_SECRET || '',
+  },
 };

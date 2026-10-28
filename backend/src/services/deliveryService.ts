@@ -164,36 +164,68 @@ export class DeliveryService {
           appliedAt: new Date().toISOString(),
         };
       } else if (zoneLookup.isUnmapped) {
-        // Town is unmapped!
-        isUnmapped = true;
-        unsupportedNotice = zoneLookup.notice || settings.unsupportedAddressNotice;
-
-        if (settings.unsupportedAddressPolicy === 'BLOCK_CHECKOUT') {
-          throw new BadRequestError(
-            `Delivery is not currently configured for town "${townName}". Please select a covered town or contact concierge.`
-          );
+        // Check if official Koombiyo API can resolve this location and delivery rate
+        const { koombiyoApiClient } = await import('./courier/KoombiyoApiClient');
+        let koombiyoResolved = null;
+        if (koombiyoApiClient.hasCredentials()) {
+          try {
+            koombiyoResolved = await koombiyoApiClient.resolveAddress(districtName, townName);
+          } catch (e) {
+            console.warn('[Koombiyo Address Resolution]', (e as any).message);
+          }
         }
 
-        // Policy: REQUIRE_REVIEW
-        // "Do not guess town mappings. If a town has no configured zone, request review instead of applying an arbitrary fee."
-        requiresDeliveryReview = true;
-        baseDeliveryFee = 0; // Avoid arbitrary fee!
-        estimatedDays = 'Pending Concierge Review';
-        matchedZoneName = 'Unmapped Town (Review Required)';
-        matchedZoneId = 'UNMAPPED_REVIEW_REQUIRED';
+        if (koombiyoResolved && (koombiyoResolved.confidence === 'EXACT' || koombiyoResolved.confidence === 'HIGH')) {
+          matchedZoneName = `Koombiyo — ${koombiyoResolved.cityName} (${koombiyoResolved.districtName})`;
+          matchedZoneId = `KOOMBIYO_${koombiyoResolved.districtId}_${koombiyoResolved.cityId}`;
+          baseDeliveryFee = koombiyoResolved.deliveryCharge;
+          estimatedDays = '1–2 Business Days';
+          requiresDeliveryReview = false;
+          isUnmapped = false;
 
-        deliveryZoneSnapshot = {
-          zoneId: 'UNMAPPED_REVIEW_REQUIRED',
-          zoneName: 'Unmapped Town (Review Required)',
-          district: districtName || 'Other',
-          town: townName,
-          deliveryFee: 0,
-          isInitialRate: false,
-          requiresReview: true,
-          policyApplied: 'REQUIRE_REVIEW',
-          appliedAt: new Date().toISOString(),
-          reviewNotes: `Town "${townName}" is not mapped to any configured delivery zone. Arbitrary fee avoided per store policy. Concierge review required.`,
-        };
+          deliveryZoneSnapshot = {
+            zoneId: matchedZoneId,
+            zoneName: matchedZoneName,
+            district: koombiyoResolved.districtName,
+            town: koombiyoResolved.cityName,
+            deliveryFee: koombiyoResolved.deliveryCharge,
+            isInitialRate: false,
+            requiresReview: false,
+            policyApplied: 'KOOMBIYO_API_RATE',
+            appliedAt: new Date().toISOString(),
+          };
+        } else {
+          // Town is truly unmapped!
+          isUnmapped = true;
+          unsupportedNotice = zoneLookup.notice || settings.unsupportedAddressNotice;
+
+          if (settings.unsupportedAddressPolicy === 'BLOCK_CHECKOUT') {
+            throw new BadRequestError(
+              `Delivery is not currently configured for town "${townName}". Please select a covered town or contact concierge.`
+            );
+          }
+
+          // Policy: REQUIRE_REVIEW
+          // "Do not guess town mappings. If a town has no configured zone, request review instead of applying an arbitrary fee."
+          requiresDeliveryReview = true;
+          baseDeliveryFee = 0; // Avoid arbitrary fee!
+          estimatedDays = 'Pending Concierge Review';
+          matchedZoneName = 'Unmapped Town (Review Required)';
+          matchedZoneId = 'UNMAPPED_REVIEW_REQUIRED';
+
+          deliveryZoneSnapshot = {
+            zoneId: 'UNMAPPED_REVIEW_REQUIRED',
+            zoneName: 'Unmapped Town (Review Required)',
+            district: districtName || 'Other',
+            town: townName,
+            deliveryFee: 0,
+            isInitialRate: false,
+            requiresReview: true,
+            policyApplied: 'REQUIRE_REVIEW',
+            appliedAt: new Date().toISOString(),
+            reviewNotes: `Town "${townName}" is not mapped to any configured delivery zone or Koombiyo city. Arbitrary fee avoided per store policy. Concierge review required.`,
+          };
+        }
       }
     } else if (districtName) {
       // Only district selected, town not yet entered

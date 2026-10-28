@@ -47,6 +47,15 @@ import {
   ManualCourierBookingPayload,
   DeliveryStatusUpdatePayload,
   orderService,
+  getAvailableWaybills,
+  getCourierConfig,
+  dispatchOfficialKoombiyo,
+  getKoombiyoLiveTracking,
+  getKoombiyoPodUrl,
+  getKoombiyoPortalPayload,
+  bookCourierManual,
+  updateCourierDeliveryStatus,
+  addCourierNote,
 } from '../../../../services/orderService';
 import { SRI_LANKA_DISTRICTS } from '../../../../services/deliveryService';
 
@@ -139,6 +148,20 @@ export default function AdminCodOrdersPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Official Koombiyo API State
+  const [courierConfig, setCourierConfig] = useState<any>(null);
+  const [availableWaybills, setAvailableWaybills] = useState<string[]>([]);
+  const [selectedWaybillForOfficial, setSelectedWaybillForOfficial] = useState('');
+  const [isOfficialConfirmOpen, setIsOfficialConfirmOpen] = useState(false);
+  const [isDispatchingOfficial, setIsDispatchingOfficial] = useState(false);
+
+  // Live Tracking Modal State
+  const [isLiveTrackingOpen, setIsLiveTrackingOpen] = useState(false);
+  const [liveTrackingOrder, setLiveTrackingOrder] = useState<OrderRecord | null>(null);
+  const [liveTrackingData, setLiveTrackingData] = useState<any>(null);
+  const [isLoadingLiveTracking, setIsLoadingLiveTracking] = useState(false);
+  const [liveTrackingError, setLiveTrackingError] = useState<string | null>(null);
+
   // Dedicated Koombiyo Courier Management Modal State
   const [isCourierModalOpen, setIsCourierModalOpen] = useState(false);
   const [courierModalTab, setCourierModalTab] = useState<'BOOKING' | 'STATUS' | 'LOGS'>('BOOKING');
@@ -170,6 +193,70 @@ export default function AdminCodOrdersPage() {
   const [modalNote, setModalNote] = useState('');
   const [modalReason, setModalReason] = useState('');
   const [formValidationError, setFormValidationError] = useState<string | null>(null);
+
+  // Safe helper to fetch available waybills with robust fallback
+  const safeFetchWaybills = async (): Promise<string[]> => {
+    try {
+      const fetchFn =
+        typeof orderService?.getAvailableWaybills === 'function'
+          ? () => orderService.getAvailableWaybills()
+          : typeof getAvailableWaybills === 'function'
+          ? () => getAvailableWaybills()
+          : null;
+
+      if (fetchFn) {
+        const res = await fetchFn();
+        const list = res?.waybills || [];
+        setAvailableWaybills(list);
+        return list;
+      }
+    } catch (err) {
+      console.warn('[Admin COD] Could not fetch available waybills:', err);
+    }
+    setAvailableWaybills([]);
+    return [];
+  };
+
+  // Safe helper to fetch courier config with robust fallback
+  const safeFetchCourierConfig = async (): Promise<any> => {
+    try {
+      const fetchFn =
+        typeof orderService?.getCourierConfig === 'function'
+          ? () => orderService.getCourierConfig()
+          : typeof getCourierConfig === 'function'
+          ? () => getCourierConfig()
+          : null;
+
+      if (fetchFn) {
+        const cfg = await fetchFn();
+        if (cfg) setCourierConfig(cfg);
+        return cfg;
+      }
+    } catch (err) {
+      console.warn('[Admin COD] Could not fetch courier config:', err);
+    }
+    return null;
+  };
+
+  // Safe helper to generate Koombiyo POD URL
+  const safeGetKoombiyoPodUrl = (orderId: string, format = 'A6'): string => {
+    try {
+      if (typeof getKoombiyoPodUrl === 'function') {
+        return getKoombiyoPodUrl(orderId, format);
+      }
+      if (typeof orderService?.getKoombiyoPodUrl === 'function') {
+        return orderService.getKoombiyoPodUrl(orderId, format);
+      }
+    } catch {}
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    return `${baseUrl}/orders/${orderId}/courier/pod?format=${encodeURIComponent(format)}`;
+  };
+
+  // Load Koombiyo configuration and available waybills on load safely
+  useEffect(() => {
+    safeFetchCourierConfig();
+    safeFetchWaybills();
+  }, []);
 
   // Set default admin name when adminUsers load
   useEffect(() => {
@@ -456,9 +543,81 @@ export default function AdminCodOrdersPage() {
     setCourierReturnReason(c?.returnReason || '');
     setCourierCollectedAmount(order.amountToCollect || order.totalAmount);
     setCourierStatusNotes('');
-    setCourierNewInternalNote('');
+    // Refresh available waybills and active API config safely
+    safeFetchCourierConfig();
+    safeFetchWaybills().then((list) => {
+      if (list && list.length > 0) {
+        setSelectedWaybillForOfficial(list[0]);
+      }
+    });
 
     setIsCourierModalOpen(true);
+  };
+
+  // 1-Click Official Koombiyo Order Dispatch
+  const handleDispatchOfficialKoombiyo = async () => {
+    if (!selectedOrder) return;
+    setIsDispatchingOfficial(true);
+    setCourierValidationError(null);
+    try {
+      const dispatchFn =
+        typeof orderService?.dispatchOfficialKoombiyo === 'function'
+          ? orderService.dispatchOfficialKoombiyo.bind(orderService)
+          : typeof dispatchOfficialKoombiyo === 'function'
+          ? dispatchOfficialKoombiyo
+          : null;
+
+      if (!dispatchFn) {
+        throw new Error('Official Koombiyo dispatch service method is currently unavailable.');
+      }
+
+      const result = await dispatchFn(selectedOrder.id, {
+        waybillId: selectedWaybillForOfficial || undefined,
+        notes: courierNotes,
+        admin: modalAdmin,
+      });
+
+      showToast(`🎉 Order #${selectedOrder.orderNumber} dispatched to Koombiyo! Waybill #${result.waybillId}`);
+      setIsOfficialConfirmOpen(false);
+      setIsCourierModalOpen(false);
+      await refreshOrders();
+    } catch (err: any) {
+      console.error('Official Koombiyo dispatch failed:', err);
+      setCourierValidationError(err.message || 'Failed to dispatch order via Koombiyo API.');
+      setIsOfficialConfirmOpen(false);
+    } finally {
+      setIsDispatchingOfficial(false);
+    }
+  };
+
+  // Open Real-Time Koombiyo Live Tracking Modal
+  const handleOpenLiveTracking = async (order: OrderRecord) => {
+    setLiveTrackingOrder(order);
+    setIsLiveTrackingOpen(true);
+    setIsLoadingLiveTracking(true);
+    setLiveTrackingError(null);
+    setLiveTrackingData(null);
+
+    try {
+      const trackingFn =
+        typeof orderService?.getKoombiyoLiveTracking === 'function'
+          ? orderService.getKoombiyoLiveTracking.bind(orderService)
+          : typeof getKoombiyoLiveTracking === 'function'
+          ? getKoombiyoLiveTracking
+          : null;
+
+      if (!trackingFn) {
+        throw new Error('Koombiyo live tracking service method is currently unavailable.');
+      }
+
+      const data = await trackingFn(order.id);
+      setLiveTrackingData(data);
+    } catch (err: any) {
+      console.error('Failed to fetch live tracking:', err);
+      setLiveTrackingError(err.message || 'Failed to fetch live tracking from Koombiyo API.');
+    } finally {
+      setIsLoadingLiveTracking(false);
+    }
   };
 
   // Save Courier Booking Details (Manual Workflow)
@@ -493,7 +652,18 @@ export default function AdminCodOrdersPage() {
         admin: modalAdmin,
       };
 
-      const updated = await orderService.bookCourierManual(selectedOrder.id, payload);
+      const bookFn =
+        typeof orderService?.bookCourierManual === 'function'
+          ? orderService.bookCourierManual.bind(orderService)
+          : typeof bookCourierManual === 'function'
+          ? bookCourierManual
+          : null;
+
+      if (!bookFn) {
+        throw new Error('Courier booking service is currently unavailable.');
+      }
+
+      const updated = await bookFn(selectedOrder.id, payload);
       if (updated) {
         setSelectedOrder(updated);
       }
@@ -548,7 +718,18 @@ export default function AdminCodOrdersPage() {
         collectedAmount: courierDeliveryStatus === 'DELIVERED' ? Number(courierCollectedAmount) : undefined,
       };
 
-      const updated = await orderService.updateCourierDeliveryStatus(selectedOrder.id, payload);
+      const updateFn =
+        typeof orderService?.updateCourierDeliveryStatus === 'function'
+          ? orderService.updateCourierDeliveryStatus.bind(orderService)
+          : typeof updateCourierDeliveryStatus === 'function'
+          ? updateCourierDeliveryStatus
+          : null;
+
+      if (!updateFn) {
+        throw new Error('Courier delivery status update service is currently unavailable.');
+      }
+
+      const updated = await updateFn(selectedOrder.id, payload);
       if (updated) {
         setSelectedOrder(updated);
       }
@@ -570,7 +751,18 @@ export default function AdminCodOrdersPage() {
 
     setIsSubmitting(true);
     try {
-      const updated = await orderService.addCourierNote(selectedOrder.id, courierNewInternalNote.trim(), modalAdmin);
+      const noteFn =
+        typeof orderService?.addCourierNote === 'function'
+          ? orderService.addCourierNote.bind(orderService)
+          : typeof addCourierNote === 'function'
+          ? addCourierNote
+          : null;
+
+      if (!noteFn) {
+        throw new Error('Courier note service is currently unavailable.');
+      }
+
+      const updated = await noteFn(selectedOrder.id, courierNewInternalNote.trim(), modalAdmin);
       if (updated) {
         setSelectedOrder(updated);
       }
@@ -587,7 +779,18 @@ export default function AdminCodOrdersPage() {
   // Copy Koombiyo Portal Booking Payload
   const handleCopyKoombiyoPortalPayload = async (order: OrderRecord) => {
     try {
-      const res = await orderService.getKoombiyoPortalPayload(order.id);
+      const payloadFn =
+        typeof orderService?.getKoombiyoPortalPayload === 'function'
+          ? orderService.getKoombiyoPortalPayload.bind(orderService)
+          : typeof getKoombiyoPortalPayload === 'function'
+          ? getKoombiyoPortalPayload
+          : null;
+
+      if (!payloadFn) {
+        throw new Error('Portal payload service is currently unavailable.');
+      }
+
+      const res = await payloadFn(order.id);
       if (res?.text) {
         navigator.clipboard.writeText(res.text);
         setCopiedOrderId(order.id);
@@ -1163,17 +1366,41 @@ export default function AdminCodOrdersPage() {
                                     </span>
                                   </div>
 
-                                  {/* Quick Courier Action */}
-                                  <div className="pt-1 flex items-center space-x-1.5 flex-wrap gap-y-1">
+                                  <div className="flex flex-wrap gap-1.5 pt-1">
                                     <button
                                       type="button"
-                                      onClick={() => handleOpenCourierModal(order)}
-                                      className="px-2 py-1 bg-stone-100 hover:bg-amber-100 hover:text-amber-900 text-stone-700 rounded-lg text-[10px] font-bold transition-colors flex items-center space-x-1 cursor-pointer border border-stone-200"
-                                      title="Manage Koombiyo Courier Booking"
-                                    >
-                                      <Truck className="w-3 h-3 text-amber-700" />
-                                      <span>Manage Courier</span>
-                                    </button>
+                                        onClick={() => handleOpenCourierModal(order)}
+                                        className="px-2 py-1 bg-stone-100 hover:bg-amber-100 hover:text-amber-900 text-stone-700 rounded-lg text-[10px] font-bold transition-colors flex items-center space-x-1 cursor-pointer border border-stone-200"
+                                        title="Manage Koombiyo Courier Booking"
+                                      >
+                                        <Truck className="w-3 h-3 text-amber-700" />
+                                        <span>Manage Courier</span>
+                                      </button>
+
+                                      {(order.trackingNumber || order.courierDetails?.waybillNumber) && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleOpenLiveTracking(order)}
+                                            className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-[10px] font-bold transition-colors flex items-center space-x-1 cursor-pointer border border-emerald-200"
+                                            title="Real-Time Koombiyo Status & Events"
+                                          >
+                                            <Clock className="w-3 h-3 text-emerald-700" />
+                                            <span>Live Tracking</span>
+                                          </button>
+
+                                          <a
+                                            href={safeGetKoombiyoPodUrl(order.id, 'A6')}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-2 py-1 bg-stone-50 hover:bg-stone-100 text-stone-700 rounded-lg text-[10px] font-bold transition-colors flex items-center space-x-1 cursor-pointer border border-stone-200"
+                                            title="Print Official POD Waybill (A6)"
+                                          >
+                                            <Printer className="w-3 h-3 text-stone-600" />
+                                            <span>POD</span>
+                                          </a>
+                                        </>
+                                      )}
 
                                     {(delStatus === 'DELIVERY_ATTEMPT_FAILED' ||
                                       delStatus === 'RETURNING_TO_SENDER' ||
@@ -1821,9 +2048,16 @@ export default function AdminCodOrdersPage() {
                   <div>
                     <h3 className="font-serif text-lg font-bold text-stone-900 flex items-center space-x-2">
                       <span>Koombiyo Courier Management</span>
-                      <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                        Manual Workflow [API Ready]
-                      </span>
+                      {courierConfig?.hasCredentials ? (
+                        <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center space-x-1.5 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>Official API Connected ({availableWaybills.length} Waybills)</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                          Manual Workflow [API Ready]
+                        </span>
+                      )}
                     </h3>
                     <p className="text-xs text-stone-500">
                       Order #{selectedOrder.orderNumber} • {selectedOrder.shippingAddress?.recipientName || selectedOrder.customerName} ({selectedOrder.shippingAddress?.district || 'Colombo'})
@@ -1908,35 +2142,163 @@ export default function AdminCodOrdersPage() {
             <div className="p-6 overflow-y-auto space-y-5 text-xs flex-1">
               {/* TAB 1: BOOKING & WAYBILL */}
               {courierModalTab === 'BOOKING' && (
-                <form onSubmit={handleSaveCourierBooking} className="space-y-4">
-                  <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2 text-amber-900 font-bold text-xs">
-                        <Truck className="w-4 h-4 text-amber-700" />
-                        <span>Koombiyo Merchant Booking Helper</span>
+                <div className="space-y-4">
+                  {/* Official Koombiyo Status or Dispatch Card */}
+                  {selectedOrder.courierDetails?.waybillNumber || selectedOrder.trackingNumber ? (
+                    <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-3 shadow-2xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                            <CheckCircle2 className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-stone-900 text-sm">
+                              Koombiyo Waybill #{selectedOrder.courierDetails?.waybillNumber || selectedOrder.trackingNumber}
+                            </h4>
+                            <p className="text-[11px] text-stone-500">
+                              Delivery Status:{' '}
+                              <span className="font-bold text-emerald-800">
+                                {selectedOrder.courierDetails?.deliveryStatus || 'READY_FOR_PICKUP'}
+                              </span>
+                              {selectedOrder.courierDetails?.bookingType === 'API' && ' • Official API Managed'}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 text-[10px] font-mono font-bold uppercase rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300">
+                          Active Shipment
+                        </span>
                       </div>
-                      <a
-                        href="https://koombiyo.lk/login"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center space-x-1 text-[11px] font-bold text-amber-800 hover:text-amber-950 underline"
-                      >
-                        <span>Open Koombiyo Portal</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+
+                      <div className="flex items-center space-x-2 pt-2 border-t border-emerald-200/60 flex-wrap gap-y-2">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenLiveTracking(selectedOrder)}
+                          className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center space-x-1.5 shadow-xs cursor-pointer"
+                        >
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>Track Live (Koombiyo API)</span>
+                        </button>
+                        <a
+                          href={safeGetKoombiyoPodUrl(selectedOrder.id, 'A6')}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 font-bold text-xs flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-stone-600" />
+                          <span>Print POD PDF (A6 Barcode)</span>
+                        </a>
+                        <a
+                          href={`https://koombiyodelivery.lk/track/${encodeURIComponent(
+                            selectedOrder.courierDetails?.waybillNumber || selectedOrder.trackingNumber || ''
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 font-bold text-xs flex items-center space-x-1 cursor-pointer ml-auto"
+                        >
+                          <span>Portal Tracking</span>
+                          <ExternalLink className="w-3 h-3 text-stone-400" />
+                        </a>
+                      </div>
                     </div>
-                    <p className="text-[11px] text-amber-800 leading-relaxed">
-                      Copy the pre-formatted booking payload below, create the order inside the Koombiyo Merchant Portal, and record the assigned waybill code here.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => handleCopyKoombiyoPortalPayload(selectedOrder)}
-                      className="px-3 py-1.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs transition-colors flex items-center space-x-1.5 cursor-pointer shadow-xs"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy Koombiyo Portal Booking Slip</span>
-                    </button>
-                  </div>
+                  ) : courierConfig?.hasCredentials ? (
+                    <div className="p-4 rounded-2xl bg-linear-to-r from-amber-50/90 to-amber-100/60 border border-amber-300/80 space-y-3 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-7 h-7 rounded-lg bg-amber-800 text-white flex items-center justify-center shadow-2xs">
+                            <Send className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-amber-950 text-sm">Official Koombiyo Order Dispatch</h4>
+                            <p className="text-[11px] text-amber-800">
+                              Submits this order directly to Koombiyo Delivery v2 network via client API.
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-300">
+                          Official Integration
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-white/90 p-3.5 rounded-xl border border-amber-200">
+                        <div>
+                          <span className="text-[10px] text-stone-400 uppercase font-bold block">Recipient &amp; Address</span>
+                          <span className="font-bold text-stone-900 block truncate">
+                            {selectedOrder.shippingAddress?.recipientName || selectedOrder.customerName}
+                          </span>
+                          <span className="text-stone-600 text-[11px] block truncate">
+                            {selectedOrder.shippingAddress?.street}, {selectedOrder.shippingAddress?.city}
+                          </span>
+                          <span className="text-stone-500 text-[10px]">
+                            District: <strong className="text-stone-800">{selectedOrder.shippingAddress?.district || 'Colombo'}</strong>
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] text-stone-400 uppercase font-bold block">COD Collection Amount</span>
+                          <span className="font-black text-amber-800 text-sm block">
+                            LKR {(selectedOrder.amountToCollect || selectedOrder.totalAmount).toLocaleString()}
+                          </span>
+                          <span className="text-[10px] text-stone-400">
+                            Customer Phone: <strong>{selectedOrder.shippingAddress?.phone || selectedOrder.phone || 'N/A'}</strong>
+                          </span>
+                        </div>
+
+                        <div className="sm:col-span-2 pt-2 border-t border-stone-100">
+                          <label className="text-[10px] text-stone-600 uppercase font-bold block mb-1">
+                            Assign Active Koombiyo Waybill ({availableWaybills.length} unassigned in your account)
+                          </label>
+                          {availableWaybills.length > 0 ? (
+                            <select
+                              value={selectedWaybillForOfficial}
+                              onChange={(e) => setSelectedWaybillForOfficial(e.target.value)}
+                              className="w-full p-2 bg-stone-50 border border-stone-300 rounded-xl font-mono font-bold text-xs text-stone-900 focus:bg-white"
+                            >
+                              {availableWaybills.map((wb, idx) => (
+                                <option key={wb} value={wb}>
+                                  Waybill #{wb} {idx === 0 ? '(Recommended Next Available)' : ''}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs">
+                              ⚠️ No active unassigned waybills found on your account. Please request new waybill stickers in the Koombiyo portal.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-[11px] text-stone-500 italic">
+                          Requires admin confirmation. Duplicate shipments strictly guarded.
+                        </span>
+                        <button
+                          type="button"
+                          disabled={availableWaybills.length === 0 || isDispatchingOfficial}
+                          onClick={() => setIsOfficialConfirmOpen(true)}
+                          className="px-4 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs flex items-center space-x-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>{isDispatchingOfficial ? 'Submitting to Koombiyo...' : 'Confirm & Dispatch via Official API'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Manual / Fallback Booking Form */}
+                  <form onSubmit={handleSaveCourierBooking} className="space-y-4 pt-2">
+                    <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                      <span className="font-bold text-stone-800 text-xs">
+                        Manual Booking Record / External Carriers
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyKoombiyoPortalPayload(selectedOrder)}
+                        className="text-[11px] text-amber-800 font-bold hover:underline flex items-center space-x-1"
+                      >
+                        <Copy className="w-3 h-3" />
+                        <span>Copy Portal Booking Slip</span>
+                      </button>
+                    </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -2079,7 +2441,8 @@ export default function AdminCodOrdersPage() {
                     </button>
                   </div>
                 </form>
-              )}
+              </div>
+            )}
 
               {/* TAB 2: UPDATE DELIVERY STATUS & RECORD ATTEMPTS */}
               {courierModalTab === 'STATUS' && (
@@ -2369,6 +2732,235 @@ export default function AdminCodOrdersPage() {
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ========================================================= */}
+      {/* 4. OFFICIAL DISPATCH CONFIRMATION MODAL */}
+      {/* ========================================================= */}
+      {isOfficialConfirmOpen && selectedOrder && (
+        <div className="fixed inset-0 z-60 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full border border-stone-200 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
+                <Send className="w-5 h-5 text-amber-800" />
+              </div>
+              <div>
+                <h3 className="font-serif text-lg font-bold text-stone-900">
+                  Confirm Official Koombiyo Dispatch
+                </h3>
+                <p className="text-xs text-stone-500">
+                  Order #{selectedOrder.orderNumber} • {selectedOrder.customerName}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs space-y-2 text-stone-800">
+              <div className="flex justify-between border-b border-amber-200/60 pb-1.5">
+                <span className="text-stone-500">Recipient:</span>
+                <span className="font-bold text-stone-900">
+                  {selectedOrder.shippingAddress?.recipientName || selectedOrder.customerName}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-amber-200/60 pb-1.5">
+                <span className="text-stone-500">Destination:</span>
+                <span className="font-bold text-stone-900 text-right">
+                  {selectedOrder.shippingAddress?.street}, {selectedOrder.shippingAddress?.city} ({selectedOrder.shippingAddress?.district})
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-amber-200/60 pb-1.5">
+                <span className="text-stone-500">Allocated Waybill ID:</span>
+                <span className="font-mono font-black text-amber-900 bg-amber-200/70 px-2 py-0.5 rounded-md">
+                  #{selectedWaybillForOfficial || 'Auto-Allocated'}
+                </span>
+              </div>
+              <div className="flex justify-between pt-0.5">
+                <span className="text-stone-500">COD Collection Amount:</span>
+                <span className="font-black text-stone-900">
+                  LKR {(selectedOrder.amountToCollect || selectedOrder.totalAmount).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-stone-500 leading-relaxed italic">
+              Dispatching will immediately register this order on Koombiyo Delivery v2 network and commit the waybill lock. Never dispatch without customer confirmation.
+            </p>
+
+            <div className="flex items-center justify-end space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsOfficialConfirmOpen(false)}
+                className="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDispatchingOfficial}
+                onClick={handleDispatchOfficialKoombiyo}
+                className="px-5 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold flex items-center space-x-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+                <span>{isDispatchingOfficial ? 'Registering with Koombiyo...' : 'Confirm & Dispatch Now'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 5. KOOMBIYO LIVE TRACKING & TIMELINE MODAL */}
+      {/* ========================================================= */}
+      {isLiveTrackingOpen && liveTrackingOrder && (
+        <div className="fixed inset-0 z-60 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-2xl w-full border border-stone-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="p-6 border-b border-stone-100 flex items-start justify-between bg-stone-50/60">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                  <Clock className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-serif text-lg font-bold text-stone-900 flex items-center space-x-2">
+                    <span>Koombiyo Live Tracking</span>
+                    <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
+                      Live API
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-500">
+                    Order #{liveTrackingOrder.orderNumber} • Waybill #{liveTrackingOrder.trackingNumber || liveTrackingOrder.courierDetails?.waybillNumber}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLiveTrackingOpen(false)}
+                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 overflow-y-auto space-y-5 text-xs flex-1">
+              {isLoadingLiveTracking ? (
+                <div className="py-12 text-center space-y-3">
+                  <RefreshCw className="w-8 h-8 text-amber-700 animate-spin mx-auto" />
+                  <p className="text-stone-500 text-xs">Querying Koombiyo real-time logistics server...</p>
+                </div>
+              ) : liveTrackingError ? (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 space-y-2">
+                  <div className="flex items-center space-x-2 font-bold text-sm">
+                    <AlertCircle className="w-4 h-4 text-amber-700" />
+                    <span>Tracking Status Notice</span>
+                  </div>
+                  <p className="text-xs leading-relaxed">{liveTrackingError}</p>
+                  <p className="text-[11px] text-stone-500">
+                    If this order was newly registered, the courier hub or rider will update timeline events once the package is scanned at collection.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Waybill & Branch Snapshot */}
+                  <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Waybill</span>
+                      <span className="font-mono font-bold text-stone-900 text-sm">
+                        #{liveTrackingData?.waybillId || liveTrackingOrder.trackingNumber}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Assigned Branch</span>
+                      <span className="font-bold text-stone-800">
+                        {liveTrackingData?.branchDetails?.branch_name || 'Koombiyo Dispatch Hub'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Recipient Phone</span>
+                      <span className="font-bold text-stone-800">
+                        {liveTrackingData?.customerDetails?.phone || liveTrackingOrder.shippingAddress?.phone || liveTrackingOrder.phone || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Chronological Event Log */}
+                  <div className="space-y-2">
+                    <h4 className="font-bold text-stone-900 text-xs flex items-center space-x-1.5">
+                      <span>Event Log &amp; Milestones ({liveTrackingData?.timeline?.length || 0})</span>
+                    </h4>
+
+                    {liveTrackingData?.timeline && liveTrackingData.timeline.length > 0 ? (
+                      <div className="space-y-2.5 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-stone-200">
+                        {liveTrackingData.timeline.map((event: any, idx: number) => (
+                          <div key={idx} className="relative flex items-start space-x-3 pl-8">
+                            <span className="absolute left-2.5 top-1.5 w-2.5 h-2.5 rounded-full bg-emerald-600 ring-4 ring-white shrink-0" />
+                            <div className="flex-1 bg-stone-50 p-3 rounded-xl border border-stone-200/80 space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-stone-900 text-xs">
+                                  {event.status || event.order_status || 'Status Update'}
+                                </span>
+                                <span className="text-[10px] text-stone-400 font-mono">
+                                  {event.date_time || event.created_at || 'Recent'}
+                                </span>
+                              </div>
+                              {event.branch && (
+                                <p className="text-[11px] text-stone-600">
+                                  Branch: <strong className="text-stone-800">{event.branch}</strong>
+                                </p>
+                              )}
+                              {event.remarks && (
+                                <p className="text-[11px] text-stone-700 italic">
+                                  &ldquo;{event.remarks}&rdquo;
+                                </p>
+                              )}
+                              {event.staff_name && (
+                                <span className="text-[10px] text-stone-400 block">
+                                  Staff: {event.staff_name}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-stone-500 italic p-4 bg-stone-50 rounded-xl border border-stone-100">
+                        No external timeline events recorded by Koombiyo yet. Order is awaiting collection scan.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 bg-stone-50 border-t border-stone-100 flex items-center justify-between">
+              <a
+                href={safeGetKoombiyoPodUrl(liveTrackingOrder.id, 'A6')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-1.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 text-xs font-bold flex items-center space-x-1.5 cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5 text-stone-600" />
+                <span>Print POD PDF (A6)</span>
+              </a>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => handleOpenLiveTracking(liveTrackingOrder)}
+                  className="px-3.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold flex items-center space-x-1 cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Refresh</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsLiveTrackingOpen(false)}
+                  className="px-4 py-1.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-xs cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

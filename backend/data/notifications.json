@@ -1,1 +1,31 @@
-[]
+[
+  {
+    "id": "notif-1793165895720-hl8xt",
+    "orderNumber": "RXB-2026-335883",
+    "orderId": "ord-1793165895705-59kt",
+    "eventType": "ORDER_CONFIRMATION",
+    "channel": "SMS",
+    "recipient": "+94760162181",
+    "message": "Thank you for choosing REXBEBE! Your Cash on Delivery order #RXB-2026-335883 has been received. Total payable upon delivery: LKR 950. We will prepare your garments with care.",
+    "status": "NOT_CONFIGURED",
+    "confirmedSuccess": false,
+    "provider": "Not Configured",
+    "failureReason": "SMS gateway credentials not found in environment. In strict adherence to policy, delivery is NOT claimed.",
+    "timestamp": "2026-10-28T05:38:15.720Z"
+  },
+  {
+    "id": "notif-1793165895715-gszc1",
+    "orderNumber": "RXB-2026-335883",
+    "orderId": "ord-1793165895705-59kt",
+    "eventType": "ORDER_CONFIRMATION",
+    "channel": "EMAIL",
+    "recipient": "amashisathisma@gmail.com",
+    "subject": "REXBEBE Order Confirmation #RXB-2026-335883",
+    "message": "Thank you for choosing REXBEBE! Your Cash on Delivery order #RXB-2026-335883 has been received. Total payable upon delivery: LKR 950. We will prepare your garments with care.",
+    "status": "NOT_CONFIGURED",
+    "confirmedSuccess": false,
+    "provider": "Not Configured",
+    "failureReason": "Email service not configured in environment. In strict adherence to policy, delivery is NOT claimed.",
+    "timestamp": "2026-10-28T05:38:15.715Z"
+  }
+]

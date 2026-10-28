@@ -1,20 +1,25 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAdminData } from '../../hooks/AdminContext';
 
 export function VisitorTracker() {
   const pathname = usePathname();
   const { trackCurrentVisitor, isLoaded } = useAdminData();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!isLoaded) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || !isLoaded) return;
     // Do not track internal admin page views as customer visits
     if (pathname && !pathname.startsWith('/admin')) {
       trackCurrentVisitor(pathname);
     }
-  }, [pathname, isLoaded, trackCurrentVisitor]);
+  }, [mounted, pathname, isLoaded, trackCurrentVisitor]);
 
   return null;
 }

@@ -12,6 +12,14 @@ import {
   addOrderNote,
   refundOrder,
   getCourierConfig,
+  getAvailableWaybills,
+  dispatchOfficialKoombiyo,
+  getKoombiyoLiveTracking,
+  generateKoombiyoPod,
+  handleKoombiyoWebhook,
+  testKoombiyoWebhook,
+  getKoombiyoDistricts,
+  getKoombiyoCities,
   getKoombiyoPortalPayload,
   bookCourierManual,
   updateCourierDeliveryStatus,
@@ -30,6 +38,9 @@ import { requireAdmin } from '../middleware/adminMiddleware';
 
 const router = Router();
 
+// Public Webhook receiver for Koombiyo delivery status pushes
+router.post('/courier/koombiyo/webhook', handleKoombiyoWebhook);
+
 // Customer Order Creation & Order Status Tracking
 router.post('/', createOrder);
 router.get('/:id', optionalAuthenticateToken, getOrderById);
@@ -39,6 +50,10 @@ router.get('/', authenticateToken, requireAdmin, getOrders);
 router.get('/reports/cod', authenticateToken, requireAdmin, getCodReports);
 router.get('/reports/cod-analytics', authenticateToken, requireAdmin, getCodAnalytics);
 router.get('/courier/config', authenticateToken, requireAdmin, getCourierConfig);
+router.get('/courier/available-waybills', authenticateToken, requireAdmin, getAvailableWaybills);
+router.get('/courier/koombiyo/districts', authenticateToken, requireAdmin, getKoombiyoDistricts);
+router.get('/courier/koombiyo/cities', authenticateToken, requireAdmin, getKoombiyoCities);
+router.post('/courier/koombiyo/test-webhook', authenticateToken, requireAdmin, testKoombiyoWebhook);
 
 // Return and Failed Delivery Sub-routes
 router.get('/returns/unresolved', authenticateToken, requireAdmin, getUnresolvedReturnCases);
@@ -46,6 +61,9 @@ router.get('/returns/failure-reasons', authenticateToken, requireAdmin, getFailu
 router.get('/returns/all', authenticateToken, requireAdmin, getFailedAndReturnOrders);
 
 router.get('/:id/courier/portal-payload', authenticateToken, requireAdmin, getKoombiyoPortalPayload);
+router.post('/:id/courier/dispatch-official', authenticateToken, requireAdmin, dispatchOfficialKoombiyo);
+router.get('/:id/courier/live-tracking', optionalAuthenticateToken, getKoombiyoLiveTracking);
+router.get('/:id/courier/pod', authenticateToken, requireAdmin, generateKoombiyoPod);
 
 router.patch('/:id/status', authenticateToken, requireAdmin, updateOrderStatus);
 router.patch('/:id/confirm-cod', authenticateToken, requireAdmin, confirmCodOrder);

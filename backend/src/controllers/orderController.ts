@@ -256,8 +256,102 @@ export const refundOrder = async (req: Request, res: Response, next: NextFunctio
 
 export const getCourierConfig = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const config = orderService.getCourierConfig();
+    const config = await orderService.getCourierConfig();
     return sendSuccess(res, config, 'Courier configuration retrieved');
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getAvailableWaybills = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const waybills = await orderService.getAvailableWaybills();
+    return sendSuccess(res, { waybills, count: waybills.length }, 'Available active waybills retrieved');
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const dispatchOfficialKoombiyo = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const adminUser = req.body.admin || (req as any).user?.email || 'Admin Staff';
+    const result = await orderService.dispatchOfficialKoombiyo(id, {
+      waybillId: req.body.waybillId,
+      notes: req.body.notes,
+      admin: adminUser,
+    });
+    return sendSuccess(res, result, 'Order dispatched via official Koombiyo API successfully');
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getKoombiyoLiveTracking = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const tracking = await orderService.getKoombiyoLiveTracking(id);
+    return sendSuccess(res, tracking, 'Live Koombiyo tracking data retrieved');
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const generateKoombiyoPod = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const format = (req.query.format as any) || 'A6';
+    const { buffer, contentType, filename } = await orderService.generateKoombiyoPod(id, format);
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    return res.send(buffer);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const handleKoombiyoWebhook = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await orderService.handleKoombiyoWebhook(req.body);
+    // Koombiyo documentation requires replying with HTTP 200 to acknowledge receipt
+    return res.status(200).json({ status: 200, success: true, message: result.message });
+  } catch (err: any) {
+    console.error('[Koombiyo Webhook Warning]', err.message);
+    return res.status(200).json({ status: 200, success: false, warning: err.message });
+  }
+};
+
+export const testKoombiyoWebhook = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { targetUrl, samplePayload } = req.body;
+    if (!targetUrl) {
+      throw new BadRequestError('targetUrl is required to test webhook endpoint');
+    }
+    const result = await orderService.testKoombiyoWebhook(targetUrl, samplePayload);
+    return sendSuccess(res, result, 'Koombiyo webhook test executed successfully');
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getKoombiyoDistricts = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const districts = await orderService.getKoombiyoDistricts();
+    return sendSuccess(res, districts, 'Koombiyo districts retrieved');
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getKoombiyoCities = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const district_id = req.query.district_id || req.query.districtId;
+    const city_name = req.query.city_name || req.query.cityName;
+    if (!district_id) {
+      throw new BadRequestError('district_id query parameter is required');
+    }
+    const cities = await orderService.getKoombiyoCities(String(district_id), city_name ? String(city_name) : undefined);
+    return sendSuccess(res, cities, 'Koombiyo cities retrieved');
   } catch (err) {
     next(err);
   }

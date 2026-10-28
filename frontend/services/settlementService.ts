@@ -1,5 +1,5 @@
 import { fetchApi } from './api';
-import { OrderRecord } from './orderService';
+import type { OrderRecord } from './orderService';
 
 export type CodFinancialStatus =
   | 'COLLECTION_PENDING'

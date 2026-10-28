@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "adj-1793165895710",
+    "productId": "prod-1792940183449",
+    "productName": "Pink Dino Dreams",
+    "sku": "REX-BABY-3166-2436months-BAB",
+    "variant": "Baby Pink 24-36 months",
+    "previousQuantity": 10,
+    "newQuantity": 9,
+    "change": -1,
+    "reason": "Order #RXB-2026-335883 placed by Amashi (CASH_ON_DELIVERY)",
+    "adjustedBy": "Order Processing",
+    "timestamp": "2026-10-28T05:38:15.710Z"
+  }
+]

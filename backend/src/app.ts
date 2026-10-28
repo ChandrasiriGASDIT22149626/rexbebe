@@ -100,6 +100,10 @@ app.use('/api/settlements', settlementRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 
+// Direct Webhook Alias for Koombiyo Outbound Notifications
+import { handleKoombiyoWebhook } from './controllers/orderController';
+app.post('/api/webhooks/koombiyo', handleKoombiyoWebhook);
+
 // Global Error Handler
 app.use(errorHandler);
 

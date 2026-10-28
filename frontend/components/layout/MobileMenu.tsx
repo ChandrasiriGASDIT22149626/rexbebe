@@ -412,19 +412,22 @@ export function MobileMenu({ isOpen, onClose, onOpenSearch }: MobileMenuProps) {
             {/* Bottom Dark/Light Mode Switch & Footer Link */}
             <div className="p-4 border-t border-stone-100 dark:border-slate-800 bg-stone-50/70 dark:bg-slate-800/60 flex-shrink-0 space-y-3">
               <button
+                type="button"
                 onClick={toggleTheme}
                 className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-xs font-bold text-stone-800 dark:text-slate-100 shadow-2xs active:scale-98 transition-all"
               >
                 <div className="flex items-center space-x-2">
-                  {mounted && isDarkMode ? (
+                  {!mounted ? (
+                    <span className="w-4 h-4 block" aria-hidden="true" />
+                  ) : isDarkMode ? (
                     <Sun className="w-4 h-4 text-amber-400" />
                   ) : (
                     <Moon className="w-4 h-4 text-slate-700 dark:text-slate-200" />
                   )}
-                  <span>{mounted && isDarkMode ? 'Light Mode ☀️' : 'Dark Mode 🌙'}</span>
+                  <span>{!mounted ? 'Theme' : isDarkMode ? 'Light Mode ☀️' : 'Dark Mode 🌙'}</span>
                 </div>
                 <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-slate-300">
-                  {mounted && isDarkMode ? 'Active: Dark' : 'Active: Light'}
+                  {!mounted ? '...' : isDarkMode ? 'Active: Dark' : 'Active: Light'}
                 </span>
               </button>
 

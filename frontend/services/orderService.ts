@@ -219,6 +219,103 @@ export interface CodReportResponse {
   orders: OrderRecord[];
 }
 
+export const getCourierConfig = async (): Promise<any> => {
+  return fetchApi('/orders/courier/config');
+};
+
+export const getAvailableWaybills = async (): Promise<{ waybills: string[]; count: number }> => {
+  return fetchApi<{ waybills: string[]; count: number }>('/orders/courier/available-waybills');
+};
+
+export const dispatchOfficialKoombiyo = async (
+  id: string,
+  payload: { waybillId?: string; notes?: string; admin?: string }
+): Promise<{
+  order: OrderRecord;
+  waybillId: string;
+  trackingUrl: string;
+  resolvedAddress: any;
+}> => {
+  return fetchApi(`/orders/${id}/courier/dispatch-official`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+};
+
+export const getKoombiyoLiveTracking = async (
+  id: string
+): Promise<{
+  waybillId: string;
+  trackingUrl: string;
+  orderDetails: any;
+  customerDetails: any;
+  branchDetails: any;
+  timeline: any[];
+}> => {
+  return fetchApi(`/orders/${id}/courier/live-tracking`);
+};
+
+export const getKoombiyoPodUrl = (id: string, format: string = 'A6'): string => {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  return `${baseUrl}/orders/${id}/courier/pod?format=${encodeURIComponent(format)}`;
+};
+
+export const testKoombiyoWebhook = async (targetUrl: string, samplePayload?: any): Promise<any> => {
+  return fetchApi('/orders/courier/koombiyo/test-webhook', {
+    method: 'POST',
+    body: JSON.stringify({ targetUrl, samplePayload }),
+  });
+};
+
+export const getKoombiyoDistricts = async (): Promise<{ district_id: number; district_name: string }[]> => {
+  return fetchApi('/orders/courier/koombiyo/districts');
+};
+
+export const getKoombiyoCities = async (
+  districtId: string | number,
+  cityName?: string
+): Promise<{ city_id: number; city_name: string; postal_code: string }[]> => {
+  const qs = cityName ? `&city_name=${encodeURIComponent(cityName)}` : '';
+  return fetchApi(`/orders/courier/koombiyo/cities?district_id=${districtId}${qs}`);
+};
+
+export const getKoombiyoPortalPayload = async (
+  id: string
+): Promise<{ text: string; structured: Record<string, any> }> => {
+  return fetchApi(`/orders/${id}/courier/portal-payload`);
+};
+
+export const bookCourierManual = async (
+  id: string,
+  payload: ManualCourierBookingPayload
+): Promise<OrderRecord> => {
+  return fetchApi<OrderRecord>(`/orders/${id}/courier/book`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+};
+
+export const updateCourierDeliveryStatus = async (
+  id: string,
+  payload: DeliveryStatusUpdatePayload
+): Promise<OrderRecord> => {
+  return fetchApi<OrderRecord>(`/orders/${id}/courier/delivery-status`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+};
+
+export const addCourierNote = async (
+  id: string,
+  note: string,
+  admin?: string
+): Promise<OrderRecord> => {
+  return fetchApi<OrderRecord>(`/orders/${id}/courier/notes`, {
+    method: 'POST',
+    body: JSON.stringify({ note, admin }),
+  });
+};
+
 export const orderService = {
   async createOrder(orderPayload: any): Promise<OrderRecord> {
     return fetchApi<OrderRecord>('/orders', {
@@ -367,34 +464,19 @@ export const orderService = {
     });
   },
 
-  async getCourierConfig(): Promise<any> {
-    return fetchApi('/orders/courier/config');
-  },
+  getCourierConfig,
+  getAvailableWaybills,
+  dispatchOfficialKoombiyo,
+  getKoombiyoLiveTracking,
+  getKoombiyoPodUrl,
+  testKoombiyoWebhook,
+  getKoombiyoDistricts,
+  getKoombiyoCities,
+  getKoombiyoPortalPayload,
+  bookCourierManual,
+  updateCourierDeliveryStatus,
+  addCourierNote,
 
-  async getKoombiyoPortalPayload(id: string): Promise<{ text: string; structured: Record<string, any> }> {
-    return fetchApi(`/orders/${id}/courier/portal-payload`);
-  },
-
-  async bookCourierManual(id: string, payload: ManualCourierBookingPayload): Promise<OrderRecord> {
-    return fetchApi<OrderRecord>(`/orders/${id}/courier/book`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async updateCourierDeliveryStatus(id: string, payload: DeliveryStatusUpdatePayload): Promise<OrderRecord> {
-    return fetchApi<OrderRecord>(`/orders/${id}/courier/delivery-status`, {
-      method: 'PATCH',
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async addCourierNote(id: string, note: string, admin?: string): Promise<OrderRecord> {
-    return fetchApi<OrderRecord>(`/orders/${id}/courier/notes`, {
-      method: 'POST',
-      body: JSON.stringify({ note, admin }),
-    });
-  },
 
   async recordDeliveryAttempt(id: string, payload: any): Promise<OrderRecord> {
     return fetchApi<OrderRecord>(`/orders/${id}/delivery-attempt`, {
@@ -444,4 +526,6 @@ export const orderService = {
     return fetchApi<any[]>(`/notifications/recent?limit=${limit}`);
   },
 };
+
+export default orderService;
 

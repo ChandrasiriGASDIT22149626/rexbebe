@@ -4,7 +4,7 @@ import './globals.css';
 import { CartProvider } from '../hooks/useCart';
 import { WishlistProvider } from '../hooks/useWishlist';
 import { ThemeProvider } from '../hooks/useTheme';
-import { Preloader } from '../components/ui/Preloader';
+import { ClientOnlyPreloader } from '../components/ui/ClientOnlyPreloader';
 import { AdminDataProvider } from '../hooks/AdminContext';
 import { VisitorTracker } from '../components/common/VisitorTracker';
 import { OrganizationJsonLd, WebSiteJsonLd, LocalBusinessJsonLd } from '../components/seo/JsonLd';
@@ -78,6 +78,7 @@ export const metadata: Metadata = {
   }),
   icons: {
     icon: [
+      { url: '/favicon.ico' },
       { url: '/images/logo_clean.png' },
       { url: '/images/logo.png', sizes: '192x192', type: 'image/png' },
     ],
@@ -125,10 +126,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="min-h-screen flex flex-col justify-between bg-[#FAF9F6] text-slate-800 dark:bg-[#0F172A] dark:text-slate-100 transition-colors duration-300">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col justify-between bg-[#FAF9F6] text-slate-800 dark:bg-[#0F172A] dark:text-slate-100 transition-colors duration-300">
         <ThemeProvider>
           <GoogleAnalytics />
-          <Preloader />
+          <ClientOnlyPreloader />
           <AdminDataProvider>
             <VisitorTracker />
             <CartProvider>

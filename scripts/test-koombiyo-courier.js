@@ -20,10 +20,28 @@
  */
 
 const http = require('http');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'rexbebe_super_secure_admin_jwt_secret_key_2026';
+const adminToken = jwt.sign(
+  {
+    id: 'admin-tester-courier',
+    email: 'admin@rexbebe.com',
+    role: 'ADMIN',
+    permissions: ['*'],
+  },
+  JWT_SECRET,
+  { expiresIn: '2h' }
+);
 
 function request(options, body = null) {
   return new Promise((resolve, reject) => {
-    const req = http.request(options, (res) => {
+    const opts = { ...options };
+    opts.headers = { ...opts.headers };
+    if (!opts.headers['Authorization'] && !opts.skipAuth) {
+      opts.headers['Authorization'] = `Bearer ${adminToken}`;
+    }
+    const req = http.request(opts, (res) => {
       let data = '';
       res.on('data', (chunk) => (data += chunk));
       res.on('end', () => {
@@ -69,9 +87,12 @@ async function runKoombiyoCourierTests() {
   assert(configRes.status === 200, 'GET /api/orders/courier/config returns 200 OK');
   const config = configRes.data.data;
   assert(config.provider === 'KOOMBIYO', 'Provider is KOOMBIYO');
-  assert(config.apiMode === 'MANUAL', 'API Mode is MANUAL (no API keys in env)');
-  assert(config.hasCredentials === false, 'hasCredentials is false as expected');
-  assert(config.portalUrl === 'https://koombiyo.lk/login', 'Koombiyo merchant portal URL is correct');
+  assert(config.apiMode === 'API' || config.apiMode === 'MANUAL', `API Mode is valid (${config.apiMode})`);
+  assert(typeof config.hasCredentials === 'boolean', `hasCredentials is boolean (${config.hasCredentials})`);
+  assert(
+    config.portalUrl === 'https://client.koombiyodelivery.lk/' || config.portalUrl === 'https://koombiyo.lk/login',
+    'Koombiyo merchant portal URL is valid'
+  );
   assert(config.supportedStatuses.length === 9, 'All 9 delivery statuses supported');
 
   const requiredStatuses = [

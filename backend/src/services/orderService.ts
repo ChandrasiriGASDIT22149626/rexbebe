@@ -559,8 +559,90 @@ export class OrderService {
     };
   }
 
-  getCourierConfig() {
-    return koombiyoCourierService.getCourierConfig();
+  async getCourierConfig() {
+    return koombiyoCourierService.getCourierConfigAsync();
+  }
+
+  async getAvailableWaybills() {
+    return koombiyoCourierService.getAvailableWaybills();
+  }
+
+  async dispatchOfficialKoombiyo(id: string, payload: { waybillId?: string; notes?: string; admin?: string }) {
+    const existing = await this.orderRepo.findById(id);
+    if (!existing) throw new NotFoundError(`Order ${id} not found`);
+
+    const result = await koombiyoCourierService.dispatchViaOfficialApi(existing.id, payload);
+
+    AuditService.record({
+      actingAdministrator: payload.admin || 'Logistics Admin',
+      affectedRecord: `Order #${existing.orderNumber}`,
+      action: 'KOOMBIYO_ORDER_DISPATCHED',
+      reason: `Dispatched via official Koombiyo API with Waybill #${result.waybillId}`,
+      details: {
+        waybillId: result.waybillId,
+        destination: `${result.resolvedAddress.cityName}, ${result.resolvedAddress.districtName}`,
+        charge: result.resolvedAddress.deliveryCharge,
+      },
+    });
+
+    try {
+      await NotificationService.notifyOrderEvent(result.order, 'ORDER_DISPATCH', {
+        trackingUrl: result.trackingUrl,
+        notes: `Waybill #${result.waybillId}. ${payload.notes || ''}`,
+      });
+    } catch (e) {
+      console.warn('[Notification Error]', e);
+    }
+
+    return result;
+  }
+
+  async getKoombiyoLiveTracking(id: string) {
+    const existing = await this.orderRepo.findById(id);
+    if (!existing) throw new NotFoundError(`Order ${id} not found`);
+
+    const waybillId = existing.trackingNumber || existing.courierDetails?.waybillNumber;
+    if (!waybillId) {
+      throw new BadRequestError(`Order #${existing.orderNumber} does not have a waybill number assigned.`);
+    }
+
+    return koombiyoCourierService.getLiveTracking(waybillId);
+  }
+
+  async generateKoombiyoPod(id: string, format: 'POD' | 'A6' | 'THERMAL' | 'DOT' = 'A6') {
+    const existing = await this.orderRepo.findById(id);
+    if (!existing) throw new NotFoundError(`Order ${id} not found`);
+
+    const waybillId = existing.trackingNumber || existing.courierDetails?.waybillNumber;
+    if (!waybillId) {
+      throw new BadRequestError(`Order #${existing.orderNumber} does not have a waybill number assigned.`);
+    }
+
+    return koombiyoCourierService.generatePodPdf(waybillId, format);
+  }
+
+  async handleKoombiyoWebhook(payload: any) {
+    return koombiyoCourierService.handleWebhook(payload);
+  }
+
+  async testKoombiyoWebhook(targetUrl: string, samplePayload?: any) {
+    const { koombiyoApiClient } = await import('./courier/KoombiyoApiClient');
+    return koombiyoApiClient.testWebhook(targetUrl, samplePayload);
+  }
+
+  async getKoombiyoDistricts() {
+    const { koombiyoApiClient } = await import('./courier/KoombiyoApiClient');
+    return koombiyoApiClient.getDistricts();
+  }
+
+  async getKoombiyoCities(districtId: string | number, cityName?: string) {
+    const { koombiyoApiClient } = await import('./courier/KoombiyoApiClient');
+    return koombiyoApiClient.getCities(districtId, cityName);
+  }
+
+  async resolveKoombiyoAddress(district: string, city: string) {
+    const { koombiyoApiClient } = await import('./courier/KoombiyoApiClient');
+    return koombiyoApiClient.resolveAddress(district, city);
   }
 
   async getKoombiyoPortalPayload(id: string) {

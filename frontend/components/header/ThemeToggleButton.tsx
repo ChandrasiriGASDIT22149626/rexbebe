@@ -15,7 +15,9 @@ export function ThemeToggleButton({ className = '' }: { className?: string }) {
       aria-label={mounted && isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
       title={mounted && isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
     >
-      {mounted && isDarkMode ? (
+      {!mounted ? (
+        <span className="w-4 h-4 block" aria-hidden="true" />
+      ) : isDarkMode ? (
         <Sun className="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
       ) : (
         <Moon className="w-4 h-4 text-slate-700 dark:text-slate-200 group-hover:-rotate-12 transition-transform duration-300" />
