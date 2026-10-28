@@ -73,35 +73,25 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
   const fetchCacheMode: RequestCache = isMutation || isPrivateOrAdmin ? 'no-store' : (options.cache || 'default');
 
   try {
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        cache: fetchCacheMode,
-        ...options,
-        headers,
-      });
-    } catch (fetchErr: any) {
-      // If direct backend request failed and we're in the browser with an absolute URL, try Next.js proxy rewrite at /api
-      if (typeof window !== 'undefined' && url.startsWith('http')) {
-        console.warn(`[fetchApi] Direct request to ${url} failed; falling back to same-origin rewrite /api${cleanEndpoint}`);
-        response = await fetch(`/api${cleanEndpoint}`, {
-          cache: fetchCacheMode,
-          ...options,
-          headers,
-        });
-      } else {
-        throw fetchErr;
-      }
-    }
+    const response = await fetch(url, {
+      cache: fetchCacheMode,
+      ...options,
+      headers,
+    });
     
-    // Check if response has content before parsing JSON
+    // Safely retrieve response text without premature JSON parsing
     const text = await response.text();
     let data: any = null;
+    let isJson = false;
+
     if (text) {
       try {
         data = JSON.parse(text);
-      } catch (parseErr) {
-        throw new Error(`Invalid JSON response from server (${response.status}): ${text.slice(0, 100)}`);
+        isJson = true;
+      } catch {
+        // Response is non-JSON (e.g. HTML 404/500 page or plain text)
+        isJson = false;
+        data = null;
       }
     }
 
@@ -109,7 +99,6 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
       // Handle authentication expiry / unauthorized on admin routes only when a token was actually provided
       if (response.status === 401 && typeof window !== 'undefined') {
         const isCurrentlyAdmin = window.location.pathname.startsWith('/admin') && !window.location.pathname.startsWith('/admin/login');
-        // Only redirect to login if an actual admin token was supplied and rejected on a core auth check
         if (isCurrentlyAdmin && token && (cleanEndpoint.startsWith('/auth/admin/me') || cleanEndpoint.startsWith('/auth/admin/verify'))) {
           localStorage.removeItem('rexbebe_admin_token');
           localStorage.removeItem('rexbebe_admin_user');
@@ -118,16 +107,34 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
         }
       }
 
-      const errorMsg = data?.message || data?.error || `API request failed with status ${response.status}`;
-      throw new Error(errorMsg);
+      // Safe error extraction that never crashes on HTML or non-JSON error pages
+      const errorMsg =
+        data?.message ||
+        data?.error ||
+        (isJson
+          ? `API request failed with status ${response.status}`
+          : `API request to ${cleanEndpoint} returned status ${response.status} (${response.statusText || 'Error'})`);
+
+      const apiError = new Error(errorMsg);
+      (apiError as any).status = response.status;
+      (apiError as any).statusText = response.statusText;
+      (apiError as any).endpoint = cleanEndpoint;
+      throw apiError;
+    }
+
+    if (!isJson && text) {
+      return text as unknown as T;
     }
 
     return data?.data !== undefined ? data.data : data;
   } catch (error: any) {
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      const helpfulMsg = `Failed to connect to backend API at ${baseUrl}. Please check that the backend is running on port 5000 and CORS is enabled.`;
+      const helpfulMsg = `Failed to connect to backend API at ${baseUrl}. Please ensure the backend server is running on port 5000 ('npm run dev:backend') and CORS is enabled.`;
       console.error(`[API Network Error] ${endpoint}:`, helpfulMsg, error);
-      throw new Error(helpfulMsg);
+      const networkError = new Error(helpfulMsg);
+      (networkError as any).isNetworkError = true;
+      (networkError as any).endpoint = endpoint;
+      throw networkError;
     }
     console.error(`[API Fetch Error] ${endpoint}:`, error.message);
     throw error;

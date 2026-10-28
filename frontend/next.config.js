@@ -95,28 +95,8 @@ const nextConfig = {
     const backendHost = backendUrl.replace(/\/api\/?$/, '');
     return [
       {
-        source: '/api/wishlist/:path*',
-        destination: `${backendHost}/api/wishlist/:path*`,
-      },
-      {
-        source: '/api/wishlist',
-        destination: `${backendHost}/api/wishlist`,
-      },
-      {
-        source: '/api/cart/:path*',
-        destination: `${backendHost}/api/cart/:path*`,
-      },
-      {
-        source: '/api/cart',
-        destination: `${backendHost}/api/cart`,
-      },
-      {
-        source: '/api/orders/:path*',
-        destination: `${backendHost}/api/orders/:path*`,
-      },
-      {
-        source: '/api/orders',
-        destination: `${backendHost}/api/orders`,
+        source: '/api/:path*',
+        destination: `${backendHost}/api/:path*`,
       },
     ];
   },

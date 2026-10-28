@@ -6,65 +6,18 @@ import { Hero } from '../components/home/Hero';
 import { getDatabaseSeoSettings } from '../services/serverSeoService';
 import { SITE_URL, BRAND_NAME, generateOpenGraph, generateTwitter } from '../config/seoConfig';
 
-const CategorySection = dynamic(
-  () => import('../components/home/CategorySection').then((mod) => mod.CategorySection),
-  { ssr: true }
-);
-
-const BestSellers = dynamic(
-  () => import('../components/home/BestSellers').then((mod) => mod.BestSellers),
-  { ssr: true }
-);
-
-const NewArrivals = dynamic(
-  () => import('../components/home/NewArrivals').then((mod) => mod.NewArrivals),
-  { ssr: true }
-);
-
-const LittleEssentials = dynamic(
-  () => import('../components/home/LittleEssentials').then((mod) => mod.LittleEssentials),
-  { ssr: true }
-);
-
-const TheLittleEdit = dynamic(
-  () => import('../components/home/TheLittleEdit').then((mod) => mod.TheLittleEdit),
-  { ssr: true }
-);
-
-const BrandStory = dynamic(
-  () => import('../components/home/BrandStory').then((mod) => mod.BrandStory),
-  { ssr: true }
-);
-
-const WhyRexbebe = dynamic(
-  () => import('../components/home/WhyRexbebe').then((mod) => mod.WhyRexbebe),
-  { ssr: true }
-);
-
-const Newsletter = dynamic(
-  () => import('../components/home/Newsletter').then((mod) => mod.Newsletter),
-  { ssr: true }
-);
-
-const FeaturedCollection = dynamic(
-  () => import('../components/home/FeaturedCollection').then((mod) => mod.FeaturedCollection),
-  { ssr: true }
-);
-
-const CustomerReviews = dynamic(
-  () => import('../components/home/CustomerReviews').then((mod) => mod.CustomerReviews),
-  { ssr: true }
-);
-
-const InstagramSection = dynamic(
-  () => import('../components/home/InstagramSection').then((mod) => mod.InstagramSection),
-  { ssr: true }
-);
-
-const Footer = dynamic(
-  () => import('../components/layout/Footer').then((mod) => mod.Footer),
-  { ssr: true }
-);
+import { CategorySection } from '../components/home/CategorySection';
+import { BestSellers } from '../components/home/BestSellers';
+import { NewArrivals } from '../components/home/NewArrivals';
+import { LittleEssentials } from '../components/home/LittleEssentials';
+import { TheLittleEdit } from '../components/home/TheLittleEdit';
+import { BrandStory } from '../components/home/BrandStory';
+import { WhyRexbebe } from '../components/home/WhyRexbebe';
+import { Newsletter } from '../components/home/Newsletter';
+import { FeaturedCollection } from '../components/home/FeaturedCollection';
+import { CustomerReviews } from '../components/home/CustomerReviews';
+import { InstagramSection } from '../components/home/InstagramSection';
+import { Footer } from '../components/layout/Footer';
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = getDatabaseSeoSettings();
