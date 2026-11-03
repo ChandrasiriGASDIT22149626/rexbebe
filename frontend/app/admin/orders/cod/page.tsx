@@ -50,6 +50,7 @@ import {
   getAvailableWaybills,
   getCourierConfig,
   dispatchOfficialKoombiyo,
+  reconcileKoombiyoDispatch,
   getKoombiyoLiveTracking,
   getKoombiyoPodUrl,
   getKoombiyoPortalPayload,
@@ -58,6 +59,7 @@ import {
   addCourierNote,
 } from '../../../../services/orderService';
 import { SRI_LANKA_DISTRICTS } from '../../../../services/deliveryService';
+import { OrderInvoiceModal } from '../../../../components/admin/OrderInvoiceModal';
 
 // Supported COD Order Statuses
 const STATUS_OPTIONS: { label: string; value: OrderStatus; color: string }[] = [
@@ -89,6 +91,7 @@ const COURIER_DELIVERY_STATUS_OPTIONS: {
   { label: 'Delivered', value: 'DELIVERED', color: 'bg-emerald-100 text-emerald-900 border-emerald-300', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', description: 'Delivered to customer & cash collected' },
   { label: 'Returning to Sender', value: 'RETURNING_TO_SENDER', color: 'bg-orange-100 text-orange-900 border-orange-300', badge: 'bg-orange-50 text-orange-700 border-orange-200', description: 'In return transit back to warehouse' },
   { label: 'Returned to Sender', value: 'RETURNED_TO_SENDER', color: 'bg-red-100 text-red-900 border-red-300', badge: 'bg-red-50 text-red-700 border-red-200', description: 'Received back at warehouse & restocked' },
+  { label: 'Dispatch Uncertain', value: 'DISPATCH_UNCERTAIN', color: 'bg-yellow-100 text-yellow-900 border-yellow-300', badge: 'bg-yellow-50 text-yellow-800 border-yellow-200', description: 'API timed out; verify in portal or reconcile' },
 ];
 
 const COMMON_DELIVERY_FAILURE_REASONS = [
@@ -147,6 +150,7 @@ export default function AdminCodOrdersPage() {
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
 
   // Official Koombiyo API State
   const [courierConfig, setCourierConfig] = useState<any>(null);
@@ -802,6 +806,40 @@ export default function AdminCodOrdersPage() {
     }
   };
 
+  // Reconcile Uncertain Koombiyo Dispatch
+  const [isReconciling, setIsReconciling] = useState(false);
+
+  const handleReconcileDispatch = async (forceClear: boolean = false) => {
+    if (!selectedOrder) return;
+    setIsReconciling(true);
+    setCourierValidationError(null);
+    try {
+      const recFn =
+        typeof orderService?.reconcileKoombiyoDispatch === 'function'
+          ? orderService.reconcileKoombiyoDispatch.bind(orderService)
+          : typeof reconcileKoombiyoDispatch === 'function'
+          ? reconcileKoombiyoDispatch
+          : null;
+
+      if (!recFn) {
+        throw new Error('Reconciliation service is currently unavailable.');
+      }
+
+      const res = await recFn(selectedOrder.id, modalAdmin, forceClear);
+      showToast(res.message);
+      await refreshOrders();
+      if (res.reconciled) {
+        setIsCourierModalOpen(false);
+      } else {
+        setCourierValidationError(res.message);
+      }
+    } catch (err: any) {
+      setCourierValidationError(err.message || 'Reconciliation request failed.');
+    } finally {
+      setIsReconciling(false);
+    }
+  };
+
   // Date Presets
   const handleSetDatePreset = (preset: 'today' | '7days' | 'month' | 'all') => {
     const now = new Date();
@@ -905,14 +943,14 @@ export default function AdminCodOrdersPage() {
                 />
               </div>
 
-              <div className="flex items-center space-x-2 shrink-0">
+              <div className="flex items-center space-x-2.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => refreshOrders()}
-                  className="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-bold transition-colors cursor-pointer"
+                  className="flex items-center space-x-2 min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
                   title="Refresh from Database"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  <RefreshCw className="w-4 h-4" />
                   <span>Refresh</span>
                 </button>
 
@@ -930,9 +968,9 @@ export default function AdminCodOrdersPage() {
                       setStartDate('');
                       setEndDate('');
                     }}
-                    className="flex items-center space-x-1 px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-colors cursor-pointer"
+                    className="flex items-center space-x-2 min-h-[44px] px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                     <span>Clear Filters</span>
                   </button>
                 )}
@@ -940,17 +978,22 @@ export default function AdminCodOrdersPage() {
             </div>
 
             {/* Row 2: Status Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-stone-100">
+            <div className="flex items-center gap-2.5 pt-3 border-t border-stone-100 overflow-x-auto pb-2 no-scrollbar">
               <button
                 type="button"
                 onClick={() => setStatusFilter('ALL')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                className={`min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 flex items-center space-x-2 ${
                   statusFilter === 'ALL'
-                    ? 'bg-stone-900 text-white shadow-xs'
-                    : 'bg-stone-50 hover:bg-stone-100 text-stone-600'
+                    ? 'bg-stone-900 text-white shadow-md ring-2 ring-stone-900/10'
+                    : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200/80'
                 }`}
               >
-                All COD ({allCodOrders.length})
+                <span>All COD</span>
+                <span className={`text-[11px] px-2 py-0.5 rounded-full font-mono ${
+                  statusFilter === 'ALL' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-700'
+                }`}>
+                  {allCodOrders.length}
+                </span>
               </button>
 
               {STATUS_OPTIONS.map((st) => {
@@ -960,15 +1003,15 @@ export default function AdminCodOrdersPage() {
                     key={st.value}
                     type="button"
                     onClick={() => setStatusFilter(st.value)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                    className={`min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 flex items-center space-x-2 ${
                       statusFilter === st.value
-                        ? 'bg-amber-800 text-white shadow-xs'
-                        : 'bg-stone-50 hover:bg-stone-100 text-stone-600'
+                        ? 'bg-amber-800 text-white shadow-md ring-2 ring-amber-800/10'
+                        : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200/80'
                     }`}
                   >
                     <span>{st.label}</span>
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                      className={`text-[11px] px-2 py-0.5 rounded-full font-mono ${
                         statusFilter === st.value ? 'bg-amber-900/60 text-white' : 'bg-stone-200 text-stone-700'
                       }`}
                     >
@@ -1074,35 +1117,32 @@ export default function AdminCodOrdersPage() {
               <div className="lg:col-span-2">
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-[10px] uppercase font-bold text-stone-400">Order Date Range</label>
-                  <div className="flex space-x-1.5 text-[10px]">
+                  <div className="flex items-center space-x-1.5 text-[11px]">
                     <button
                       type="button"
                       onClick={() => handleSetDatePreset('today')}
-                      className="text-amber-800 hover:underline font-bold"
+                      className="px-2.5 py-1 rounded-lg text-amber-900 bg-amber-50 hover:bg-amber-100 font-bold cursor-pointer transition-colors active:scale-95"
                     >
                       Today
                     </button>
-                    <span>•</span>
                     <button
                       type="button"
                       onClick={() => handleSetDatePreset('7days')}
-                      className="text-amber-800 hover:underline font-bold"
+                      className="px-2.5 py-1 rounded-lg text-amber-900 bg-amber-50 hover:bg-amber-100 font-bold cursor-pointer transition-colors active:scale-95"
                     >
                       Last 7D
                     </button>
-                    <span>•</span>
                     <button
                       type="button"
                       onClick={() => handleSetDatePreset('month')}
-                      className="text-amber-800 hover:underline font-bold"
+                      className="px-2.5 py-1 rounded-lg text-amber-900 bg-amber-50 hover:bg-amber-100 font-bold cursor-pointer transition-colors active:scale-95"
                     >
                       This Month
                     </button>
-                    <span>•</span>
                     <button
                       type="button"
                       onClick={() => handleSetDatePreset('all')}
-                      className="text-stone-500 hover:underline"
+                      className="px-2.5 py-1 rounded-lg text-stone-600 bg-stone-100 hover:bg-stone-200 font-bold cursor-pointer transition-colors active:scale-95"
                     >
                       All
                     </button>
@@ -1163,7 +1203,7 @@ export default function AdminCodOrdersPage() {
                     <th className="p-4">Order Status</th>
                     <th className="p-4">Logistics &amp; Tracking</th>
                     <th className="p-4">COD Collection</th>
-                    <th className="p-4 text-right">Actions</th>
+                    <th className="p-4 text-right min-w-[160px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
@@ -1298,9 +1338,9 @@ export default function AdminCodOrdersPage() {
                                 type="button"
                                 onClick={() => handleQuickConfirm(order)}
                                 disabled={isSubmitting}
-                                className="mt-2 w-full px-2 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-[10px] font-bold shadow-xs transition-all flex items-center justify-center space-x-1 cursor-pointer"
+                                className="mt-2 w-full min-h-[44px] px-3 py-2 bg-amber-800 hover:bg-amber-900 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
                               >
-                                <Check className="w-3 h-3" />
+                                <Check className="w-3.5 h-3.5" />
                                 <span>Confirm COD</span>
                               </button>
                             )}
@@ -1366,41 +1406,41 @@ export default function AdminCodOrdersPage() {
                                     </span>
                                   </div>
 
-                                  <div className="flex flex-wrap gap-1.5 pt-1">
+                                  <div className="flex flex-wrap gap-2 pt-1.5">
                                     <button
                                       type="button"
-                                        onClick={() => handleOpenCourierModal(order)}
-                                        className="px-2 py-1 bg-stone-100 hover:bg-amber-100 hover:text-amber-900 text-stone-700 rounded-lg text-[10px] font-bold transition-colors flex items-center space-x-1 cursor-pointer border border-stone-200"
-                                        title="Manage Koombiyo Courier Booking"
-                                      >
-                                        <Truck className="w-3 h-3 text-amber-700" />
-                                        <span>Manage Courier</span>
-                                      </button>
+                                      onClick={() => handleOpenCourierModal(order)}
+                                      className="min-h-[38px] px-3 py-1.5 bg-stone-100 hover:bg-amber-100 hover:text-amber-900 text-stone-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-stone-200 active:scale-95"
+                                      title="Manage Koombiyo Courier Booking"
+                                    >
+                                      <Truck className="w-3.5 h-3.5 text-amber-700" />
+                                      <span>Manage Courier</span>
+                                    </button>
 
-                                      {(order.trackingNumber || order.courierDetails?.waybillNumber) && (
-                                        <>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleOpenLiveTracking(order)}
-                                            className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-[10px] font-bold transition-colors flex items-center space-x-1 cursor-pointer border border-emerald-200"
-                                            title="Real-Time Koombiyo Status & Events"
-                                          >
-                                            <Clock className="w-3 h-3 text-emerald-700" />
-                                            <span>Live Tracking</span>
-                                          </button>
+                                    {(order.trackingNumber || order.courierDetails?.waybillNumber) && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleOpenLiveTracking(order)}
+                                          className="min-h-[38px] px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-emerald-200 active:scale-95"
+                                          title="Real-Time Koombiyo Status & Events"
+                                        >
+                                          <Clock className="w-3.5 h-3.5 text-emerald-700" />
+                                          <span>Live Tracking</span>
+                                        </button>
 
-                                          <a
-                                            href={safeGetKoombiyoPodUrl(order.id, 'A6')}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="px-2 py-1 bg-stone-50 hover:bg-stone-100 text-stone-700 rounded-lg text-[10px] font-bold transition-colors flex items-center space-x-1 cursor-pointer border border-stone-200"
-                                            title="Print Official POD Waybill (A6)"
-                                          >
-                                            <Printer className="w-3 h-3 text-stone-600" />
-                                            <span>POD</span>
-                                          </a>
-                                        </>
-                                      )}
+                                        <a
+                                          href={safeGetKoombiyoPodUrl(order.id, 'A6')}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="min-h-[38px] px-3 py-1.5 bg-stone-50 hover:bg-stone-100 text-stone-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-stone-200 active:scale-95"
+                                          title="Print Official POD Waybill (A6)"
+                                        >
+                                          <Printer className="w-3.5 h-3.5 text-stone-600" />
+                                          <span>POD</span>
+                                        </a>
+                                      </>
+                                    )}
 
                                     {(delStatus === 'DELIVERY_ATTEMPT_FAILED' ||
                                       delStatus === 'RETURNING_TO_SENDER' ||
@@ -1408,10 +1448,10 @@ export default function AdminCodOrdersPage() {
                                       order.status === 'RETURNED') && (
                                       <Link
                                         href="/admin/returns"
-                                        className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-lg text-[10px] font-bold transition-colors inline-flex items-center space-x-1"
+                                        className="min-h-[38px] px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-xl text-xs font-bold transition-all inline-flex items-center space-x-1.5 active:scale-95"
                                         title="Open Returns & RTS Center"
                                       >
-                                        <RotateCcw className="w-3 h-3 text-rose-700" />
+                                        <RotateCcw className="w-3.5 h-3.5 text-rose-700" />
                                         <span>Returns Center</span>
                                       </Link>
                                     )}
@@ -1440,47 +1480,53 @@ export default function AdminCodOrdersPage() {
                           </td>
 
                           {/* Action Buttons */}
-                          <td className="p-4 align-top text-right">
-                            <div className="flex flex-col items-end space-y-1.5">
+                          <td className="p-4 align-top text-right min-w-[160px]">
+                            <div className="flex flex-col items-end space-y-2">
                               <button
                                 type="button"
                                 onClick={() => handleOpenDetails(order)}
-                                className="px-3 py-1.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-700 text-xs font-bold transition-colors flex items-center space-x-1 cursor-pointer"
+                                className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-700 text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95 shadow-2xs"
                               >
-                                <Eye className="w-3.5 h-3.5" />
+                                <Eye className="w-4 h-4" />
                                 <span>Details</span>
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() => handleOpenCourierModal(order, 'STATUS')}
-                                className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-colors flex items-center space-x-1 cursor-pointer"
+                                className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95 shadow-2xs"
                                 title="Update Delivery Milestones & Attempts"
                               >
-                                <Truck className="w-3.5 h-3.5 text-amber-700" />
+                                <Truck className="w-4 h-4 text-amber-700" />
                                 <span>Delivery</span>
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() => handleOpenStatusModal(order)}
-                                className="px-3 py-1.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-xs transition-colors flex items-center space-x-1 cursor-pointer"
+                                className="w-full min-h-[44px] px-4 py-2 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-xs transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
                               >
-                                <SlidersHorizontal className="w-3.5 h-3.5" />
+                                <SlidersHorizontal className="w-4 h-4" />
                                 <span>Status</span>
                               </button>
 
-                              <div className="flex items-center space-x-1">
+                              <div className="flex items-center justify-end w-full">
                                 <button
                                   type="button"
                                   onClick={() => handleCopyKoombiyoPortalPayload(order)}
-                                  className="p-1.5 text-stone-400 hover:text-stone-700 transition-colors"
+                                  className="min-h-[40px] px-3 py-1.5 rounded-xl border border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-100 text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer active:scale-95 shadow-2xs"
                                   title="Copy Koombiyo Merchant Portal Slip"
                                 >
                                   {copiedOrderId === order.id ? (
-                                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                    <>
+                                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                      <span className="text-emerald-700">Copied!</span>
+                                    </>
                                   ) : (
-                                    <Copy className="w-3.5 h-3.5" />
+                                    <>
+                                      <Copy className="w-3.5 h-3.5 text-stone-500" />
+                                      <span>Copy Slip</span>
+                                    </>
                                   )}
                                 </button>
                               </div>
@@ -1513,12 +1559,12 @@ export default function AdminCodOrdersPage() {
                   <strong className="text-stone-900">{totalOrders}</strong> COD orders
                 </p>
 
-                <div className="flex items-center space-x-1.5">
+                <div className="flex items-center space-x-2">
                   <button
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="min-w-[44px] min-h-[44px] rounded-xl border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center transition-all active:scale-95 shadow-2xs"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -1528,10 +1574,10 @@ export default function AdminCodOrdersPage() {
                       key={pg}
                       type="button"
                       onClick={() => setCurrentPage(pg)}
-                      className={`w-8 h-8 rounded-xl font-bold transition-colors cursor-pointer ${
+                      className={`min-w-[44px] min-h-[44px] rounded-xl font-bold transition-all cursor-pointer flex items-center justify-center text-xs active:scale-95 ${
                         currentPage === pg
                           ? 'bg-amber-800 text-white shadow-xs'
-                          : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
+                          : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 shadow-2xs'
                       }`}
                     >
                       {pg}
@@ -1542,7 +1588,7 @@ export default function AdminCodOrdersPage() {
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="min-w-[44px] min-h-[44px] rounded-xl border border-stone-200 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center transition-all active:scale-95 shadow-2xs"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -1579,13 +1625,24 @@ export default function AdminCodOrdersPage() {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setSelectedOrder(null)}
-                className="p-2 text-stone-400 hover:text-stone-700 rounded-xl hover:bg-stone-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center space-x-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsInvoiceOpen(true)}
+                  className="inline-flex items-center space-x-2 min-h-[46px] px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#5B7B6D] hover:bg-[#4A685B] shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                  title="Generate Official Boutique Invoice"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Generate Invoice</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrder(null)}
+                  className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors active:scale-95 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Recipient & Delivery Address Card */}
@@ -1784,11 +1841,11 @@ export default function AdminCodOrdersPage() {
 
             {/* Modal Bottom Actions */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-stone-100">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2.5">
                 <button
                   type="button"
                   onClick={() => handleCopyCourierSlip(selectedOrder)}
-                  className="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50 transition-colors flex items-center space-x-1.5 cursor-pointer"
+                  className="min-h-[46px] px-5 py-2.5 rounded-xl border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50 transition-all active:scale-[0.98] flex items-center space-x-2 cursor-pointer shadow-2xs"
                 >
                   <Copy className="w-4 h-4" />
                   <span>Copy Courier Slip</span>
@@ -1796,21 +1853,31 @@ export default function AdminCodOrdersPage() {
 
                 <button
                   type="button"
+                  onClick={() => setIsInvoiceOpen(true)}
+                  className="min-h-[46px] px-5 py-2.5 rounded-xl bg-[#5B7B6D] hover:bg-[#4A685B] text-white text-xs font-bold shadow-xs transition-all active:scale-[0.98] flex items-center space-x-2 cursor-pointer"
+                  title="Generate Official Boutique Invoice"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Generate Invoice</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => window.print()}
-                  className="p-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors cursor-pointer"
+                  className="min-w-[46px] min-h-[46px] flex items-center justify-center rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 transition-all active:scale-95 cursor-pointer shadow-2xs"
                   title="Print Order Receipt"
                 >
                   <Printer className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2.5">
                 {selectedOrder.status === 'PENDING_CONFIRMATION' && (
                   <button
                     type="button"
                     onClick={() => handleQuickConfirm(selectedOrder)}
                     disabled={isSubmitting}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors flex items-center space-x-1.5 cursor-pointer"
+                    className="min-h-[46px] px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-all active:scale-[0.98] flex items-center space-x-2 cursor-pointer"
                   >
                     <Check className="w-4 h-4" />
                     <span>Confirm Order</span>
@@ -1820,7 +1887,7 @@ export default function AdminCodOrdersPage() {
                 <button
                   type="button"
                   onClick={() => handleOpenStatusModal(selectedOrder)}
-                  className="px-5 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-xs transition-colors flex items-center space-x-1.5 cursor-pointer"
+                  className="min-h-[46px] px-6 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-xs transition-all active:scale-[0.98] flex items-center space-x-2 cursor-pointer"
                 >
                   <SlidersHorizontal className="w-4 h-4" />
                   <span>Update Status &amp; Logistics</span>
@@ -1850,7 +1917,7 @@ export default function AdminCodOrdersPage() {
               <button
                 type="button"
                 onClick={() => setIsUpdateModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors active:scale-95 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2011,18 +2078,18 @@ export default function AdminCodOrdersPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-stone-100">
+            <div className="flex items-center justify-end space-x-3 pt-3 border-t border-stone-100">
               <button
                 type="button"
                 onClick={() => setIsUpdateModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50 transition-all active:scale-[0.98] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-xs disabled:opacity-50 flex items-center space-x-1.5 cursor-pointer"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-xs disabled:opacity-50 flex items-center space-x-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Check className="w-4 h-4" />
                 <span>{isSubmitting ? 'Saving...' : 'Save Status Change'}</span>
@@ -2068,7 +2135,7 @@ export default function AdminCodOrdersPage() {
               <button
                 type="button"
                 onClick={() => setIsCourierModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors active:scale-95 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2083,20 +2150,20 @@ export default function AdminCodOrdersPage() {
             )}
 
             {/* Tab Navigation */}
-            <div className="px-6 pt-4 border-b border-stone-100 flex items-center space-x-2">
+            <div className="px-6 pt-4 border-b border-stone-100 flex items-center space-x-2 overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => {
                   setCourierModalTab('BOOKING');
                   setCourierValidationError(null);
                 }}
-                className={`pb-3 px-3 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center space-x-1.5 ${
+                className={`min-h-[44px] pb-3 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center space-x-2 shrink-0 ${
                   courierModalTab === 'BOOKING'
                     ? 'border-amber-800 text-amber-900'
                     : 'border-transparent text-stone-500 hover:text-stone-800'
                 }`}
               >
-                <Package className="w-3.5 h-3.5" />
+                <Package className="w-4 h-4" />
                 <span>1. Courier Booking &amp; Waybill</span>
               </button>
 
@@ -2106,13 +2173,13 @@ export default function AdminCodOrdersPage() {
                   setCourierModalTab('STATUS');
                   setCourierValidationError(null);
                 }}
-                className={`pb-3 px-3 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center space-x-1.5 ${
+                className={`min-h-[44px] pb-3 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center space-x-2 shrink-0 ${
                   courierModalTab === 'STATUS'
                     ? 'border-amber-800 text-amber-900'
                     : 'border-transparent text-stone-500 hover:text-stone-800'
                 }`}
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <SlidersHorizontal className="w-4 h-4" />
                 <span>2. Update Delivery Status</span>
               </button>
 
@@ -2122,13 +2189,13 @@ export default function AdminCodOrdersPage() {
                   setCourierModalTab('LOGS');
                   setCourierValidationError(null);
                 }}
-                className={`pb-3 px-3 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center space-x-1.5 ${
+                className={`min-h-[44px] pb-3 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center space-x-2 shrink-0 ${
                   courierModalTab === 'LOGS'
                     ? 'border-amber-800 text-amber-900'
                     : 'border-transparent text-stone-500 hover:text-stone-800'
                 }`}
               >
-                <Clock className="w-3.5 h-3.5" />
+                <Clock className="w-4 h-4" />
                 <span>3. Attempts &amp; Notes Log</span>
                 {selectedOrder.courierDetails?.deliveryAttempts && selectedOrder.courierDetails.deliveryAttempts.length > 0 && (
                   <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 font-mono">
@@ -2168,6 +2235,42 @@ export default function AdminCodOrdersPage() {
                           Active Shipment
                         </span>
                       </div>
+
+                      {/* Uncertain Dispatch Resolution Card */}
+                      {(selectedOrder.courierDetails?.deliveryStatus === 'DISPATCH_UNCERTAIN' ||
+                        selectedOrder.courierDetails?.dispatchUncertain) && (
+                        <div className="p-3 bg-amber-100/90 border border-amber-300 rounded-xl space-y-2 text-amber-950">
+                          <div className="flex items-center space-x-1.5 font-bold text-xs">
+                            <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+                            <span>Dispatch Outcome Uncertain (API Timeout)</span>
+                          </div>
+                          <p className="text-[11px] text-amber-900 leading-tight">
+                            The dispatch call to Koombiyo timed out. Waybill #{selectedOrder.courierDetails?.waybillNumber} is safely retained to prevent duplicate shipments. Click below to reconcile status with Koombiyo API.
+                          </p>
+                          <div className="flex items-center space-x-2 pt-1">
+                            <button
+                              type="button"
+                              disabled={isReconciling}
+                              onClick={() => handleReconcileDispatch(false)}
+                              className="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg font-bold text-xs shadow-xs disabled:opacity-50 cursor-pointer"
+                            >
+                              {isReconciling ? 'Checking Koombiyo...' : 'Reconcile Status with API'}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isReconciling}
+                              onClick={() => {
+                                if (window.confirm(`Force clear Waybill #${selectedOrder.courierDetails?.waybillNumber}? Only proceed if you have verified in the Koombiyo Merchant Portal that this order does not exist.`)) {
+                                  handleReconcileDispatch(true);
+                                }
+                              }}
+                              className="px-3 py-1.5 bg-white hover:bg-stone-100 text-rose-700 border border-rose-300 rounded-lg font-bold text-xs disabled:opacity-50 cursor-pointer"
+                            >
+                              Force Clear Waybill
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                       <div className="flex items-center space-x-2 pt-2 border-t border-emerald-200/60 flex-wrap gap-y-2">
                         <button
@@ -2423,18 +2526,18 @@ export default function AdminCodOrdersPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-end space-x-2 pt-3 border-t border-stone-100">
+                  <div className="flex items-center justify-end space-x-3 pt-3 border-t border-stone-100">
                     <button
                       type="button"
                       onClick={() => setIsCourierModalOpen(false)}
-                      className="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 font-bold hover:bg-stone-50"
+                      className="min-h-[46px] px-6 py-2.5 rounded-xl border border-stone-200 text-stone-700 font-bold hover:bg-stone-50 transition-all active:scale-[0.98] cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-5 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-bold shadow-xs disabled:opacity-50 flex items-center space-x-1.5 cursor-pointer"
+                      className="min-h-[46px] px-6 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-bold shadow-xs disabled:opacity-50 flex items-center space-x-2 transition-all active:scale-[0.98] cursor-pointer"
                     >
                       <Check className="w-4 h-4" />
                       <span>{isSubmitting ? 'Saving...' : 'Save Booking & Mark Ready for Pickup'}</span>
@@ -2635,18 +2738,18 @@ export default function AdminCodOrdersPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-end space-x-2 pt-3 border-t border-stone-100">
+                  <div className="flex items-center justify-end space-x-3 pt-3 border-t border-stone-100">
                     <button
                       type="button"
                       onClick={() => setIsCourierModalOpen(false)}
-                      className="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 font-bold hover:bg-stone-50"
+                      className="min-h-[46px] px-6 py-2.5 rounded-xl border border-stone-200 text-stone-700 font-bold hover:bg-stone-50 transition-all active:scale-[0.98] cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-5 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-bold shadow-xs disabled:opacity-50 flex items-center space-x-1.5 cursor-pointer"
+                      className="min-h-[46px] px-6 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-bold shadow-xs disabled:opacity-50 flex items-center space-x-2 transition-all active:scale-[0.98] cursor-pointer"
                     >
                       <Check className="w-4 h-4" />
                       <span>{isSubmitting ? 'Updating...' : 'Update Delivery Status'}</span>
@@ -2787,11 +2890,11 @@ export default function AdminCodOrdersPage() {
               Dispatching will immediately register this order on Koombiyo Delivery v2 network and commit the waybill lock. Never dispatch without customer confirmation.
             </p>
 
-            <div className="flex items-center justify-end space-x-2 pt-2">
+            <div className="flex items-center justify-end space-x-3 pt-2">
               <button
                 type="button"
                 onClick={() => setIsOfficialConfirmOpen(false)}
-                className="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-xs font-bold hover:bg-stone-50 cursor-pointer"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50 cursor-pointer transition-all active:scale-[0.98]"
               >
                 Cancel
               </button>
@@ -2799,7 +2902,7 @@ export default function AdminCodOrdersPage() {
                 type="button"
                 disabled={isDispatchingOfficial}
                 onClick={handleDispatchOfficialKoombiyo}
-                className="px-5 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold flex items-center space-x-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold flex items-center space-x-2 shadow-sm disabled:opacity-50 cursor-pointer transition-all active:scale-[0.98]"
               >
                 <Check className="w-4 h-4" />
                 <span>{isDispatchingOfficial ? 'Registering with Koombiyo...' : 'Confirm & Dispatch Now'}</span>
@@ -2836,7 +2939,7 @@ export default function AdminCodOrdersPage() {
               <button
                 type="button"
                 onClick={() => setIsLiveTrackingOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors active:scale-95 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2939,24 +3042,24 @@ export default function AdminCodOrdersPage() {
                 href={safeGetKoombiyoPodUrl(liveTrackingOrder.id, 'A6')}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3.5 py-1.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 text-xs font-bold flex items-center space-x-1.5 cursor-pointer"
+                className="min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 text-xs font-bold flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98] shadow-2xs"
               >
-                <Printer className="w-3.5 h-3.5 text-stone-600" />
+                <Printer className="w-4 h-4 text-stone-600" />
                 <span>Print POD PDF (A6)</span>
               </a>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2.5">
                 <button
                   type="button"
                   onClick={() => handleOpenLiveTracking(liveTrackingOrder)}
-                  className="px-3.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold flex items-center space-x-1 cursor-pointer"
+                  className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white border border-stone-200 hover:bg-stone-100 text-stone-700 text-xs font-bold flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98] shadow-2xs"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  <RefreshCw className="w-4 h-4" />
                   <span>Refresh</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsLiveTrackingOpen(false)}
-                  className="px-4 py-1.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-xs cursor-pointer"
+                  className="min-h-[44px] px-6 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-xs cursor-pointer transition-all active:scale-[0.98]"
                 >
                   Close
                 </button>
@@ -2965,6 +3068,12 @@ export default function AdminCodOrdersPage() {
           </div>
         </div>
       )}
+      {/* ADMIN-ONLY INVOICE GENERATION MODAL */}
+      <OrderInvoiceModal
+        order={selectedOrder}
+        isOpen={isInvoiceOpen}
+        onClose={() => setIsInvoiceOpen(false)}
+      />
     </div>
   );
 }

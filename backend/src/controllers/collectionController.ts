@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { sendSuccess, sendError } from '../utils/response';
 import { NotFoundError, BadRequestError } from '../utils/errors';
+import { postgresCollectionRepository } from '../repositories/postgres/PostgresCollectionRepository';
 
 export interface CollectionRecord {
   id: string;
@@ -96,6 +97,16 @@ export const getCollections = async (req: Request, res: Response, next: NextFunc
       res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
     }
 
+    if (process.env.USE_POSTGRES === 'true') {
+      const collections = await postgresCollectionRepository.findAll();
+      const { status } = req.query;
+      if (status && status !== 'all') {
+        const filtered = collections.filter(c => c.status === status);
+        return sendSuccess(res, filtered, 'Collections retrieved');
+      }
+      return sendSuccess(res, collections, 'Collections retrieved');
+    }
+
     const collections = getCollectionsData();
     const { status } = req.query;
     if (status && status !== 'all') {
@@ -120,6 +131,15 @@ export const getCollectionById = async (req: Request, res: Response, next: NextF
     }
 
     const { id } = req.params;
+
+    if (process.env.USE_POSTGRES === 'true') {
+      const found = (await postgresCollectionRepository.findById(id)) || (await postgresCollectionRepository.findBySlug(id));
+      if (!found) {
+        throw new NotFoundError(`Collection with identifier '${id}' not found`);
+      }
+      return sendSuccess(res, found, 'Collection retrieved');
+    }
+
     const collections = getCollectionsData();
     const found = collections.find(c => c.id === id || c.slug === id);
     if (!found) {
@@ -165,6 +185,9 @@ export const createCollection = async (req: Request, res: Response, next: NextFu
 
     collections.push(newCollection);
     writeJson(collectionsFilePath, collections);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresCollectionRepository.create(newCollection);
+    }
     recordAudit('COLLECTION_CREATE', `Created collection "${newCollection.name}" (${newCollection.slug})`);
 
     return sendSuccess(res, newCollection, 'Collection created successfully', 201);
@@ -232,6 +255,9 @@ export const updateCollection = async (req: Request, res: Response, next: NextFu
 
     collections[index] = updated;
     writeJson(collectionsFilePath, collections);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresCollectionRepository.update(id, updated);
+    }
     recordAudit('COLLECTION_UPDATE', `Updated collection "${updated.name}" (${updated.id})`);
 
     return sendSuccess(res, updated, 'Changes saved successfully.');
@@ -257,6 +283,9 @@ export const updateCollectionStatus = async (req: Request, res: Response, next: 
     item.status = status;
     item.updatedAt = new Date().toISOString();
     writeJson(collectionsFilePath, collections);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresCollectionRepository.update(id, { status });
+    }
     recordAudit('COLLECTION_STATUS_CHANGE', `Changed collection "${item.name}" status to ${status}`);
 
     return sendSuccess(res, item, `Collection publication status updated to ${status}.`);
@@ -304,6 +333,9 @@ export const deleteCollection = async (req: Request, res: Response, next: NextFu
 
     collections.splice(index, 1);
     writeJson(collectionsFilePath, collections);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresCollectionRepository.delete(id);
+    }
     recordAudit('COLLECTION_DELETE', `Permanently deleted collection "${targetCollection.name}" (${id})`);
 
     return sendSuccess(res, { deleted: true, id }, 'The item has been permanently deleted.');

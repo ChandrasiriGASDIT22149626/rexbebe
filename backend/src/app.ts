@@ -5,6 +5,7 @@ import compression from 'compression';
 import { corsOptions } from './config/cors';
 import { errorHandler } from './middleware/errorMiddleware';
 import { rateLimiter } from './middleware/rateLimitMiddleware';
+import { db } from './config/database';
 
 import authRoutes from './routes/authRoutes';
 import productRoutes from './routes/productRoutes';
@@ -28,6 +29,7 @@ import fabricRoutes from './routes/fabricRoutes';
 import settlementRoutes from './routes/settlementRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import wishlistRoutes from './routes/wishlistRoutes';
+import promotionRoutes from './routes/promotionRoutes';
 
 const app = express();
 
@@ -67,10 +69,14 @@ app.get(['/', '/api'], (req, res) => {
   });
 });
 
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'online',
+app.get('/api/health', async (req, res) => {
+  const isPostgres = process.env.USE_POSTGRES === 'true';
+  const dbStatus = await db.testConnection();
+  const isHealthy = !isPostgres || dbStatus.connected;
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'online' : 'degraded',
     system: 'REXBEBE E-Commerce Backend Service',
+    database: dbStatus,
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
   });
@@ -99,6 +105,7 @@ app.use('/api/fabric', fabricRoutes);
 app.use('/api/settlements', settlementRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/promotions', promotionRoutes);
 
 // Direct Webhook Alias for Koombiyo Outbound Notifications
 import { handleKoombiyoWebhook } from './controllers/orderController';

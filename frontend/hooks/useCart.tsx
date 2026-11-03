@@ -283,11 +283,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return items.reduce((sum, item) => sum + (item.variant.price || item.product.price) * item.quantity, 0);
   }, [items]);
 
-  const shippingFee = useMemo(() => {
-    return subtotal >= 50000 || subtotal === 0 ? 0 : 1500;
-  }, [subtotal]);
-
-  const total = useMemo(() => subtotal + shippingFee, [subtotal, shippingFee]);
+  const shippingFee = 0;
+  const total = useMemo(() => subtotal, [subtotal]);
   const itemCount = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
 
   return (

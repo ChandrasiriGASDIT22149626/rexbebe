@@ -9,7 +9,6 @@ import {
   Menu,
   LogOut,
 } from 'lucide-react';
-import { useAdminData } from '../../hooks/AdminContext';
 import { authService, AdminUser } from '../../services/authService';
 
 interface AdminHeaderProps {
@@ -20,7 +19,6 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ title, subtitle, actions }: AdminHeaderProps) {
   const router = useRouter();
-  const { visitorStats } = useAdminData();
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
 
   useEffect(() => {
@@ -74,7 +72,7 @@ export function AdminHeader({ title, subtitle, actions }: AdminHeaderProps) {
                 window.dispatchEvent(new CustomEvent('open-admin-nav'));
               }
             }}
-            className="lg:hidden p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors focus:outline-none shrink-0 cursor-pointer"
+            className="lg:hidden min-w-[44px] min-h-[44px] rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-all active:scale-95 focus:outline-none shrink-0 cursor-pointer shadow-2xs"
             aria-label="Open Admin Menu"
           >
             <Menu className="w-5 h-5 text-stone-700" />
@@ -108,23 +106,11 @@ export function AdminHeader({ title, subtitle, actions }: AdminHeaderProps) {
           )}
 
           {/* Quick System Tools & Session Cluster */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Quick System Tools (Live Visitors & View Store) */}
-            <Link
-              href="/admin/analytics"
-              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors text-xs font-semibold shrink-0 shadow-2xs"
-              title="View live visitors & countries"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span>{visitorStats.liveVisitors}</span>
-              <span className="hidden sm:inline">Live</span>
-              <span className="hidden 2xl:inline">Visitors</span>
-            </Link>
-
+          <div className="flex items-center gap-2.5 shrink-0">
             <Link
               href="/"
               target="_blank"
-              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-bold transition-all shadow-2xs hover:shadow-xs shrink-0"
+              className="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-bold transition-all active:scale-[0.98] shadow-2xs hover:shadow-xs shrink-0 cursor-pointer"
               title="Open Public Storefront in new tab"
             >
               <span className="hidden sm:inline">View Live Store</span>
@@ -133,18 +119,18 @@ export function AdminHeader({ title, subtitle, actions }: AdminHeaderProps) {
             </Link>
 
             {/* Vertical Divider (2xl Only) */}
-            <div className="hidden 2xl:block h-6 w-px bg-stone-200 shrink-0 mx-0.5" aria-hidden="true" />
+            <div className="hidden 2xl:block h-7 w-px bg-stone-200 shrink-0 mx-0.5" aria-hidden="true" />
 
             {/* Admin User Profile & Logout */}
-            <div className="h-9 flex items-center gap-2 px-2.5 rounded-xl bg-stone-50 border border-stone-200/90 shadow-2xs shrink-0">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-500 to-rose-400 text-white flex items-center justify-center font-black text-[10px] shadow-xs shrink-0">
+            <div className="min-h-[44px] flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-stone-50 border border-stone-200/90 shadow-2xs shrink-0">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-rose-400 text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0">
                 {initials}
               </div>
               <div className="hidden md:block text-left max-w-[110px] lg:max-w-[130px] xl:max-w-[150px]">
                 <p className="text-xs font-bold text-stone-900 leading-none truncate" title={displayName}>
                   {displayName}
                 </p>
-                <p className="text-[10px] text-stone-500 mt-0.5 leading-none truncate" title={displayEmail}>
+                <p className="text-[10px] text-stone-500 mt-1 leading-none truncate" title={displayEmail}>
                   {displayEmail}
                 </p>
               </div>
@@ -152,10 +138,10 @@ export function AdminHeader({ title, subtitle, actions }: AdminHeaderProps) {
 
             <button
               onClick={handleLogout}
-              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-2xs"
+              className="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shrink-0 shadow-2xs"
               title="Sign out of administrative console"
             >
-              <LogOut className="w-3.5 h-3.5 shrink-0" />
+              <LogOut className="w-4 h-4 shrink-0" />
               <span className="hidden sm:inline">Logout</span>
             </button>
           </div>

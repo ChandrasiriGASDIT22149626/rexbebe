@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { sendSuccess, sendError } from '../utils/response';
+import { postgresContactRepository } from '../repositories/postgres/PostgresContactRepository';
 
 const router = Router();
 const contactMessagesFilePath = path.join(__dirname, '../../data/contact_messages.json');
@@ -108,6 +109,17 @@ router.post('/', async (req: Request, res: Response) => {
     const messages = readJsonFile<any[]>(contactMessagesFilePath, []);
     messages.unshift(newMessage);
     writeJsonFile(contactMessagesFilePath, messages);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresContactRepository.create({
+        id: refCode,
+        name: newMessage.fullName,
+        email: newMessage.email,
+        phone: newMessage.phone,
+        subject: newMessage.subject,
+        message: newMessage.message,
+        status: 'UNREAD',
+      });
+    }
 
     // 5. Record to store audit log so admin can track customer inquiries
     recordAudit(
@@ -151,8 +163,12 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // GET /api/contact - Admin retrieval of contact messages
-router.get('/', (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
+    if (process.env.USE_POSTGRES === 'true') {
+      const messages = await postgresContactRepository.findAll();
+      return sendSuccess(res, messages, 'Contact messages retrieved');
+    }
     const messages = readJsonFile<any[]>(contactMessagesFilePath, []);
     return sendSuccess(res, messages, 'Contact messages retrieved');
   } catch (err: any) {

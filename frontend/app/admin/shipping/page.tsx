@@ -431,7 +431,7 @@ export default function AdminShippingPage() {
 
                 <button
                   onClick={() => refreshOrders()}
-                  className="p-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-colors"
+                  className="min-w-[46px] min-h-[46px] rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 transition-all flex items-center justify-center cursor-pointer active:scale-95 shadow-2xs"
                   title="Refresh orders"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -440,7 +440,7 @@ export default function AdminShippingPage() {
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-stone-100">
+            <div className="flex items-center gap-2.5 pt-2 border-t border-stone-100 overflow-x-auto pb-2 no-scrollbar">
               {[
                 { label: 'All Orders', value: 'ALL', count: tabCounts.all },
                 { label: 'Pending Confirmation', value: 'PENDING_CONFIRMATION', count: tabCounts.pendingConfirmation },
@@ -453,15 +453,15 @@ export default function AdminShippingPage() {
                 <button
                   key={tab.value}
                   onClick={() => setActiveTab(tab.value)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                  className={`min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shrink-0 cursor-pointer active:scale-95 ${
                     activeTab === tab.value
-                      ? 'bg-stone-900 text-white shadow-xs'
-                      : 'bg-stone-50 hover:bg-stone-100 text-stone-600'
+                      ? 'bg-stone-900 text-white shadow-md ring-2 ring-stone-900/10'
+                      : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200/80'
                   }`}
                 >
                   <span>{tab.label}</span>
                   <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                    className={`text-[11px] px-2 py-0.5 rounded-full font-black ${
                       activeTab === tab.value ? 'bg-amber-400 text-stone-950' : 'bg-stone-200 text-stone-700'
                     }`}
                   >
@@ -631,12 +631,12 @@ export default function AdminShippingPage() {
                           </td>
 
                           {/* Actions */}
-                          <td className="p-4 text-right">
-                            <div className="flex items-center justify-end space-x-1.5">
+                          <td className="p-4 text-right min-w-[240px]">
+                            <div className="flex items-center justify-end space-x-2">
                               {/* 1-Click Copy Courier Summary */}
                               <button
                                 onClick={() => handleCopyCourierSummary(order)}
-                                className={`p-2 rounded-xl border text-xs font-bold transition-all ${
+                                className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs ${
                                   copiedOrderId === order.id
                                     ? 'bg-emerald-500 text-white border-emerald-500'
                                     : 'bg-white hover:bg-stone-100 text-stone-700 border-stone-200 shadow-2xs'
@@ -644,9 +644,9 @@ export default function AdminShippingPage() {
                                 title="Copy 1-Click formatted summary for courier portal"
                               >
                                 {copiedOrderId === order.id ? (
-                                  <Check className="w-3.5 h-3.5" />
+                                  <Check className="w-4 h-4" />
                                 ) : (
-                                  <Copy className="w-3.5 h-3.5" />
+                                  <Copy className="w-4 h-4" />
                                 )}
                               </button>
 
@@ -654,7 +654,7 @@ export default function AdminShippingPage() {
                               {order.status === 'PENDING_CONFIRMATION' && (
                                 <button
                                   onClick={() => handleConfirmOrder(order)}
-                                  className="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs"
+                                  className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs transition-all active:scale-95 cursor-pointer"
                                 >
                                   Confirm
                                 </button>
@@ -663,9 +663,9 @@ export default function AdminShippingPage() {
                               {['CONFIRMED', 'PROCESSING', 'READY_TO_SHIP'].includes(order.status) && (
                                 <button
                                   onClick={() => openAssignModal(order)}
-                                  className="px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-2xs flex items-center space-x-1"
+                                  className="min-h-[44px] px-4 py-2 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-xs shadow-2xs flex items-center space-x-2 transition-all active:scale-95 cursor-pointer"
                                 >
-                                  <Truck className="w-3 h-3" />
+                                  <Truck className="w-4 h-4" />
                                   <span>{waybill ? 'Edit Waybill' : 'Assign Courier'}</span>
                                 </button>
                               )}
@@ -673,9 +673,9 @@ export default function AdminShippingPage() {
                               {order.status === 'SHIPPED' && (
                                 <button
                                   onClick={() => openDeliveryModal(order)}
-                                  className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs flex items-center space-x-1"
+                                  className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs flex items-center space-x-2 transition-all active:scale-95 cursor-pointer"
                                 >
-                                  <CheckCircle2 className="w-3 h-3" />
+                                  <CheckCircle2 className="w-4 h-4" />
                                   <span>Mark Delivered</span>
                                 </button>
                               )}
@@ -683,9 +683,9 @@ export default function AdminShippingPage() {
                               {order.status === 'DELIVERED' && order.codSettlementStatus === 'PENDING_REMITTANCE' && (
                                 <button
                                   onClick={() => openRemittanceModal(order)}
-                                  className="px-2.5 py-1.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs shadow-2xs flex items-center space-x-1"
+                                  className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs shadow-2xs flex items-center space-x-2 transition-all active:scale-95 cursor-pointer"
                                 >
-                                  <Building className="w-3 h-3" />
+                                  <Building className="w-4 h-4" />
                                   <span>Record Remittance</span>
                                 </button>
                               )}
@@ -726,7 +726,7 @@ export default function AdminShippingPage() {
               </div>
               <button
                 onClick={() => setIsAssignModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-stone-200 text-stone-400 hover:text-stone-700"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center hover:bg-stone-200 text-stone-400 hover:text-stone-700 transition-colors active:scale-95 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -837,11 +837,11 @@ export default function AdminShippingPage() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-2">
+            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => setIsAssignModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100 transition-all active:scale-[0.98] cursor-pointer"
               >
                 Cancel
               </button>
@@ -849,7 +849,7 @@ export default function AdminShippingPage() {
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSaveCourierAssignment}
-                className="px-5 py-2 rounded-xl bg-stone-900 text-white font-bold hover:bg-stone-800 shadow-md disabled:opacity-50 flex items-center space-x-1.5"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-stone-900 text-white font-bold hover:bg-black shadow-md disabled:opacity-50 flex items-center space-x-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Check className="w-4 h-4" />
                 <span>{isSubmitting ? 'Saving...' : 'Save & Mark Ready to Ship'}</span>
@@ -877,7 +877,7 @@ export default function AdminShippingPage() {
               </div>
               <button
                 onClick={() => setIsDeliveryModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-stone-200 text-stone-400 hover:text-stone-700"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center hover:bg-stone-200 text-stone-400 hover:text-stone-700 transition-colors active:scale-95 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -928,11 +928,11 @@ export default function AdminShippingPage() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-2">
+            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => setIsDeliveryModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100 transition-all active:scale-[0.98] cursor-pointer"
               >
                 Cancel
               </button>
@@ -940,7 +940,7 @@ export default function AdminShippingPage() {
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSaveDelivery}
-                className="px-5 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-md disabled:opacity-50 flex items-center space-x-1.5"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-md disabled:opacity-50 flex items-center space-x-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Check className="w-4 h-4" />
                 <span>{isSubmitting ? 'Recording...' : 'Confirm Delivery & Collection'}</span>
@@ -968,7 +968,7 @@ export default function AdminShippingPage() {
               </div>
               <button
                 onClick={() => setIsRemittanceModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-stone-200 text-stone-400 hover:text-stone-700"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center hover:bg-stone-200 text-stone-400 hover:text-stone-700 transition-colors active:scale-95 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1025,11 +1025,11 @@ export default function AdminShippingPage() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-2">
+            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => setIsRemittanceModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100 transition-all active:scale-[0.98] cursor-pointer"
               >
                 Cancel
               </button>
@@ -1037,7 +1037,7 @@ export default function AdminShippingPage() {
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSaveRemittance}
-                className="px-5 py-2 rounded-xl bg-amber-700 text-white font-bold hover:bg-amber-800 shadow-md disabled:opacity-50 flex items-center space-x-1.5"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-amber-700 text-white font-bold hover:bg-amber-800 shadow-md disabled:opacity-50 flex items-center space-x-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Check className="w-4 h-4" />
                 <span>{isSubmitting ? 'Recording...' : 'Reconcile & Settle Remittance'}</span>

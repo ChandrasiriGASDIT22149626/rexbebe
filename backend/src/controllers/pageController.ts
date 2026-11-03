@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { sendSuccess, sendError } from '../utils/response';
 import { NotFoundError, BadRequestError } from '../utils/errors';
+import { postgresPageRepository } from '../repositories/postgres/PostgresPageRepository';
 
 export interface WebsitePageRecord {
   id: string;
@@ -62,6 +63,15 @@ function recordAudit(action: string, details: string) {
 
 export const getPages = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (process.env.USE_POSTGRES === 'true') {
+      const pages = await postgresPageRepository.getAll();
+      const { status } = req.query;
+      if (status && status !== 'all') {
+        const filtered = pages.filter(p => p.status === status);
+        return sendSuccess(res, filtered, 'Pages retrieved');
+      }
+      return sendSuccess(res, pages, 'Pages retrieved');
+    }
     const pages = readJson<WebsitePageRecord[]>(pagesFilePath, []);
     const { status } = req.query;
     if (status && status !== 'all') {
@@ -77,6 +87,13 @@ export const getPages = async (req: Request, res: Response, next: NextFunction) 
 export const getPageBySlug = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { slug } = req.params;
+    if (process.env.USE_POSTGRES === 'true') {
+      const found = await postgresPageRepository.getBySlug(slug);
+      if (!found) {
+        throw new NotFoundError(`Website page '${slug}' not found`);
+      }
+      return sendSuccess(res, found, 'Page retrieved');
+    }
     const pages = readJson<WebsitePageRecord[]>(pagesFilePath, []);
     const found = pages.find(p => p.slug === slug || p.id === slug);
     if (!found) {
@@ -121,6 +138,9 @@ export const createPage = async (req: Request, res: Response, next: NextFunction
 
     pages.push(newPage);
     writeJson(pagesFilePath, pages);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresPageRepository.create(newPage);
+    }
     recordAudit('PAGE_CREATE', `Created website page "${newPage.name}" (${newPage.url})`);
 
     return sendSuccess(res, newPage, 'Page created successfully', 201);
@@ -168,6 +188,9 @@ export const updatePage = async (req: Request, res: Response, next: NextFunction
 
     pages[index] = updated;
     writeJson(pagesFilePath, pages);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresPageRepository.update(id, updated);
+    }
     recordAudit('PAGE_UPDATE', `Updated website page "${updated.name}" (${updated.url})`);
 
     return sendSuccess(res, updated, 'Changes saved successfully.');
@@ -194,6 +217,9 @@ export const updatePageStatus = async (req: Request, res: Response, next: NextFu
     item.isVisible = status === 'published';
     item.lastUpdated = new Date().toISOString();
     writeJson(pagesFilePath, pages);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresPageRepository.update(id, { status, isVisible: item.isVisible });
+    }
     recordAudit('PAGE_STATUS_CHANGE', `Updated page "${item.name}" status to ${status}`);
 
     return sendSuccess(res, item, `Page publication status updated to ${status}.`);
@@ -224,6 +250,9 @@ export const deletePage = async (req: Request, res: Response, next: NextFunction
 
     pages.splice(index, 1);
     writeJson(pagesFilePath, pages);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresPageRepository.delete(id);
+    }
     recordAudit('PAGE_DELETE', `Permanently deleted website page "${targetPage.name}" (${targetPage.url})`);
 
     return sendSuccess(res, { deleted: true, id }, 'The item has been permanently deleted.');

@@ -6,6 +6,7 @@ import {
 } from '../repositories/deliverySettingsRepository';
 import { DeliveryZoneSnapshot } from '../repositories/orderRepository';
 import { ProductRepository } from '../repositories/productRepository';
+import { couponService } from './couponService';
 import { BadRequestError } from '../utils/errors';
 
 export interface CalculationResult {
@@ -125,8 +126,11 @@ export class DeliveryService {
 
     // 2. Discount calculation
     let discount = 0;
-    if (payload.couponCode === 'REXBEBE10') {
-      discount = Math.round(subtotal * 0.1);
+    if (payload.couponCode) {
+      const couponValidation = await couponService.validateCoupon(payload.couponCode, subtotal);
+      if (couponValidation.valid && couponValidation.discountAmount) {
+        discount = Math.round(couponValidation.discountAmount);
+      }
     }
 
     // 3. Delivery Zone & Town Rate Resolution

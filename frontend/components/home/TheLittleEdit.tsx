@@ -221,3 +221,5 @@ export function TheLittleEdit() {
     </section>
   );
 }
+
+export default TheLittleEdit;

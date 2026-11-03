@@ -210,3 +210,5 @@ export function BestSellers() {
 
 
 
+
+export default BestSellers;

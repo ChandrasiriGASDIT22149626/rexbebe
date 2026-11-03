@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { postgresAuditRepository } from '../repositories/postgres/PostgresAuditRepository';
 
 export interface AuditLogEntry {
   id: string;
@@ -63,6 +64,11 @@ export class AuditService {
     };
 
     logs.unshift(newEntry);
+    if (process.env.USE_POSTGRES === 'true') {
+      postgresAuditRepository.record(entry).catch((err) => {
+        console.error('[AuditService] Failed to record PostgreSQL audit log:', err);
+      });
+    }
     // Keep last 1,000 entries
     if (logs.length > 1000) {
       logs.length = 1000;

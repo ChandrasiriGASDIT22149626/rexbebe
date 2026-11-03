@@ -3,6 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 import { sendSuccess, sendError } from '../utils/response';
+import { postgresMediaRepository } from '../repositories/postgres/PostgresMediaRepository';
+import { authenticateToken, AuthenticatedRequest } from '../middleware/authMiddleware';
+import { requireAdmin } from '../middleware/adminMiddleware';
 
 const router = Router();
 
@@ -53,12 +56,12 @@ function writeJson<T>(filePath: string, data: T): void {
   }
 }
 
-function recordAudit(action: string, details: string) {
+function recordAudit(action: string, details: string, user?: { email?: string; name?: string }) {
   const logs = readJson<any[]>(auditLogsFilePath, []);
   logs.unshift({
     id: `log-${Date.now()}`,
-    userEmail: 'admin@rexbebe.com',
-    userName: 'Admin Executive',
+    userEmail: user?.email || 'admin@rexbebe.com',
+    userName: user?.name || 'Admin Executive',
     action,
     details,
     ip: '127.0.0.1',
@@ -127,7 +130,11 @@ function checkImageReferences(imageIdentifier: string): string[] {
  * GET /api/upload
  * Returns all media items in the persistent library
  */
-router.get('/', (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
+  if (process.env.USE_POSTGRES === 'true') {
+    const media = await postgresMediaRepository.findAll(req.query as any);
+    return sendSuccess(res, media, 'Media library items retrieved');
+  }
   const media = readJson<any[]>(mediaFilePath, []);
   return sendSuccess(res, media, 'Media library items retrieved');
 });
@@ -137,8 +144,9 @@ router.get('/', (req: Request, res: Response) => {
  * Accepts base64 encoded image or raw file buffer
  * Automatically backs up original, converts photographic/raster images to WebP (quality 80-85),
  * preserves transparency for logos/graphics, and creates responsive thumbnails.
+ * Protected: Requires valid admin JWT bearer token.
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { data, filename, category = 'general' } = req.body;
 
@@ -284,7 +292,10 @@ router.post('/', async (req: Request, res: Response) => {
     const media = readJson<any[]>(mediaFilePath, []);
     media.unshift(newMediaItem);
     writeJson(mediaFilePath, media);
-    recordAudit('MEDIA_UPLOAD', `Uploaded & optimized image asset "${newMediaItem.name}" (Original: ${newMediaItem.originalSize}, WebP: ${newMediaItem.size}, Saved: ${newMediaItem.storageSaved})`);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresMediaRepository.create(newMediaItem);
+    }
+    recordAudit('MEDIA_UPLOAD', `Uploaded & optimized image asset "${newMediaItem.name}" (Original: ${newMediaItem.originalSize}, WebP: ${newMediaItem.size}, Saved: ${newMediaItem.storageSaved})`, req.user);
 
     return sendSuccess(
       res,
@@ -301,8 +312,9 @@ router.post('/', async (req: Request, res: Response) => {
 /**
  * DELETE /api/upload/:id
  * Permanently deletes media item with safe dependency checking
+ * Protected: Requires valid admin JWT bearer token.
  */
-router.delete('/:id', (req: Request, res: Response) => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const force = req.query.force === 'true' || req.body?.force === true;
@@ -351,7 +363,10 @@ router.delete('/:id', (req: Request, res: Response) => {
     // Remove from media.json
     media.splice(index, 1);
     writeJson(mediaFilePath, media);
-    recordAudit('MEDIA_DELETE', `Permanently deleted media asset "${item.name}"`);
+    if (process.env.USE_POSTGRES === 'true') {
+      await postgresMediaRepository.delete(item.id || id);
+    }
+    recordAudit('MEDIA_DELETE', `Permanently deleted media asset "${item.name}"`, req.user);
 
     return sendSuccess(res, { deleted: true, id }, 'The item has been permanently deleted.');
   } catch (err: any) {

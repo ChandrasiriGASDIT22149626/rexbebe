@@ -45,7 +45,7 @@ export function Preloader() {
 
     // Ultra-fast, delightful greeting (~180ms total load)
     const duration = 180;
-    const intervalTime = 16;
+    const intervalTime = 25;
     const increment = 100 / (duration / intervalTime);
 
     const timer = setInterval(() => {
@@ -91,8 +91,8 @@ export function Preloader() {
       {!isComplete && (
         <motion.div
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.03 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          exit={{ opacity: 0, scale: 1.02 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
           onClick={() => {
             setIsComplete(true);
             try { sessionStorage.setItem('rexbebe_preloaded', 'true'); } catch {}

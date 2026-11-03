@@ -48,6 +48,7 @@ export function Hero() {
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current || shouldReduceMotion || !isInView) return;
+    if (typeof window !== 'undefined' && (window.innerWidth < 768 || (window.matchMedia && window.matchMedia('(hover: none)').matches))) return;
     if (rafRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
@@ -96,16 +97,19 @@ export function Hero() {
         style={{ x: shouldReduceMotion ? 0 : bgX, y: shouldReduceMotion ? 0 : bgY }}
         className="absolute inset-0 w-[108%] h-[108%] -left-[4%] -top-[4%] z-0"
       >
-        <Image
-          src="/images/hero/world_bg.webp"
-          alt="REXBEBE 3D Pastel World"
-          fill
-          priority
-          fetchPriority="high"
-          sizes="100vw"
-          quality={85}
-          className="object-cover object-center transform scale-105 filter brightness-[1.02] contrast-[1.01]"
-        />
+        {/* Full 3D Pastel World Background - Primary LCP Element */}
+        <div className="absolute inset-0 w-full h-full">
+          <Image
+            src="/images/hero/world_bg.webp"
+            alt="REXBEBE 3D Pastel World"
+            fill
+            priority
+            fetchPriority="high"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1376px"
+            quality={80}
+            className="object-cover object-center transform scale-105 filter brightness-[1.02] contrast-[1.01]"
+          />
+        </div>
 
         {/* Soft Dreamy Daylight Atmosphere for seamless text integration */}
         <div className="absolute inset-0 bg-gradient-to-r from-white/45 via-white/20 to-transparent lg:w-2/3 pointer-events-none" />
@@ -213,15 +217,15 @@ export function Hero() {
             onMouseLeave={() => setIsHoveredDino(false)}
             className="relative w-full h-full drop-shadow-2xl"
           >
-            <Image
-              src="/images/hero/dino_mascot.webp?v=transp2"
-              alt="REXBEBE Mascot Dino"
-              fill
-              unoptimized
-              sizes="(max-width: 640px) 200px, (max-width: 1024px) 320px, 440px"
-              className="object-contain"
-              priority
-            />
+            <div className="relative w-full h-full">
+              <Image
+                src="/images/hero/dino_mascot.webp"
+                alt="REXBEBE Mascot Dino"
+                fill
+                sizes="(max-width: 640px) 200px, (max-width: 1024px) 320px, 440px"
+                className="object-contain"
+              />
+            </div>
           </motion.div>
 
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-48 h-6 bg-slate-900/15 rounded-full blur-md animate-pulse-soft" />

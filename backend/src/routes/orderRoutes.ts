@@ -14,6 +14,7 @@ import {
   getCourierConfig,
   getAvailableWaybills,
   dispatchOfficialKoombiyo,
+  reconcileKoombiyoDispatch,
   getKoombiyoLiveTracking,
   generateKoombiyoPod,
   handleKoombiyoWebhook,
@@ -39,7 +40,11 @@ import { requireAdmin } from '../middleware/adminMiddleware';
 const router = Router();
 
 // Public Webhook receiver for Koombiyo delivery status pushes
+// Supports path-based secret token (compatible with Koombiyo merchant portal) and header-based calls
+router.post('/courier/koombiyo/webhook/:secretToken', handleKoombiyoWebhook);
 router.post('/courier/koombiyo/webhook', handleKoombiyoWebhook);
+router.post('/webhook/koombiyo/:secretToken', handleKoombiyoWebhook);
+router.post('/webhook/koombiyo', handleKoombiyoWebhook);
 
 // Customer Order Creation & Order Status Tracking
 router.post('/', createOrder);
@@ -62,6 +67,7 @@ router.get('/returns/all', authenticateToken, requireAdmin, getFailedAndReturnOr
 
 router.get('/:id/courier/portal-payload', authenticateToken, requireAdmin, getKoombiyoPortalPayload);
 router.post('/:id/courier/dispatch-official', authenticateToken, requireAdmin, dispatchOfficialKoombiyo);
+router.post('/:id/courier/reconcile-dispatch', authenticateToken, requireAdmin, reconcileKoombiyoDispatch);
 router.get('/:id/courier/live-tracking', optionalAuthenticateToken, getKoombiyoLiveTracking);
 router.get('/:id/courier/pod', authenticateToken, requireAdmin, generateKoombiyoPod);
 

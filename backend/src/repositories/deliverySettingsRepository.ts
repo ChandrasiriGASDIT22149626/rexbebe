@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { postgresDeliverySettingsRepository } from './postgres/PostgresDeliverySettingsRepository';
 
 export interface CourierProviderConfig {
   id: string;
@@ -429,11 +430,21 @@ export class DeliverySettingsRepository {
     }
   }
 
+  public isPostgresMode(): boolean {
+    return process.env.USE_POSTGRES === 'true';
+  }
+
   async getSettings(): Promise<DeliverySettingsData> {
+    if (this.isPostgresMode()) {
+      return postgresDeliverySettingsRepository.getSettings();
+    }
     return this.readFromDisk();
   }
 
   async updateSettings(partial: Partial<DeliverySettingsData>): Promise<DeliverySettingsData> {
+    if (this.isPostgresMode()) {
+      return postgresDeliverySettingsRepository.updateSettings(partial);
+    }
     const current = this.readFromDisk();
     const updated: DeliverySettingsData = {
       ...current,

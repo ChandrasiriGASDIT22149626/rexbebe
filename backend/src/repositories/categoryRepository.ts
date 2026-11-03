@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { postgresCategoryRepository } from './postgres/PostgresCategoryRepository';
 
 export type CategoryStatus = 'published' | 'draft' | 'unpublished' | 'archived';
 
@@ -113,6 +114,53 @@ export class CategoryRepository {
       CategoryRepository.instance = new CategoryRepository();
     }
     return CategoryRepository.instance;
+  }
+
+  public isPostgresMode(): boolean {
+    return process.env.USE_POSTGRES === 'true';
+  }
+
+  public async findAllAsync(): Promise<CategoryRecord[]> {
+    if (this.isPostgresMode()) {
+      return postgresCategoryRepository.findAll();
+    }
+    return this.getAll();
+  }
+
+  public async findByIdAsync(id: string): Promise<CategoryRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresCategoryRepository.findById(id);
+    }
+    return this.findById(id);
+  }
+
+  public async findBySlugAsync(slug: string): Promise<CategoryRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresCategoryRepository.findBySlug(slug);
+    }
+    return this.findBySlug(slug);
+  }
+
+  public async createAsync(input: CreateCategoryInput): Promise<CategoryRecord> {
+    if (this.isPostgresMode()) {
+      return postgresCategoryRepository.create(input);
+    }
+    return this.create(input);
+  }
+
+  public async updateAsync(id: string, updates: UpdateCategoryInput): Promise<CategoryRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresCategoryRepository.update(id, updates);
+    }
+    return this.update(id, updates);
+  }
+
+  public async deleteAsync(id: string): Promise<boolean> {
+    if (this.isPostgresMode()) {
+      return postgresCategoryRepository.delete(id);
+    }
+    const res = this.delete(id);
+    return res.deleted;
   }
 
   private init(): void {
@@ -324,6 +372,13 @@ export class CategoryRepository {
 
   private saveToDisk(): void {
     try {
+      if (this.isPostgresMode()) {
+        for (const cat of this.categories) {
+          postgresCategoryRepository.create(cat).catch((err) => {
+            console.error('[CategoryRepository] Failed to sync category to PostgreSQL:', err);
+          });
+        }
+      }
       const dir = path.dirname(this.filePath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(this.filePath, JSON.stringify(this.categories, null, 2), 'utf-8');

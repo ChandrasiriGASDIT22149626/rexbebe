@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { BadRequestError } from '../utils/errors';
+import { postgresSettlementRepository } from './postgres/PostgresSettlementRepository';
 
 export type CodFinancialStatus =
   | 'COLLECTION_PENDING'
@@ -129,6 +130,10 @@ export class SettlementRepository {
     }
   }
 
+  public isPostgresMode(): boolean {
+    return process.env.USE_POSTGRES === 'true';
+  }
+
   async getAllSettlements(filters?: {
     orderNumber?: string;
     batchRef?: string;
@@ -137,6 +142,9 @@ export class SettlementRepository {
     startDate?: string;
     endDate?: string;
   }): Promise<SettlementRecord[]> {
+    if (this.isPostgresMode()) {
+      return postgresSettlementRepository.getAllSettlements(filters);
+    }
     let list = this.readSettlements();
 
     if (filters?.orderNumber) {
@@ -165,11 +173,17 @@ export class SettlementRepository {
   }
 
   async getSettlementById(id: string): Promise<SettlementRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresSettlementRepository.getSettlementById(id);
+    }
     const list = this.readSettlements();
     return list.find((s) => s.id === id) || null;
   }
 
   async getSettlementByOrderId(orderId: string): Promise<SettlementRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresSettlementRepository.getSettlementByOrderId(orderId);
+    }
     const list = this.readSettlements();
     return list.find((s) => s.orderId === orderId || s.orderNumber === orderId) || null;
   }
@@ -305,17 +319,26 @@ export class SettlementRepository {
       list.unshift(settlementRecord);
     }
 
+    if (this.isPostgresMode()) {
+      await postgresSettlementRepository.recordSettlement(payload);
+    }
     this.writeSettlements(list);
     return { settlement: settlementRecord, isUpdate };
   }
 
   async getMerchantAgreement(): Promise<CourierMerchantAgreement> {
+    if (this.isPostgresMode()) {
+      return postgresSettlementRepository.getCourierAgreement();
+    }
     return this.readAgreement();
   }
 
   async updateMerchantAgreement(
     partial: Partial<CourierMerchantAgreement>
   ): Promise<CourierMerchantAgreement> {
+    if (this.isPostgresMode()) {
+      return postgresSettlementRepository.updateMerchantAgreement(partial);
+    }
     const current = this.readAgreement();
     const updated: CourierMerchantAgreement = {
       ...current,

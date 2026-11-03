@@ -18,7 +18,6 @@ import {
   DollarSign,
   AlertTriangle,
   Sparkles,
-  Globe2,
   Calendar,
   ExternalLink,
   ArrowRight,
@@ -41,7 +40,7 @@ import { useAdminData } from '../../hooks/AdminContext';
 import { formatCurrency } from '../../utils/formatCurrency';
 
 export default function AdminDashboardPage() {
-  const { products, orders, visitorLogs, visitorStats } = useAdminData();
+  const { products, orders } = useAdminData();
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | '7d' | '30d' | 'all'>('30d');
 
   // Filter orders according to selected period
@@ -228,35 +227,6 @@ export default function AdminDashboardPage() {
     else if (qty <= threshold) lowStockCount++;
   });
 
-  // Visitor analytics breakdown
-  const filteredVisitors = useMemo(() => {
-    const now = Date.now();
-    return visitorLogs.filter(v => {
-      const vTime = new Date(v.timestamp).getTime();
-      if (selectedPeriod === 'today') {
-        const todayStr = new Date().toISOString().slice(0, 10);
-        return v.timestamp.slice(0, 10) === todayStr;
-      }
-      if (selectedPeriod === '7d') return now - vTime <= 7 * 86400000;
-      if (selectedPeriod === '30d') return now - vTime <= 30 * 86400000;
-      return true;
-    });
-  }, [visitorLogs, selectedPeriod]);
-
-  const uniqueVisitors = useMemo(() => new Set(filteredVisitors.map(v => v.ip)).size, [filteredVisitors]);
-
-  // Country counts
-  const countryCounts = useMemo(() => {
-    const map: Record<string, { name: string; flag: string; count: number }> = {};
-    filteredVisitors.forEach(v => {
-      if (!map[v.countryCode]) {
-        map[v.countryCode] = { name: v.countryName, flag: v.flag, count: 0 };
-      }
-      map[v.countryCode].count += 1;
-    });
-    return Object.values(map).sort((a, b) => b.count - a.count).slice(0, 5);
-  }, [filteredVisitors]);
-
   return (
     <div className="flex min-h-screen bg-[#FBF9F5]">
       <AdminSidebar />
@@ -288,10 +258,10 @@ export default function AdminDashboardPage() {
                 {selectedPeriod === 'all' && 'All Time Records'}
               </span>
             </div>
-            <div className="flex items-center space-x-1 bg-stone-100 p-1 rounded-xl">
+            <div className="flex items-center space-x-1.5 bg-stone-100 p-1.5 rounded-2xl overflow-x-auto no-scrollbar">
               <button
                 onClick={() => setSelectedPeriod('today')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0 ${
                   selectedPeriod === 'today' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
                 }`}
               >
@@ -299,7 +269,7 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 onClick={() => setSelectedPeriod('7d')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0 ${
                   selectedPeriod === '7d' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
                 }`}
               >
@@ -307,7 +277,7 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 onClick={() => setSelectedPeriod('30d')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0 ${
                   selectedPeriod === '30d' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
                 }`}
               >
@@ -315,7 +285,7 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 onClick={() => setSelectedPeriod('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0 ${
                   selectedPeriod === 'all' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
                 }`}
               >
@@ -880,112 +850,6 @@ export default function AdminDashboardPage() {
                 <span className="text-[10px] text-amber-600 font-medium">🍑 SALE badge</span>
               </Link>
             </div>
-          </div>
-
-          {/* SECTION C: GLOBAL VISITOR INSIGHTS OVERVIEW */}
-          <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-2xs space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center space-x-2">
-                  <Globe2 className="w-5 h-5 text-amber-600" />
-                  <h2 className="text-lg font-heading font-black text-stone-900">
-                    Global Visitor Insights
-                  </h2>
-                </div>
-                <p className="text-xs text-stone-500">
-                  Real traffic insights from international shoppers visiting REXBEBE boutique.
-                </p>
-              </div>
-
-              <Link
-                href="/admin/visitors"
-                className="inline-flex items-center space-x-1.5 text-xs font-bold text-amber-800 hover:text-amber-900 bg-amber-50 px-3.5 py-2 rounded-xl border border-amber-200/80 hover:bg-amber-100 transition-all"
-              >
-                <span>View Complete Visitor Analytics</span>
-                <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/60 space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-                  Total Visits
-                </span>
-                <p className="text-2xl font-black text-stone-900">{filteredVisitors.length}</p>
-                <span className="text-[10px] text-stone-500">During {selectedPeriod}</span>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/60 space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-                  Unique Visitors
-                </span>
-                <p className="text-2xl font-black text-stone-900">{uniqueVisitors}</p>
-                <span className="text-[10px] text-emerald-600 font-semibold">Reliably measured IPs</span>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/60 space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-                  Top Visiting Countries
-                </span>
-                <div className="flex items-center space-x-2 pt-1">
-                  {countryCounts.map(c => (
-                    <span key={c.name} className="text-base" title={`${c.name}: ${c.count} visits`}>
-                      {c.flag}
-                    </span>
-                  ))}
-                </div>
-                <span className="text-[10px] text-stone-500">
-                  {countryCounts[0] ? `${countryCounts[0].name} leads traffic` : 'Global coverage'}
-                </span>
-              </div>
-            </div>
-
-            {/* Top Country Table */}
-            {countryCounts.length > 0 ? (
-              <div className="border border-stone-200/80 rounded-2xl overflow-hidden">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-stone-50 border-b border-stone-200/80 text-stone-600 font-bold">
-                    <tr>
-                      <th className="p-3">Country</th>
-                      <th className="p-3">Total Visits</th>
-                      <th className="p-3">Percentage</th>
-                      <th className="p-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-100">
-                    {countryCounts.map(c => {
-                      const pct = Math.round((c.count / (filteredVisitors.length || 1)) * 100);
-                      return (
-                        <tr key={c.name} className="hover:bg-stone-50/50">
-                          <td className="p-3 flex items-center space-x-2 font-bold text-stone-900">
-                            <span className="text-base">{c.flag}</span>
-                            <span>{c.name}</span>
-                          </td>
-                          <td className="p-3 font-semibold text-stone-700">{c.count} visits</td>
-                          <td className="p-3">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-24 bg-stone-200 rounded-full h-2 overflow-hidden">
-                                <div className="bg-amber-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
-                              </div>
-                              <span className="font-bold text-stone-600">{pct}%</span>
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">
-                              Active
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="p-8 text-center bg-stone-50 rounded-2xl border border-stone-200/60">
-                <p className="text-sm font-bold text-stone-500">No visitor records for the selected period.</p>
-              </div>
-            )}
           </div>
         </main>
       </div>

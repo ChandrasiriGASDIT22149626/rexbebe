@@ -153,3 +153,5 @@ export function NewArrivals() {
   );
 }
 
+
+export default NewArrivals;

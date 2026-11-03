@@ -123,9 +123,9 @@ export default function AdminInventoryPage() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setShowHistoryModal(true)}
-                className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-stone-700 bg-white hover:bg-stone-50 border border-stone-200 text-xs font-bold transition-all shadow-2xs"
+                className="inline-flex items-center space-x-2 min-h-[46px] px-5 py-2.5 rounded-xl text-stone-700 bg-white hover:bg-stone-50 border border-stone-200 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-2xs"
               >
-                <History className="w-3.5 h-3.5 text-amber-700" />
+                <History className="w-4 h-4 text-amber-700" />
                 <span>Adjustment History ({stockAdjustments.length})</span>
               </button>
             </div>
@@ -282,28 +282,28 @@ export default function AdminInventoryPage() {
                             </span>
                           </span>
                         </td>
-                        <td className="p-4 text-right">
-                          <div className="flex items-center justify-end space-x-1">
+                        <td className="p-4 text-right min-w-[210px]">
+                          <div className="flex items-center justify-end space-x-2">
                             <button
                               onClick={() => handleQuickAdjust(item, -1)}
                               disabled={item.quantity <= 0}
-                              className="p-1.5 rounded-lg border border-stone-200 hover:bg-stone-100 text-stone-600 disabled:opacity-30 transition-all"
+                              className="min-w-[44px] min-h-[44px] rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-700 disabled:opacity-30 transition-all flex items-center justify-center cursor-pointer active:scale-95 shadow-2xs"
                               title="Decrease by 1"
                             >
-                              <Minus className="w-3.5 h-3.5" />
+                              <Minus className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleQuickAdjust(item, 1)}
-                              className="p-1.5 rounded-lg border border-stone-200 hover:bg-stone-100 text-stone-600 transition-all"
+                              className="min-w-[44px] min-h-[44px] rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-700 transition-all flex items-center justify-center cursor-pointer active:scale-95 shadow-2xs"
                               title="Increase by 1"
                             >
-                              <Plus className="w-3.5 h-3.5" />
+                              <Plus className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleOpenEdit(item)}
-                              className="ml-1 inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-amber-100 text-stone-800 text-[11px] font-bold transition-all shadow-2xs"
+                              className="min-h-[44px] px-4 py-2 rounded-xl bg-stone-100 hover:bg-amber-100 text-stone-800 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs inline-flex items-center space-x-1.5"
                             >
-                              <Edit2 className="w-3 h-3 text-amber-700" />
+                              <Edit2 className="w-3.5 h-3.5 text-amber-700" />
                               <span>Set Exact Qty</span>
                             </button>
                           </div>
@@ -337,7 +337,7 @@ export default function AdminInventoryPage() {
               </div>
               <button
                 onClick={() => setEditingItem(null)}
-                className="p-1.5 rounded-full hover:bg-stone-100 text-stone-400"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors active:scale-95 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -369,17 +369,17 @@ export default function AdminInventoryPage() {
                 />
               </div>
 
-              <div className="flex justify-end space-x-2 pt-2">
+              <div className="flex justify-end space-x-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
-                  className="px-4 py-2 rounded-xl text-stone-600 bg-stone-100 hover:bg-stone-200 text-xs font-bold transition-all"
+                  className="min-h-[46px] px-6 py-2.5 rounded-xl text-stone-700 bg-stone-100 hover:bg-stone-200 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-md transition-all"
+                  className="min-h-[46px] px-6 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-md transition-all active:scale-[0.98] cursor-pointer"
                 >
                   Save Stock Changes
                 </button>
@@ -405,7 +405,7 @@ export default function AdminInventoryPage() {
               </div>
               <button
                 onClick={() => setShowHistoryModal(false)}
-                className="p-1.5 rounded-full hover:bg-stone-100 text-stone-400"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors active:scale-95 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>

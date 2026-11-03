@@ -41,7 +41,7 @@
         "color": "Baby Pink",
         "colorHex": "#F9A8D4",
         "price": 500,
-        "stockQuantity": 9,
+        "stockQuantity": 7,
         "imageUrl": "/uploads/1792940141383-47d819d8-f579-4a76-bd22-84199fe6dcdb.webp"
       }
     ],
@@ -54,7 +54,7 @@
     "sizes": [
       "24-36 months"
     ],
-    "stockQuantity": 9,
+    "stockQuantity": 7,
     "lowStockThreshold": 5,
     "stockStatus": "in_stock",
     "fabricMaterial": "100% GOTS Certified Organic Cotton",
@@ -89,7 +89,7 @@
     ],
     "seoTitle": "Pink Dino Dreams | REXBEBE Baby Clothing",
     "seoDescription": "",
-    "updatedAt": "2026-10-28T05:38:15.706Z"
+    "updatedAt": "2026-11-02T06:33:10.156Z"
   },
   {
     "id": "prod-1792940073264",

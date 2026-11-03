@@ -149,6 +149,7 @@ export function Footer() {
                   alt="REXBEBE"
                   width={320}
                   height={180}
+                  loading="lazy"
                   className="w-36 sm:w-44 h-auto object-contain transition-transform group-hover:scale-105"
                 />
               </Link>
@@ -182,12 +183,12 @@ export function Footer() {
                 <div className="flex items-center gap-2">
                   <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <a
-                    href="https://wa.me/94760162181"
+                    href="https://wa.me/94705301642?text=Hello%20REXBEBE!%20I%20would%20like%20to%20know%20more%20about%20your%20baby%20clothing%20products."
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-emerald-700 hover:text-emerald-800 font-semibold hover:underline inline-flex items-center gap-1"
                   >
-                    <span>WhatsApp: 0760162181</span>
+                    <span>WhatsApp: 0705301642</span>
                   </a>
                 </div>
                 <div className="flex items-center gap-2">
@@ -514,3 +515,5 @@ export function Footer() {
     </footer>
   );
 }
+
+export default Footer;

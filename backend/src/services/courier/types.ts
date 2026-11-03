@@ -13,6 +13,7 @@ export type CourierDeliveryStatus =
   | 'DELIVERED'
   | 'RETURNING_TO_SENDER'
   | 'RETURNED_TO_SENDER'
+  | 'DISPATCH_UNCERTAIN'
   // Legacy backward compatibility aliases:
   | 'PENDING'
   | 'DISPATCHED'

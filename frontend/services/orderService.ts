@@ -34,6 +34,7 @@ export type CourierDeliveryStatus =
   | 'DELIVERED'
   | 'RETURNING_TO_SENDER'
   | 'RETURNED_TO_SENDER'
+  | 'DISPATCH_UNCERTAIN'
   | 'PENDING'
   | 'DISPATCHED'
   | 'RETURNED'
@@ -116,6 +117,11 @@ export interface CourierDetails {
   remittanceDate?: string;
   bankReference?: string;
   notes?: string;
+  dispatchUncertain?: boolean;
+  uncertainReason?: string;
+  dispatchAttemptedAt?: string;
+  lastWebhookStatusDate?: string;
+  lastWebhookProcessedAt?: string;
 }
 
 export interface OrderRecord {
@@ -239,6 +245,17 @@ export const dispatchOfficialKoombiyo = async (
   return fetchApi(`/orders/${id}/courier/dispatch-official`, {
     method: 'POST',
     body: JSON.stringify(payload),
+  });
+};
+
+export const reconcileKoombiyoDispatch = async (
+  id: string,
+  admin?: string,
+  forceClear?: boolean
+): Promise<{ reconciled: boolean; status: string; message: string }> => {
+  return fetchApi(`/orders/${id}/courier/reconcile-dispatch`, {
+    method: 'POST',
+    body: JSON.stringify({ admin, forceClear }),
   });
 };
 
@@ -467,6 +484,7 @@ export const orderService = {
   getCourierConfig,
   getAvailableWaybills,
   dispatchOfficialKoombiyo,
+  reconcileKoombiyoDispatch,
   getKoombiyoLiveTracking,
   getKoombiyoPodUrl,
   testKoombiyoWebhook,

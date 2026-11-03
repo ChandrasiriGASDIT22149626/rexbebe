@@ -123,7 +123,7 @@ export default function ContactPage() {
     const text = encodeURIComponent(
       `Hello REXBEBE / Classen Holdings,\nI would like to enquire regarding: ${formData.subject || 'Customer Enquiry'}\nName: ${formData.fullName || 'Customer'}`
     );
-    return `https://wa.me/94760162181?text=${text}`;
+    return `https://wa.me/94705301642?text=${text}`;
   };
 
   return (
@@ -164,13 +164,13 @@ export default function ContactPage() {
                 {/* Direct Contact Badges */}
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <a
-                    href="https://wa.me/94760162181"
+                    href="https://wa.me/94705301642"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center space-x-2 px-5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold uppercase tracking-wider transition-all shadow-md hover:scale-105 active:scale-95"
                   >
                     <MessageCircle className="w-4 h-4 fill-white" />
-                    <span>WhatsApp: 0760162181</span>
+                    <span>WhatsApp: 0705301642</span>
                   </a>
 
                   <a
@@ -234,17 +234,17 @@ export default function ContactPage() {
                 </h3>
                 <div className="space-y-1">
                   <a
-                    href="tel:0760162181"
+                    href="tel:0705301642"
                     className="text-lg font-black text-emerald-950 dark:text-white hover:text-emerald-600 transition-colors block"
                   >
-                    0760162181
+                    0705301642
                   </a>
                   <p className="text-xs text-emerald-800/80 dark:text-emerald-400">
                     Fast response for customer inquiries, sizing advice &amp; orders.
                   </p>
                 </div>
                 <a
-                  href="https://wa.me/94760162181"
+                  href="https://wa.me/94705301642"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 inline-flex items-center space-x-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 transition-colors"
@@ -385,7 +385,7 @@ export default function ContactPage() {
                           className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
                         >
                           <MessageCircle className="w-3.5 h-3.5 fill-white" />
-                          <span>Forward copy to WhatsApp (0760162181)</span>
+                          <span>Forward copy to WhatsApp (0705301642)</span>
                         </a>
                         <button
                           type="button"
@@ -407,12 +407,12 @@ export default function ContactPage() {
                         <p>{errorMessage}</p>
                         <div className="pt-2">
                           <a
-                            href="https://wa.me/94760162181"
+                            href="https://wa.me/94705301642"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center space-x-1 text-xs font-bold text-rose-900 dark:text-rose-100 underline"
                           >
-                            <span>Reach us immediately on WhatsApp (0760162181)</span>
+                            <span>Reach us immediately on WhatsApp (0705301642)</span>
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>

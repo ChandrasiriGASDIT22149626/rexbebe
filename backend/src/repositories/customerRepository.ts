@@ -1,3 +1,5 @@
+import { postgresCustomerRepository } from './postgres/PostgresCustomerRepository';
+
 export interface MockCustomer {
   id: string;
   userId: string;
@@ -24,15 +26,28 @@ const MOCK_CUSTOMERS: MockCustomer[] = [
 export class CustomerRepository {
   private customers: MockCustomer[] = [...MOCK_CUSTOMERS];
 
+  public isPostgresMode(): boolean {
+    return process.env.USE_POSTGRES === 'true';
+  }
+
   async findAll(): Promise<MockCustomer[]> {
+    if (this.isPostgresMode()) {
+      return postgresCustomerRepository.findAll();
+    }
     return this.customers;
   }
 
   async findById(id: string): Promise<MockCustomer | null> {
+    if (this.isPostgresMode()) {
+      return postgresCustomerRepository.findById(id);
+    }
     return this.customers.find(c => c.id === id || c.userId === id) || null;
   }
 
   async findByEmail(email: string): Promise<MockCustomer | null> {
+    if (this.isPostgresMode()) {
+      return postgresCustomerRepository.findByEmail(email);
+    }
     return this.customers.find(c => c.email.toLowerCase() === email.toLowerCase()) || null;
   }
 }

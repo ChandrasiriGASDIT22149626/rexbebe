@@ -676,10 +676,10 @@ export default function AdminCodReportsPage() {
                 Customer doorstep collections are kept strictly separate from Koombiyo bank remittance settlements.
               </p>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={() => setIsAgreementModalOpen(true)}
-                className="px-3.5 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-1.5 transition-colors"
+                className="min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 active:scale-95 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-2 transition-all cursor-pointer"
                 title="Configure Courier Agreement & Deductions"
               >
                 <Settings className="w-4 h-4 text-stone-500" />
@@ -687,14 +687,14 @@ export default function AdminCodReportsPage() {
               </button>
               <button
                 onClick={handleExportCSV}
-                className="px-3.5 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-1.5 transition-colors"
+                className="min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 active:scale-95 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-2 transition-all cursor-pointer"
               >
                 <Download className="w-4 h-4 text-stone-500" />
                 <span>Export CSV</span>
               </button>
               <button
                 onClick={fetchLedger}
-                className="p-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-colors"
+                className="min-w-[44px] min-h-[44px] rounded-xl border border-stone-200 bg-white hover:bg-stone-50 active:scale-95 text-stone-600 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
                 title="Refresh Ledger Data"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-amber-600' : ''}`} />
@@ -843,13 +843,13 @@ export default function AdminCodReportsPage() {
           </div>
 
           {/* MULTI-DIMENSIONAL REPORT NAVIGATION TABS */}
-          <div className="flex flex-wrap items-center gap-2 bg-white p-2.5 rounded-3xl border border-stone-200/80 shadow-2xs">
+          <div className="flex flex-wrap items-center gap-2.5 bg-white p-3 rounded-3xl border border-stone-200/80 shadow-2xs">
             <button
               onClick={() => setActiveTab('LEDGER')}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 ${
+              className={`min-h-[44px] px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer active:scale-[0.98] ${
                 activeTab === 'LEDGER'
-                  ? 'bg-amber-600 text-white shadow-xs font-black'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                  ? 'bg-amber-600 text-white shadow-xs font-black ring-2 ring-amber-600/20'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50 border border-transparent hover:border-stone-200'
               }`}
             >
               <FileText className="w-4 h-4" />
@@ -858,10 +858,10 @@ export default function AdminCodReportsPage() {
 
             <button
               onClick={() => setActiveTab('PERIODIC')}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 ${
+              className={`min-h-[44px] px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer active:scale-[0.98] ${
                 activeTab === 'PERIODIC'
-                  ? 'bg-amber-600 text-white shadow-xs font-black'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                  ? 'bg-amber-600 text-white shadow-xs font-black ring-2 ring-amber-600/20'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50 border border-transparent hover:border-stone-200'
               }`}
             >
               <BarChart3 className="w-4 h-4" />
@@ -870,10 +870,10 @@ export default function AdminCodReportsPage() {
 
             <button
               onClick={() => setActiveTab('ZONES')}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 ${
+              className={`min-h-[44px] px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer active:scale-[0.98] ${
                 activeTab === 'ZONES'
-                  ? 'bg-amber-600 text-white shadow-xs font-black'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                  ? 'bg-amber-600 text-white shadow-xs font-black ring-2 ring-amber-600/20'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50 border border-transparent hover:border-stone-200'
               }`}
             >
               <Layers className="w-4 h-4" />
@@ -882,10 +882,10 @@ export default function AdminCodReportsPage() {
 
             <button
               onClick={() => setActiveTab('FULFILLMENT')}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 ${
+              className={`min-h-[44px] px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer active:scale-[0.98] ${
                 activeTab === 'FULFILLMENT'
-                  ? 'bg-amber-600 text-white shadow-xs font-black'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                  ? 'bg-amber-600 text-white shadow-xs font-black ring-2 ring-amber-600/20'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50 border border-transparent hover:border-stone-200'
               }`}
             >
               <Truck className="w-4 h-4" />
@@ -894,10 +894,10 @@ export default function AdminCodReportsPage() {
 
             <button
               onClick={() => setActiveTab('COURIER_EXPENSES')}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 ${
+              className={`min-h-[44px] px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer active:scale-[0.98] ${
                 activeTab === 'COURIER_EXPENSES'
-                  ? 'bg-amber-600 text-white shadow-xs font-black'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                  ? 'bg-amber-600 text-white shadow-xs font-black ring-2 ring-amber-600/20'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50 border border-transparent hover:border-stone-200'
               }`}
             >
               <DollarSign className="w-4 h-4" />
@@ -906,10 +906,10 @@ export default function AdminCodReportsPage() {
 
             <button
               onClick={() => setActiveTab('NOTIFICATIONS')}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 ${
+              className={`min-h-[44px] px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer active:scale-[0.98] ${
                 activeTab === 'NOTIFICATIONS'
-                  ? 'bg-amber-600 text-white shadow-xs font-black'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                  ? 'bg-amber-600 text-white shadow-xs font-black ring-2 ring-amber-600/20'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50 border border-transparent hover:border-stone-200'
               }`}
             >
               <BellRing className="w-4 h-4" />
@@ -988,7 +988,7 @@ export default function AdminCodReportsPage() {
                     setFinancialStatusFilter('ALL');
                     setSearchQuery('');
                   }}
-                  className="text-xs font-bold text-amber-700 hover:underline px-2"
+                  className="min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 cursor-pointer transition-colors active:scale-95 inline-flex items-center"
                 >
                   Clear Filters
                 </button>
@@ -1014,7 +1014,7 @@ export default function AdminCodReportsPage() {
                     <th className="p-3.5 text-right">Discrepancy</th>
                     <th className="p-3.5">Batch / Bank Ref</th>
                     <th className="p-3.5">Financial Status</th>
-                    <th className="p-3.5 text-right">Actions</th>
+                    <th className="p-3.5 text-right min-w-[260px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
@@ -1138,13 +1138,13 @@ export default function AdminCodReportsPage() {
                           </td>
 
                           {/* Actions */}
-                          <td className="p-3.5 text-right">
-                            <div className="flex items-center justify-end space-x-1.5">
+                          <td className="p-3.5 text-right min-w-[260px]">
+                            <div className="flex items-center justify-end gap-2.5">
                               {/* If not collected, allow recording collection */}
                               {order.codFinancialStatus === 'COLLECTION_PENDING' && (
                                 <button
                                   onClick={() => openCollectionModal(order)}
-                                  className="px-2.5 py-1 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold text-[10px] shadow-2xs whitespace-nowrap"
+                                  className="min-h-[44px] px-4 py-2 rounded-xl bg-sky-700 hover:bg-sky-800 active:bg-sky-900 text-white font-bold text-xs shadow-xs hover:shadow active:scale-[0.98] transition-all cursor-pointer inline-flex items-center justify-center whitespace-nowrap"
                                 >
                                   Record Collection
                                 </button>
@@ -1153,7 +1153,7 @@ export default function AdminCodReportsPage() {
                               {/* Settle Remittance Button */}
                               <button
                                 onClick={() => openSettlementModal(order)}
-                                className={`px-2.5 py-1 rounded-xl font-bold text-[10px] shadow-2xs whitespace-nowrap ${
+                                className={`min-h-[44px] px-4 py-2 rounded-xl font-bold text-xs shadow-xs hover:shadow active:scale-[0.98] transition-all cursor-pointer inline-flex items-center justify-center whitespace-nowrap ${
                                   order.codFinancialStatus === 'SETTLED'
                                     ? 'bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200'
                                     : 'bg-amber-700 hover:bg-amber-800 text-white'
@@ -1192,11 +1192,11 @@ export default function AdminCodReportsPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center bg-stone-100 p-1 rounded-xl">
+                <div className="flex items-center space-x-2.5">
+                  <div className="flex items-center bg-stone-100 p-1.5 rounded-2xl gap-1.5">
                     <button
                       onClick={() => setPeriodicView('daily')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                         periodicView === 'daily' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
                       }`}
                     >
@@ -1204,7 +1204,7 @@ export default function AdminCodReportsPage() {
                     </button>
                     <button
                       onClick={() => setPeriodicView('weekly')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                         periodicView === 'weekly' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
                       }`}
                     >
@@ -1212,7 +1212,7 @@ export default function AdminCodReportsPage() {
                     </button>
                     <button
                       onClick={() => setPeriodicView('monthly')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                         periodicView === 'monthly' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
                       }`}
                     >
@@ -1222,7 +1222,7 @@ export default function AdminCodReportsPage() {
 
                   <button
                     onClick={handleExportPeriodicCSV}
-                    className="px-3.5 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-1.5"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
                   >
                     <Download className="w-4 h-4 text-stone-500" />
                     <span>Export Periodic CSV</span>
@@ -1326,15 +1326,15 @@ export default function AdminCodReportsPage() {
 
                 <div className="flex items-center space-x-2">
                   <Link
-                    href="/admin/settings/delivery"
-                    className="px-3.5 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-1.5"
+                    href="/admin/shipping"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
                   >
-                    <Settings className="w-4 h-4 text-stone-500" />
-                    <span>Delivery Zones Settings</span>
+                    <Truck className="w-4 h-4 text-stone-500" />
+                    <span>Courier &amp; Shipping</span>
                   </Link>
                   <button
                     onClick={handleExportZonesCSV}
-                    className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs flex items-center space-x-1.5"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
                   >
                     <Download className="w-4 h-4" />
                     <span>Export Zones CSV</span>
@@ -1426,17 +1426,17 @@ export default function AdminCodReportsPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2.5">
                   <Link
                     href="/admin/returns"
-                    className="px-3.5 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-1.5"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
                   >
                     <RotateCcw className="w-4 h-4 text-rose-500" />
                     <span>Open Returns Center</span>
                   </Link>
                   <button
                     onClick={handleExportFulfillmentCSV}
-                    className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs flex items-center space-x-1.5"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
                   >
                     <Download className="w-4 h-4" />
                     <span>Export Fulfillment CSV</span>
@@ -1552,17 +1552,17 @@ export default function AdminCodReportsPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2.5">
                   <button
                     onClick={() => setIsAgreementModalOpen(true)}
-                    className="px-3.5 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-1.5"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
                   >
                     <Settings className="w-4 h-4 text-stone-500" />
                     <span>Agreement Settings</span>
                   </button>
                   <button
                     onClick={handleExportCourierExpensesCSV}
-                    className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs flex items-center space-x-1.5"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-2xs flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
                   >
                     <Download className="w-4 h-4" />
                     <span>Export Balances CSV</span>
@@ -1880,7 +1880,7 @@ export default function AdminCodReportsPage() {
               </div>
               <button
                 onClick={() => setIsSettlementModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-stone-200 text-stone-400 hover:text-stone-700"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center cursor-pointer hover:bg-stone-200 text-stone-500 hover:text-stone-800 transition-colors active:scale-95"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1986,7 +1986,7 @@ export default function AdminCodReportsPage() {
                   <button
                     type="button"
                     onClick={addDeductionRow}
-                    className="text-[11px] font-bold text-amber-700 hover:text-amber-800 flex items-center space-x-1"
+                    className="min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 flex items-center space-x-1.5 cursor-pointer active:scale-95 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Deduction Line</span>
@@ -2032,9 +2032,9 @@ export default function AdminCodReportsPage() {
                         <button
                           type="button"
                           onClick={() => removeDeductionRow(idx)}
-                          className="p-1 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50"
+                          className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer active:scale-95 transition-colors"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     ))}
@@ -2137,11 +2137,11 @@ export default function AdminCodReportsPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-2">
+            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => setIsSettlementModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100 cursor-pointer transition-all active:scale-[0.98]"
               >
                 Cancel
               </button>
@@ -2149,7 +2149,7 @@ export default function AdminCodReportsPage() {
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSaveSettlement}
-                className="px-5 py-2 rounded-xl bg-amber-700 text-white font-bold hover:bg-amber-800 shadow-md disabled:opacity-50 flex items-center space-x-1.5"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-amber-700 text-white font-bold hover:bg-amber-800 shadow-md disabled:opacity-50 flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
               >
                 <Check className="w-4 h-4" />
                 <span>{isSubmitting ? 'Recording Settlement...' : 'Confirm & Reconcile Funds'}</span>
@@ -2177,7 +2177,7 @@ export default function AdminCodReportsPage() {
               </div>
               <button
                 onClick={() => setIsCollectionModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-stone-200 text-stone-400 hover:text-stone-700"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center cursor-pointer hover:bg-stone-200 text-stone-500 hover:text-stone-800 transition-colors active:scale-95"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2266,11 +2266,11 @@ export default function AdminCodReportsPage() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-2">
+            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => setIsCollectionModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100 cursor-pointer transition-all active:scale-[0.98]"
               >
                 Cancel
               </button>
@@ -2278,7 +2278,7 @@ export default function AdminCodReportsPage() {
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSaveCollection}
-                className="px-5 py-2 rounded-xl bg-sky-700 text-white font-bold hover:bg-sky-800 shadow-md disabled:opacity-50 flex items-center space-x-1.5"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-sky-700 text-white font-bold hover:bg-sky-800 shadow-md disabled:opacity-50 flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
               >
                 <Check className="w-4 h-4" />
                 <span>{isSubmitting ? 'Saving...' : 'Save Collection Status'}</span>
@@ -2306,7 +2306,7 @@ export default function AdminCodReportsPage() {
               </div>
               <button
                 onClick={() => setIsAgreementModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-stone-200 text-stone-400 hover:text-stone-700"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center cursor-pointer hover:bg-stone-200 text-stone-500 hover:text-stone-800 transition-colors active:scale-95"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2382,11 +2382,11 @@ export default function AdminCodReportsPage() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-2">
+            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => setIsAgreementModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-100 cursor-pointer transition-all active:scale-[0.98]"
               >
                 Cancel
               </button>
@@ -2394,7 +2394,7 @@ export default function AdminCodReportsPage() {
                 type="button"
                 disabled={isSavingAgreement}
                 onClick={handleSaveAgreement}
-                className="px-5 py-2 rounded-xl bg-stone-900 text-white font-bold hover:bg-stone-800 shadow-md disabled:opacity-50 flex items-center space-x-1.5"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-stone-900 text-white font-bold hover:bg-stone-800 shadow-md disabled:opacity-50 flex items-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
               >
                 <Check className="w-4 h-4" />
                 <span>{isSavingAgreement ? 'Saving...' : 'Save Agreement Rates'}</span>

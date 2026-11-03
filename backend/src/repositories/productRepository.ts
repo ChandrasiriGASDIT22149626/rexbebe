@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { CategoryRepository } from './categoryRepository';
+import { postgresProductRepository } from './postgres/PostgresProductRepository';
 
 export interface ProductPartImage {
   id?: string;
@@ -138,6 +139,10 @@ export class ProductRepository {
     this.products = this.loadFromDisk();
   }
 
+  public isPostgresMode(): boolean {
+    return process.env.USE_POSTGRES === 'true';
+  }
+
   private loadFromDisk(): ProductRecord[] {
     try {
       const seedPath = path.resolve(__dirname, '../../data/products.seed.json');
@@ -208,6 +213,9 @@ export class ProductRepository {
   }
 
   async findAll(query?: any): Promise<ProductRecord[]> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.findAll();
+    }
     this.products = this.loadFromDisk();
     let result = [...this.products];
 
@@ -333,6 +341,9 @@ export class ProductRepository {
   }
 
   async findBySlug(slug: string): Promise<ProductRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.findBySlug(slug);
+    }
     this.products = this.loadFromDisk();
     const cleanSlug = String(slug || '').toLowerCase();
     const indexed = ProductRepository.slugIndex.get(cleanSlug);
@@ -342,6 +353,9 @@ export class ProductRepository {
   }
 
   async findById(id: string): Promise<ProductRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.findById(id);
+    }
     this.products = this.loadFromDisk();
     const indexed = ProductRepository.idIndex.get(id);
     if (indexed) return indexed;
@@ -350,6 +364,9 @@ export class ProductRepository {
   }
 
   async findVariant(variantId: string): Promise<{ product: ProductRecord; variant: ProductVariant } | null> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.findVariant(variantId);
+    }
     this.products = this.loadFromDisk();
     for (const p of this.products) {
       const v = (p.variants || []).find((varItem) => varItem.id === variantId);
@@ -359,12 +376,18 @@ export class ProductRepository {
   }
 
   async findByIds(ids: string[]): Promise<ProductRecord[]> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.findByIds(ids);
+    }
     this.products = this.loadFromDisk();
     const set = new Set(ids);
     return this.products.filter((p) => set.has(p.id));
   }
 
   async create(data: any): Promise<ProductRecord> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.create(data);
+    }
     this.products = this.loadFromDisk();
     const id = data.id || `prod-${Date.now()}`;
     const baseSlug =
@@ -455,6 +478,9 @@ export class ProductRepository {
   }
 
   async update(id: string, updateData: any): Promise<ProductRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.update(id, updateData);
+    }
     this.products = this.loadFromDisk();
     const idx = this.products.findIndex((p) => p.id === id);
     if (idx === -1) return null;
@@ -566,6 +592,9 @@ export class ProductRepository {
   }
 
   async delete(id: string): Promise<boolean> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.delete(id);
+    }
     this.products = this.loadFromDisk();
     const idx = this.products.findIndex((p) => p.id === id || p.slug === id);
     if (idx === -1) return false;
@@ -788,6 +817,9 @@ export class ProductRepository {
   }
 
   async toggleBestSeller(id: string): Promise<ProductRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.toggleBestSeller(id);
+    }
     this.products = this.loadFromDisk();
     const product = this.products.find((p) => p.id === id);
     if (!product) return null;
@@ -797,6 +829,9 @@ export class ProductRepository {
   }
 
   async toggleNewArrival(id: string): Promise<ProductRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.toggleNewArrival(id);
+    }
     this.products = this.loadFromDisk();
     const product = this.products.find((p) => p.id === id);
     if (!product) return null;
@@ -806,6 +841,9 @@ export class ProductRepository {
   }
 
   async toggleFeatured(id: string): Promise<ProductRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.toggleFeatured(id);
+    }
     this.products = this.loadFromDisk();
     const product = this.products.find((p) => p.id === id);
     if (!product) return null;
@@ -815,6 +853,9 @@ export class ProductRepository {
   }
 
   async updateStatus(id: string, status: 'draft' | 'published' | 'unpublished'): Promise<ProductRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresProductRepository.updateStatus(id, status);
+    }
     this.products = this.loadFromDisk();
     const product = this.products.find((p) => p.id === id);
     if (!product) return null;
@@ -823,3 +864,5 @@ export class ProductRepository {
     return product;
   }
 }
+
+export const productRepository = new ProductRepository();

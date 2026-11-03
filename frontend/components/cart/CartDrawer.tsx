@@ -10,7 +10,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { Button } from '../ui/Button';
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, subtotal, shippingFee, total, notification, clearNotification } = useCart();
+  const { items, isOpen, closeCart, subtotal, total, notification, clearNotification } = useCart();
 
   return (
     <AnimatePresence>
@@ -110,12 +110,6 @@ export function CartDrawer() {
                   <div className="flex justify-between text-slate-600 dark:text-slate-300">
                     <span>Subtotal</span>
                     <span className="font-bold text-slate-900 dark:text-slate-100">{formatCurrency(subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                    <span>Complimentary Shipping</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                      {shippingFee === 0 ? 'FREE 🌸' : formatCurrency(shippingFee)}
-                    </span>
                   </div>
                   <div className="flex justify-between text-sm font-black text-slate-900 dark:text-slate-100 pt-2 border-t border-purple-200/80 dark:border-slate-700">
                     <span>Total</span>

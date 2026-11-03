@@ -248,3 +248,5 @@ export function LittleEssentials() {
     </section>
   );
 }
+
+export default LittleEssentials;

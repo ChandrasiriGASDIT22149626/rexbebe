@@ -1,8 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { OrderService } from '../services/orderService';
 import { validateOrderInput } from '../validators/orderValidator';
 import { sendSuccess } from '../utils/response';
 import { NotFoundError, BadRequestError } from '../utils/errors';
+import { config } from '../config/environment';
+
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 const orderService = new OrderService();
 
@@ -312,12 +323,91 @@ export const generateKoombiyoPod = async (req: Request, res: Response, next: Nex
 
 export const handleKoombiyoWebhook = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // 1. Webhook Secret Resolution & Production Enforcement
+    const configuredSecret = (config.koombiyo?.webhookSecret || process.env.KOOMBIYO_WEBHOOK_SECRET || '').trim();
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    if (isProduction && (!configuredSecret || configuredSecret.includes('your_'))) {
+      console.error('[Koombiyo Webhook Security] KOOMBIYO_WEBHOOK_SECRET is mandatory in production environment.');
+      return res.status(401).json({
+        status: 401,
+        success: false,
+        warning: 'Webhook security misconfigured: KOOMBIYO_WEBHOOK_SECRET is mandatory in production.',
+      });
+    }
+
+    // 2. Reject query-string tokens explicitly to prevent URL access log exposure
+    if (req.query?.token || req.query?.secret) {
+      return res.status(401).json({
+        status: 401,
+        success: false,
+        warning: 'Unauthorized webhook call: query-string tokens are not permitted due to URL exposure risks. Use path parameter (/courier/koombiyo/webhook/:secretToken) or request headers.',
+      });
+    }
+
+    // 3. Multi-Channel Token Extraction (Compatible with official Koombiyo API capabilities)
+    // Supports path-based secret token (/courier/koombiyo/webhook/:secretToken configured in Koombiyo Merchant Portal)
+    // and HTTP headers (x-webhook-token, Authorization: Bearer).
+    if (configuredSecret && !configuredSecret.includes('your_')) {
+      const authHeader = req.headers?.['authorization'];
+      let incomingToken =
+        (req.params?.secretToken as string) ||
+        (req.headers?.['x-webhook-token'] as string) ||
+        (req.headers?.['x-koombiyo-token'] as string) ||
+        (req.headers?.['x-webhook-secret'] as string) ||
+        (req.headers?.['x-koombiyo-secret'] as string);
+
+      if (!incomingToken && typeof authHeader === 'string') {
+        incomingToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+      }
+
+      if (!incomingToken || !timingSafeEqualStr(incomingToken, configuredSecret)) {
+        console.warn('[Koombiyo Webhook Security] Unauthorized attempt: invalid or missing security token.');
+        return res.status(401).json({
+          status: 401,
+          success: false,
+          warning: 'Unauthorized webhook call: invalid security token',
+        });
+      }
+    }
+
+    // 3. Validate payload structure
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+      return res.status(400).json({ status: 400, success: false, warning: 'Invalid JSON payload received' });
+    }
+
+    const waybillId = String(req.body.waybill_id || '').trim();
+    if (!waybillId) {
+      return res.status(400).json({ status: 400, success: false, warning: 'Missing waybill_id in webhook payload' });
+    }
+
+    if (!req.body.status && req.body.status_id === undefined) {
+      return res.status(400).json({ status: 400, success: false, warning: 'Missing status or status_id in webhook payload' });
+    }
+
     const result = await orderService.handleKoombiyoWebhook(req.body);
     // Koombiyo documentation requires replying with HTTP 200 to acknowledge receipt
-    return res.status(200).json({ status: 200, success: true, message: result.message });
+    return res.status(200).json({
+      status: 200,
+      success: result.success,
+      message: result.message,
+      isDuplicate: result.isDuplicate || false,
+    });
   } catch (err: any) {
     console.error('[Koombiyo Webhook Warning]', err.message);
     return res.status(200).json({ status: 200, success: false, warning: err.message });
+  }
+};
+
+export const reconcileKoombiyoDispatch = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const adminUser = req.body?.admin || (req as any).user?.email || 'Admin Staff';
+    const forceClear = Boolean(req.body?.forceClear);
+    const result = await orderService.reconcileKoombiyoDispatch(id, adminUser, forceClear);
+    return sendSuccess(res, result, result.message);
+  } catch (err) {
+    next(err);
   }
 };
 

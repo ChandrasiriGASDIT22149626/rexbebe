@@ -32,6 +32,7 @@ import { AdminHeader } from '../../../components/layout/AdminHeader';
 import { useAdminData } from '../../../hooks/AdminContext';
 import { formatCurrency } from '../../../utils/formatCurrency';
 import { OrderRecord } from '../../../services/orderService';
+import { OrderInvoiceModal } from '../../../components/admin/OrderInvoiceModal';
 
 export default function AdminOrdersPage() {
   const { orders, updateOrderStatus, confirmCodOrder, addOrderNote, refundOrder, refreshOrders } = useAdminData();
@@ -44,6 +45,7 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [paymentFilter, setPaymentFilter] = useState<string>('ALL');
   const [selectedOrder, setSelectedOrder] = useState<OrderRecord | null>(null);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
 
   // Status update modal state
   const [newStatus, setNewStatus] = useState<OrderRecord['status']>('PROCESSING');
@@ -227,7 +229,7 @@ export default function AdminOrdersPage() {
                 <select
                   value={paymentFilter}
                   onChange={(e) => setPaymentFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl border border-stone-200 text-xs font-bold bg-white text-stone-800"
+                  className="min-h-[44px] px-3.5 py-2 rounded-xl border border-stone-200 text-xs font-bold bg-white text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                 >
                   <option value="ALL">All Payments</option>
                   <option value="COD_PENDING">COD Pending</option>
@@ -239,7 +241,7 @@ export default function AdminOrdersPage() {
 
                 <button
                   onClick={() => refreshOrders()}
-                  className="p-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-colors"
+                  className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 active:scale-95 text-stone-600 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
                   title="Refresh orders"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -248,7 +250,7 @@ export default function AdminOrdersPage() {
             </div>
 
             {/* Quick Status Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-stone-100">
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-2 pt-3 border-t border-stone-100 no-scrollbar">
               {[
                 { label: 'All Orders', value: 'ALL' },
                 { label: 'Awaiting Confirmation', value: 'PENDING_CONFIRMATION' },
@@ -262,10 +264,10 @@ export default function AdminOrdersPage() {
                 <button
                   key={tab.value}
                   onClick={() => setStatusFilter(tab.value)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-bold transition-all inline-flex items-center justify-center whitespace-nowrap cursor-pointer active:scale-[0.98] select-none shrink-0 ${
                     statusFilter === tab.value
-                      ? 'bg-amber-800 text-white shadow-xs'
-                      : 'bg-stone-50 hover:bg-stone-100 text-stone-600'
+                      ? 'bg-stone-900 text-white shadow-md ring-2 ring-stone-900/10'
+                      : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200/80 hover:border-stone-300 shadow-2xs'
                   }`}
                 >
                   {tab.label}
@@ -274,9 +276,9 @@ export default function AdminOrdersPage() {
 
               <Link
                 href="/admin/orders/cod"
-                className="ml-auto px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 flex items-center space-x-1.5 transition-all shadow-2xs"
+                className="ml-auto min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 inline-flex items-center space-x-2 transition-all shadow-2xs active:scale-[0.98] cursor-pointer shrink-0"
               >
-                <Banknote className="w-3.5 h-3.5 text-amber-700" />
+                <Banknote className="w-4 h-4 text-amber-700" />
                 <span>COD Management Suite →</span>
               </Link>
             </div>
@@ -384,23 +386,23 @@ export default function AdminOrdersPage() {
                             </span>
                           </td>
                           <td className="p-4 text-right">
-                            <div className="flex items-center justify-end space-x-1.5">
+                            <div className="flex items-center justify-end gap-2.5">
                               <button
                                 onClick={() => handleCopyCourierSummary(order)}
-                                className="p-1.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-600"
+                                className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl border border-stone-200 hover:bg-stone-100 active:scale-95 text-stone-700 flex items-center justify-center transition-all shadow-2xs cursor-pointer"
                                 title="Copy courier booking format"
                               >
                                 {copiedOrderId === order.id ? (
-                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                  <Check className="w-4 h-4 text-emerald-600" />
                                 ) : (
-                                  <Copy className="w-3.5 h-3.5" />
+                                  <Copy className="w-4 h-4" />
                                 )}
                               </button>
                               <button
                                 onClick={() => handleOpenOrder(order)}
-                                className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition-all shadow-2xs"
+                                className="min-h-[44px] px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition-all shadow-xs hover:shadow active:scale-95 inline-flex items-center gap-1.5 cursor-pointer"
                               >
-                                <Eye className="w-3.5 h-3.5" />
+                                <Eye className="w-4 h-4" />
                                 <span>View</span>
                               </button>
                             </div>
@@ -452,12 +454,24 @@ export default function AdminOrdersPage() {
                   Placed on {new Date(selectedOrder.createdAt).toLocaleString()} • Method: {selectedOrder.paymentMethod}
                 </p>
               </div>
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="p-2 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsInvoiceOpen(true)}
+                  className="min-h-[46px] px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#5B7B6D] hover:bg-[#4A685B] shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98] inline-flex items-center gap-2"
+                  title="Generate Official Boutique Invoice"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Generate Invoice</span>
+                </button>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="min-w-[44px] min-h-[44px] rounded-xl hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer flex items-center justify-center active:scale-95"
+                  aria-label="Close Modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Modal Body */}
@@ -479,7 +493,7 @@ export default function AdminOrdersPage() {
                   <button
                     onClick={handleConfirmCodOrder}
                     disabled={isSubmitting}
-                    className="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs shadow-md shrink-0 flex items-center space-x-1.5"
+                    className="min-h-[46px] px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs shadow-md shrink-0 flex items-center space-x-2 cursor-pointer active:scale-[0.98] transition-all disabled:opacity-50"
                   >
                     <Check className="w-4 h-4" />
                     <span>Confirm Order</span>
@@ -552,17 +566,17 @@ export default function AdminOrdersPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2.5">
                   <button
                     onClick={() => handleCopyCourierSummary(selectedOrder)}
-                    className="px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-1"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 active:scale-95 text-stone-700 font-bold text-xs shadow-2xs flex items-center space-x-1.5 cursor-pointer transition-all"
                   >
-                    <Copy className="w-3.5 h-3.5 text-stone-500" />
+                    <Copy className="w-4 h-4 text-stone-500" />
                     <span>Copy Summary</span>
                   </button>
                   <Link
                     href="/admin/shipping"
-                    className="px-3 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-2xs"
+                    className="min-h-[44px] px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white font-bold text-xs shadow-2xs inline-flex items-center justify-center cursor-pointer transition-all"
                   >
                     Manage in Shipping
                   </Link>
@@ -692,11 +706,11 @@ export default function AdminOrdersPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                   <button
                     type="button"
                     onClick={handleRefund}
-                    className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all"
+                    className="min-h-[46px] px-5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 active:scale-[0.98] text-rose-700 border border-rose-200 text-xs font-bold transition-all cursor-pointer"
                   >
                     Cancel / Refund Order
                   </button>
@@ -705,7 +719,7 @@ export default function AdminOrdersPage() {
                     type="button"
                     disabled={isSubmitting}
                     onClick={handleSaveStatus}
-                    className="px-5 py-2 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-md transition-all disabled:opacity-50"
+                    className="min-h-[46px] px-6 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 active:scale-[0.98] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
                   >
                     {isSubmitting ? 'Updating...' : 'Save Fulfilment Status'}
                   </button>
@@ -745,17 +759,17 @@ export default function AdminOrdersPage() {
                     {selectedOrder.internalNotes}
                   </div>
                 )}
-                <form onSubmit={handleAddNote} className="flex gap-2">
+                <form onSubmit={handleAddNote} className="flex gap-2.5">
                   <input
                     type="text"
                     placeholder="Add an internal note for staff..."
                     value={internalNoteInput}
                     onChange={(e) => setInternalNoteInput(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl border border-stone-200 text-xs bg-stone-50 focus:bg-white focus:outline-none"
+                    className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl border border-stone-200 text-xs bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white text-xs font-bold transition-all"
+                    className="min-h-[44px] px-6 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-900 active:scale-95 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
                   >
                     Add Note
                   </button>
@@ -765,6 +779,13 @@ export default function AdminOrdersPage() {
           </div>
         </div>
       )}
+
+      {/* ADMIN-ONLY INVOICE GENERATION MODAL */}
+      <OrderInvoiceModal
+        order={selectedOrder}
+        isOpen={isInvoiceOpen}
+        onClose={() => setIsInvoiceOpen(false)}
+      />
     </div>
   );
 }

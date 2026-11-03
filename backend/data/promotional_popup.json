@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "heading": "LITTLE ONES SALE!",
+  "subheading": "SPECIAL OFFER 🌸",
+  "description": "Enjoy special discounts on selected baby clothing! Soft organic cashmere rompers & pastel sets for your little darling.",
+  "offerBadge": "20% OFF",
+  "discountPercentage": 20,
+  "discountType": "PERCENTAGE",
+  "promoCode": "LITTLE20",
+  "minSpend": 0,
+  "imageUrl": "/images/products/organic-onesie.jpg",
+  "shopNowText": "Shop Little Ones Sale 🛍",
+  "shopNowHref": "/sale",
+  "startDate": "2026-11-01",
+  "endDate": "2026-12-31",
+  "displayDelaySeconds": 2,
+  "updatedAt": "2026-11-03T14:35:00.000Z"
+}

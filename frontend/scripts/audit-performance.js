@@ -102,6 +102,9 @@ async function runPerformanceAudit() {
   // 6. Audit Live Backend Endpoints & Cache-Control Headers
   console.log('\n--- 6. Backend API Live Caching & Response Time Audit ---');
   try {
+    // Warm-up socket
+    await httpGet('http://localhost:5000/api/health').catch(() => {});
+
     const t0 = Date.now();
     const prodRes = await httpGet('http://localhost:5000/api/products');
     const prodDuration = Date.now() - t0;

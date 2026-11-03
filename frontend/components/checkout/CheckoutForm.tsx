@@ -10,7 +10,7 @@ import { orderService } from '../../services/orderService';
 import { paymentService } from '../../services/paymentService';
 import { deliveryService, PricingCalculationResult } from '../../services/deliveryService';
 import { Button } from '../ui/Button';
-import { Truck, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Truck, CheckCircle2, ShieldCheck, AlertCircle, Tag, Check, X } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatCurrency';
 
 export function CheckoutForm() {
@@ -40,7 +40,23 @@ export function CheckoutForm() {
   const [calcError, setCalcError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Recalculate authoritative server pricing when district, town, payment method, or cart items change
+  // Promo Code State
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<string>('');
+  const [couponNotice, setCouponNotice] = useState<{ text: string; success: boolean } | null>(null);
+
+  // Check if promo code was saved in session (e.g. copied from Promotional Popup)
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('rexbebe_applied_promo');
+      if (stored) {
+        setAppliedCoupon(stored.toUpperCase());
+        setCouponInput(stored.toUpperCase());
+      }
+    } catch (_) {}
+  }, []);
+
+  // Recalculate authoritative server pricing when district, town, payment method, cart items, or coupon change
   const fetchPricing = useCallback(async () => {
     if (items.length === 0) return;
     setCalculating(true);
@@ -51,6 +67,7 @@ export function CheckoutForm() {
         town: deliveryInfo.city || 'Colombo',
         items: items.map((i) => ({ variantId: i.variant.id, quantity: i.quantity })),
         paymentMethod: paymentType,
+        couponCode: appliedCoupon || undefined,
       });
       setPricing(result);
     } catch (err: any) {
@@ -59,7 +76,49 @@ export function CheckoutForm() {
     } finally {
       setCalculating(false);
     }
-  }, [items, deliveryInfo.district, deliveryInfo.city, paymentType]);
+  }, [items, deliveryInfo.district, deliveryInfo.city, paymentType, appliedCoupon]);
+
+  const handleApplyCoupon = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const code = couponInput.trim().toUpperCase();
+    if (!code) {
+      setCouponNotice({ text: 'Please enter a promo code.', success: false });
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, subtotal: pricing?.subtotal || 0 }),
+      });
+      const data = await res.json();
+      if (data.success && data.data && data.data.valid) {
+        setAppliedCoupon(code);
+        setCouponNotice({
+          text: data.data.message || `Promo code "${code}" applied successfully!`,
+          success: true,
+        });
+        sessionStorage.setItem('rexbebe_applied_promo', code);
+      } else {
+        setCouponNotice({
+          text: data.data?.message || data.message || 'Invalid or expired promo code.',
+          success: false,
+        });
+      }
+    } catch (err: any) {
+      setCouponNotice({ text: 'Error validating promo code.', success: false });
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon('');
+    setCouponInput('');
+    setCouponNotice(null);
+    try {
+      sessionStorage.removeItem('rexbebe_applied_promo');
+    } catch (_) {}
+  };
 
   useEffect(() => {
     fetchPricing();
@@ -142,6 +201,7 @@ export function CheckoutForm() {
         },
         paymentMethod: paymentType,
         idempotencyKey,
+        couponCode: appliedCoupon || undefined,
       });
 
       // 4. If PayHere selected, initialize online gateway session
@@ -181,6 +241,77 @@ export function CheckoutForm() {
           pricing={pricing}
           estimatedDays={pricing?.estimatedDays}
         />
+
+        {/* Promotional / Voucher Code Card */}
+        <div className="bg-white p-6 rounded-2xl border border-stone-200 space-y-4">
+          <div className="flex items-center space-x-2 border-b border-stone-100 pb-3">
+            <Tag className="w-5 h-5 text-pink-600" />
+            <h3 className="font-serif text-xl font-medium text-stone-900">
+              Promotional Code & Vouchers
+            </h3>
+          </div>
+
+          <div className="space-y-3">
+            {!appliedCoupon ? (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  placeholder="Enter code (e.g. LITTLE20)"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleApplyCoupon();
+                    }
+                  }}
+                  className="flex-1 px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-mono uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-pink-300 font-bold"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleApplyCoupon()}
+                  disabled={calculating || !couponInput.trim()}
+                  className="px-4 py-2.5 bg-pink-600 hover:bg-pink-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
+                >
+                  Apply Code 🌸
+                </button>
+              </div>
+            ) : (
+              <div className="p-3 bg-pink-50/70 border border-pink-200 rounded-xl flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="w-6 h-6 rounded-full bg-pink-600 text-white flex items-center justify-center text-xs">
+                    <Check className="w-3.5 h-3.5" />
+                  </span>
+                  <div>
+                    <span className="font-mono font-black text-pink-700 text-xs sm:text-sm tracking-wider">
+                      {appliedCoupon}
+                    </span>
+                    <span className="text-[11px] text-pink-600 block">
+                      Promotional discount applied to subtotal
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveCoupon}
+                  className="text-xs font-bold text-stone-500 hover:text-rose-600 px-2 py-1 rounded-lg hover:bg-white transition-colors cursor-pointer"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+
+            {couponNotice && (
+              <p
+                className={`text-xs font-medium flex items-center space-x-1 ${
+                  couponNotice.success ? 'text-emerald-600' : 'text-rose-600'
+                }`}
+              >
+                <span>{couponNotice.text}</span>
+              </p>
+            )}
+          </div>
+        </div>
 
         <PaymentMethod
           selectedMethod={paymentType}

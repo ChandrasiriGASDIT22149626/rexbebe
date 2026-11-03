@@ -1,4 +1,5 @@
 import { OrderRecord, OrderRepository } from '../../repositories/orderRepository';
+import { postgresWaybillRepository } from '../../repositories/postgres/PostgresWaybillRepository';
 import {
   CourierConfigResponse,
   CourierDeliveryStatus,
@@ -12,11 +13,54 @@ import {
   KoombiyoWebhookPayload,
   ResolvedKoombiyoAddress,
 } from './KoombiyoApiClient';
+import { withWaybillLock } from '../../utils/waybillLock';
 
 export interface OfficialDispatchPayload {
   waybillId?: string;
   notes?: string;
   admin?: string;
+}
+
+// In-memory set tracking waybills currently reserved / in-flight during API calls
+const inFlightWaybills = new Set<string>();
+
+/**
+ * Reusable Sri Lankan phone number normalizer and validator for courier delivery.
+ *
+ * Accepted inputs:
+ * - Local 10-digit: "0771234567" -> "0771234567"
+ * - International with +: "+94771234567" -> "0771234567"
+ * - International without +: "94771234567" -> "0771234567"
+ * - 9-digit without leading 0: "771234567" -> "0771234567"
+ * - Formatted with spaces/hyphens: "077 123 4567" -> "0771234567"
+ *
+ * Throws a clear Error for invalid numbers (e.g., non-numeric, too short/long, invalid prefix).
+ */
+export function normalizeSriLankanPhone(rawPhone: string | undefined | null): string {
+  if (!rawPhone || typeof rawPhone !== 'string' || !rawPhone.trim()) {
+    throw new Error('Customer phone number is required for courier delivery.');
+  }
+
+  // Strip all non-digit characters (+, spaces, hyphens, brackets)
+  let digits = rawPhone.replace(/\D/g, '');
+
+  // Strip international country code prefix 94
+  if (digits.startsWith('94')) {
+    digits = digits.slice(2);
+  }
+
+  // If 9 digits provided (missing leading 0, e.g. 771234567), prepend 0
+  if (digits.length === 9) {
+    digits = '0' + digits;
+  }
+
+  // Sri Lankan phone numbers must be exactly 10 digits starting with 0 followed by 1-9 (e.g., 07XXXXXXXX)
+  if (!/^0[1-9]\d{8}$/.test(digits)) {
+    // Do not expose the raw input in the error message for privacy
+    throw new Error('Invalid Sri Lankan phone number format. Must be a valid 10-digit number (e.g., 07XXXXXXXX or +947XXXXXXXX).');
+  }
+
+  return digits;
 }
 
 /**
@@ -34,7 +78,7 @@ export interface OfficialDispatchPayload {
  */
 export class KoombiyoCourierService {
   private static instance: KoombiyoCourierService;
-  private orderRepo: OrderRepository;
+  public orderRepo: OrderRepository;
 
   private constructor() {
     this.orderRepo = new OrderRepository();
@@ -314,6 +358,7 @@ export class KoombiyoCourierService {
 
   /**
    * Find available, unassigned active waybills for dispatch.
+   * Checks database records and active in-flight allocations.
    */
   public async getAvailableWaybills(): Promise<string[]> {
     if (!this.hasOfficialCredentials()) {
@@ -333,7 +378,7 @@ export class KoombiyoCourierService {
 
     return (activeRes.waybills || [])
       .map((w) => String(w.waybill_id).trim())
-      .filter((wb) => !usedWaybills.has(wb));
+      .filter((wb) => !usedWaybills.has(wb) && !inFlightWaybills.has(wb));
   }
 
   /**
@@ -355,47 +400,119 @@ export class KoombiyoCourierService {
       throw new Error(`Order ${orderId} not found`);
     }
 
-    // Duplicate shipment guard
-    if (existing.courierDetails?.waybillNumber && existing.status !== 'CANCELLED') {
+    // 1. Duplicate shipment guard
+    if (existing.courierDetails?.waybillNumber && existing.status !== 'CANCELLED' && existing.courierDetails?.deliveryStatus !== 'DISPATCH_UNCERTAIN') {
       throw new Error(`Order #${existing.orderNumber} is already dispatched with Waybill #${existing.courierDetails.waybillNumber}. Duplicate dispatch prevented.`);
     }
 
-    const adminUser = payload.admin || 'Admin Staff';
-    const districtName = existing.shippingAddress?.district || 'Colombo';
-    const cityName = existing.shippingAddress?.city || 'Colombo 03';
-
-    // 1. Resolve address using official Koombiyo endpoints (districts, cities, delivery_rates)
-    const resolved = await koombiyoApiClient.resolveAddress(districtName, cityName);
-    if (!resolved) {
-      throw new Error(`Unable to map customer delivery address ("${cityName}, ${districtName}") to official Koombiyo delivery locations. Please verify the address with the customer.`);
+    // Guard against pending uncertain dispatch
+    if (existing.courierDetails?.dispatchUncertain) {
+      throw new Error(
+        `Order #${existing.orderNumber} has an uncertain dispatch outcome with Waybill #${existing.courierDetails.waybillNumber} from a previous request timeout. Please verify with the Koombiyo portal or run reconciliation before attempting to re-dispatch.`
+      );
     }
 
-    // 2. Obtain an active allocated waybill
-    let waybillToUse = (payload.waybillId || '').trim();
-    if (!waybillToUse) {
-      const available = await this.getAvailableWaybills();
-      if (available.length === 0) {
-        throw new Error('No active Koombiyo waybills available on your account. Please request new waybills from Koombiyo portal or API.');
-      }
-      waybillToUse = available[0];
-    }
-
-    // 3. Prepare payload for /add_order
+    // 2. Payment Method Guard: Official Koombiyo automated API dispatch only supports COD orders
     const isCod =
       existing.paymentMethod === 'CASH_ON_DELIVERY' ||
       existing.paymentMethod?.toLowerCase().includes('cash') ||
       existing.paymentMethod?.toLowerCase().includes('cod');
 
-    const codAmountToCollect = isCod ? (existing.amountToCollect ?? existing.totalAmount) : 0;
+    if (!isCod) {
+      throw new Error(
+        `Automated dispatch via Koombiyo API is restricted to Cash on Delivery (COD) orders (LKR 100 – 500,000) per official Koombiyo API specifications. Order #${existing.orderNumber} is prepaid via ${existing.paymentMethod}. Please book prepaid deliveries manually via the Koombiyo Merchant Portal, or contact Koombiyo support to verify prepaid API specifications.`
+      );
+    }
+
+    const adminUser = payload.admin || 'Admin Staff';
+
+    // 3. Customer Information Validation
+    const customerName = (existing.shippingAddress?.recipientName || existing.customerName || '').trim();
+    if (!customerName) {
+      throw new Error('Customer recipient name is required for Koombiyo dispatch.');
+    }
+
+    const rawPhone = existing.shippingAddress?.phone || existing.phone;
+    if (!rawPhone || !rawPhone.trim()) {
+      throw new Error('Customer phone number is required for courier delivery.');
+    }
+    const normalizedPhone = normalizeSriLankanPhone(rawPhone);
+
+    const streetAddress = (existing.shippingAddress?.street || '').trim();
+    const districtName = (existing.shippingAddress?.district || '').trim();
+    const cityName = (existing.shippingAddress?.city || '').trim();
+
+    if (!streetAddress) {
+      throw new Error('Customer delivery street address is required for Koombiyo dispatch.');
+    }
+    if (!districtName || !cityName) {
+      throw new Error('Customer delivery district and city are required for Koombiyo dispatch.');
+    }
+
+    // 4. Validate COD limits as per Koombiyo documentation: LKR 100 to 500,000
+    const codAmountToCollect = existing.amountToCollect ?? existing.totalAmount;
+    if (codAmountToCollect < 100 || codAmountToCollect > 500000) {
+      throw new Error(`Invalid COD amount: LKR ${codAmountToCollect}. Koombiyo limits are Minimum LKR 100, Maximum LKR 500,000.`);
+    }
+
+    // 5. Resolve address using official Koombiyo endpoints (districts, cities, delivery_rates)
+    const resolved = await koombiyoApiClient.resolveAddress(districtName, cityName);
+    if (!resolved || resolved.confidence === 'APPROXIMATE' || resolved.confidence === 'UNMAPPED') {
+      throw new Error(
+        `Unable to confidently match customer delivery location ("${cityName}", "${districtName}") to an official Koombiyo city (Match Confidence: ${resolved?.confidence || 'UNMAPPED'}). Automated dispatch is blocked to prevent routing errors. Please verify the destination city with the customer and select a confirmed Koombiyo city before dispatching.`
+      );
+    }
+
+    // 6. Obtain and reserve an active allocated waybill under concurrency lock
+    let waybillToUse = (payload.waybillId || '').trim();
+
+    await withWaybillLock(async () => {
+      // Re-check order status inside mutex to prevent race condition on the same order
+      const freshOrder = await this.orderRepo.findById(orderId);
+      if (freshOrder?.courierDetails?.waybillNumber && freshOrder.status !== 'CANCELLED' && freshOrder.courierDetails?.deliveryStatus !== 'DISPATCH_UNCERTAIN') {
+        throw new Error(`Order #${freshOrder.orderNumber} is already dispatched with Waybill #${freshOrder.courierDetails.waybillNumber}. Duplicate dispatch prevented.`);
+      }
+
+      if (!waybillToUse) {
+        if (process.env.USE_POSTGRES === 'true') {
+          // Database-level locking: SELECT ... FOR UPDATE SKIP LOCKED
+          waybillToUse = await postgresWaybillRepository.reserveNextAvailableWaybill('KOOMBIYO');
+        } else {
+          const available = await this.getAvailableWaybills();
+          if (available.length === 0) {
+            throw new Error('No active Koombiyo waybills available on your account. Please request new waybills from Koombiyo portal or API.');
+          }
+          waybillToUse = available[0];
+        }
+      } else {
+        // Verify requested waybill is not already allocated or in flight
+        const allOrders = await this.orderRepo.findAll();
+        const inUse = allOrders.some(
+          (o) =>
+            o.id !== orderId &&
+            ((o.trackingNumber && o.trackingNumber.trim() === waybillToUse) ||
+              (o.courierDetails?.waybillNumber && o.courierDetails.waybillNumber.trim() === waybillToUse))
+        ) || inFlightWaybills.has(waybillToUse);
+
+        if (inUse) {
+          throw new Error(`Waybill #${waybillToUse} is already assigned or in-use by another order.`);
+        }
+      }
+
+      // Reserve waybill in flight
+      inFlightWaybills.add(waybillToUse);
+    });
+
+    // 7. Prepare payload for /add_order
     const productVal = existing.totalAmount;
     const itemsSummary = existing.items?.map((i) => `${i.title} (${i.quantity}x)`).join(', ') || 'REXBEBE Babywear';
 
     const addOrderPayload: KoombiyoAddOrderPayload = {
       waybill_id: waybillToUse,
       order_number: existing.orderNumber,
-      customer_name: existing.shippingAddress?.recipientName || existing.customerName,
-      customer_phone: (existing.shippingAddress?.phone || existing.phone || '').replace(/[^0-9]/g, ''),
-      customer_address: `${existing.shippingAddress?.street || ''}, ${existing.shippingAddress?.city || ''}`.trim(),
+      customer_name: customerName,
+      customer_phone: normalizedPhone,
+      customer_address: `${streetAddress}, ${cityName}`.trim(),
       customer_city_id: resolved.cityId,
       customer_city_name: resolved.cityName,
       customer_district_id: resolved.districtId,
@@ -409,55 +526,201 @@ export class KoombiyoCourierService {
       ].filter(Boolean).join(' | '),
     };
 
-    // 4. Submit to Koombiyo API
-    await koombiyoApiClient.addOrder(addOrderPayload);
+    // 8. Submit to Koombiyo API outside database locks
+    try {
+      await koombiyoApiClient.addOrder(addOrderPayload);
 
-    // 5. Update database order record atomically
-    const nowIso = new Date().toISOString();
-    const trackingUrl = this.generateTrackingUrl(waybillToUse);
+      // 9. Update database order record atomically
+      const nowIso = new Date().toISOString();
+      const trackingUrl = this.generateTrackingUrl(waybillToUse);
 
-    existing.carrier = 'Koombiyo Delivery';
-    existing.trackingNumber = waybillToUse;
-    existing.status = 'READY_TO_SHIP';
-    existing.updatedAt = nowIso;
+      existing.carrier = 'Koombiyo Delivery';
+      existing.trackingNumber = waybillToUse;
+      existing.status = 'READY_TO_SHIP';
+      existing.updatedAt = nowIso;
 
-    if (!existing.courierDetails) {
-      existing.courierDetails = {};
+      if (!existing.courierDetails) {
+        existing.courierDetails = {};
+      }
+
+      existing.courierDetails = {
+        ...existing.courierDetails,
+        courierProvider: 'Koombiyo Delivery',
+        bookingType: 'API',
+        waybillNumber: waybillToUse,
+        trackingUrl,
+        deliveryStatus: 'READY_FOR_PICKUP',
+        bookingDate: nowIso.slice(0, 10),
+        pickupDate: nowIso.slice(0, 10),
+        dispatchDate: nowIso.slice(0, 10),
+        deliveryFee: resolved.deliveryCharge,
+        codAmountToCollect: isCod ? codAmountToCollect : 0,
+        codCollectionStatus: isCod ? 'COLLECTION_PENDING' : 'PENDING',
+        codRemittanceStatus: 'PENDING_REMITTANCE',
+        courierNotes: payload.notes || existing.courierDetails.courierNotes,
+        dispatchUncertain: false,
+      };
+
+      if (!existing.timeline) existing.timeline = [];
+      existing.timeline.push({
+        status: 'READY_FOR_PICKUP',
+        time: nowIso,
+        note: `Official Koombiyo Order Dispatched. Waybill #${waybillToUse} assigned. Destination: ${resolved.cityName}, ${resolved.districtName} (Rate: LKR ${resolved.deliveryCharge}). Awaiting rider pickup.`,
+        admin: adminUser,
+      });
+
+      const updated = await this.orderRepo.updateOrder(existing.id, existing);
+
+      if (process.env.USE_POSTGRES === 'true') {
+        await postgresWaybillRepository.assignWaybill(waybillToUse, existing.id, existing.orderNumber);
+      }
+
+      return {
+        order: updated || existing,
+        waybillId: waybillToUse,
+        trackingUrl,
+        resolvedAddress: resolved,
+      };
+    } catch (apiErr: any) {
+      const isTimeout =
+        apiErr.message?.includes('timed out') ||
+        apiErr.name === 'TimeoutError' ||
+        apiErr.name === 'AbortError';
+
+      if (isTimeout) {
+        // Handle uncertain API outcome safely: retain waybill to prevent duplicate dispatch
+        const nowIso = new Date().toISOString();
+        existing.courierDetails = {
+          ...existing.courierDetails,
+          courierProvider: 'Koombiyo Delivery',
+          bookingType: 'API',
+          waybillNumber: waybillToUse,
+          deliveryStatus: 'DISPATCH_UNCERTAIN' as any,
+          dispatchUncertain: true,
+          uncertainReason: apiErr.message,
+          dispatchAttemptedAt: nowIso,
+        };
+        if (!existing.timeline) existing.timeline = [];
+        existing.timeline.push({
+          status: 'DISPATCH_UNCERTAIN',
+          time: nowIso,
+          note: `Koombiyo API request timed out after 15 seconds for Waybill #${waybillToUse}. Dispatch status is UNCERTAIN. Order is retained with this waybill to prevent duplicate dispatch. Please verify in Koombiyo Merchant Portal or reconcile tracking before retrying.`,
+          admin: adminUser,
+        });
+        await this.orderRepo.updateOrder(existing.id, existing);
+
+        if (process.env.USE_POSTGRES === 'true') {
+          await postgresWaybillRepository.markWaybillUncertain(waybillToUse, existing.id, existing.orderNumber, apiErr.message);
+        }
+
+        throw new Error(
+          `Koombiyo API request timed out for Waybill #${waybillToUse}. Dispatch status is UNCERTAIN. To prevent duplicate shipments, the waybill has been retained on this order. Please verify if the order appears in the Koombiyo Merchant Portal or run live tracking reconciliation.`
+        );
+      } else {
+        if (process.env.USE_POSTGRES === 'true') {
+          await postgresWaybillRepository.releaseReservation(waybillToUse);
+        }
+        // Definite failure: re-throw error
+        throw apiErr;
+      }
+    } finally {
+      // Clean up in-flight reservation
+      inFlightWaybills.delete(waybillToUse);
+    }
+  }
+
+  /**
+   * Reconcile an order whose dispatch outcome was uncertain due to API timeout.
+   * Checks Koombiyo API for the waybill. If order exists on Koombiyo, marks order as dispatched.
+   * If order does not exist (404), clears waybill so it can be re-dispatched safely.
+   */
+  public async reconcileUncertainDispatch(
+    orderId: string,
+    admin: string = 'Admin Staff',
+    forceClear: boolean = false
+  ): Promise<{ reconciled: boolean; status: string; message: string }> {
+    const order = await this.orderRepo.findById(orderId);
+    if (!order) {
+      throw new Error(`Order ${orderId} not found`);
     }
 
-    existing.courierDetails = {
-      ...existing.courierDetails,
-      courierProvider: 'Koombiyo Delivery',
-      bookingType: 'API',
-      waybillNumber: waybillToUse,
-      trackingUrl,
-      deliveryStatus: 'READY_FOR_PICKUP',
-      bookingDate: nowIso.slice(0, 10),
-      pickupDate: nowIso.slice(0, 10),
-      dispatchDate: nowIso.slice(0, 10),
-      deliveryFee: resolved.deliveryCharge,
-      codAmountToCollect: isCod ? codAmountToCollect : 0,
-      codCollectionStatus: isCod ? 'COLLECTION_PENDING' : 'PENDING',
-      codRemittanceStatus: 'PENDING_REMITTANCE',
-      courierNotes: payload.notes || existing.courierDetails.courierNotes,
-    };
+    const waybill = order.courierDetails?.waybillNumber || order.trackingNumber;
+    if (!waybill) {
+      return { reconciled: false, status: 'NO_WAYBILL', message: 'Order has no waybill to reconcile.' };
+    }
 
-    if (!existing.timeline) existing.timeline = [];
-    existing.timeline.push({
-      status: 'READY_FOR_PICKUP',
-      time: nowIso,
-      note: `Official Koombiyo Order Dispatched. Waybill #${waybillToUse} assigned. Destination: ${resolved.cityName}, ${resolved.districtName} (Rate: LKR ${resolved.deliveryCharge}). Awaiting rider pickup.`,
-      admin: adminUser,
-    });
+    try {
+      const details = await koombiyoApiClient.getOrderDetails(waybill);
+      const nowIso = new Date().toISOString();
 
-    const updated = await this.orderRepo.updateOrder(existing.id, existing);
+      if (details && details.orderDetails) {
+        // Order was confirmed on Koombiyo
+        order.courierDetails = {
+          ...order.courierDetails,
+          deliveryStatus: 'READY_FOR_PICKUP',
+          dispatchUncertain: false,
+          uncertainReason: undefined,
+        };
+        order.status = 'READY_TO_SHIP';
+        order.timeline = order.timeline || [];
+        order.timeline.push({
+          status: 'READY_FOR_PICKUP',
+          time: nowIso,
+          note: `Reconciliation confirmed: Order was accepted by Koombiyo (Waybill #${waybill}). Marked Ready to Ship.`,
+          admin,
+        });
+        await this.orderRepo.updateOrder(order.id, order);
+        return {
+          reconciled: true,
+          status: 'CONFIRMED_DISPATCHED',
+          message: `Reconciliation successful: Waybill #${waybill} was confirmed on Koombiyo. Order marked Ready to Ship.`,
+        };
+      } else {
+        // Order was not found on Koombiyo
+        if (!forceClear) {
+          // DEFENSIVE GUARD: Avoid blindly wiping waybill due to possible asynchronous ingestion delays on Koombiyo
+          order.timeline = order.timeline || [];
+          order.timeline.push({
+            status: 'DISPATCH_UNCERTAIN',
+            time: nowIso,
+            note: `Reconciliation query: Waybill #${waybill} was NOT found on Koombiyo API. Status remains DISPATCH_UNCERTAIN to prevent duplicate dispatches in case of ingestion delays. Verify in Koombiyo Merchant Portal before force-clearing.`,
+            admin,
+          });
+          await this.orderRepo.updateOrder(order.id, order);
 
-    return {
-      order: updated || existing,
-      waybillId: waybillToUse,
-      trackingUrl,
-      resolvedAddress: resolved,
-    };
+          return {
+            reconciled: false,
+            status: 'STILL_UNCERTAIN',
+            message: `Waybill #${waybill} was not found on Koombiyo API. It may still be processing. Order remains marked DISPATCH_UNCERTAIN to prevent duplicate dispatches. Please check the Koombiyo Merchant Portal manually. If confirmed absent, pass forceClear: true to clear the waybill for re-dispatch.`,
+          };
+        }
+
+        // Admin confirmed absent with forceClear
+        order.courierDetails = {
+          ...order.courierDetails,
+          waybillNumber: undefined,
+          deliveryStatus: 'NOT_BOOKED',
+          dispatchUncertain: false,
+          uncertainReason: undefined,
+        };
+        order.trackingNumber = undefined;
+        order.timeline = order.timeline || [];
+        order.timeline.push({
+          status: 'NOT_BOOKED',
+          time: nowIso,
+          note: `Manual reconciliation override: Waybill #${waybill} confirmed absent and force-cleared by ${admin}. Order reset for safe re-dispatch.`,
+          admin,
+        });
+        await this.orderRepo.updateOrder(order.id, order);
+        return {
+          reconciled: true,
+          status: 'CLEARED_FOR_REDISPATCH',
+          message: `Manual override complete: Waybill #${waybill} confirmed absent and force-cleared. Order cleared for safe re-dispatch.`,
+        };
+      }
+    } catch (err: any) {
+      throw new Error(`Reconciliation query failed: ${err.message}`);
+    }
   }
 
   // =========================================================================
@@ -549,16 +812,26 @@ export class KoombiyoCourierService {
 
   /**
    * Process inbound webhook status notification sent from Koombiyo servers.
+   * Enforces payload validation, idempotency/duplicate event protection, and lifecycle synchronization.
    */
   public async handleWebhook(payload: KoombiyoWebhookPayload): Promise<{
     success: boolean;
     orderNumber?: string;
     newDeliveryStatus: CourierDeliveryStatus;
     message: string;
+    isDuplicate?: boolean;
   }> {
+    if (!payload || typeof payload !== 'object') {
+      throw new Error('Invalid webhook payload structure');
+    }
+
     const waybillId = String(payload.waybill_id || '').trim();
     if (!waybillId) {
       throw new Error('Missing waybill_id in webhook payload');
+    }
+
+    if (!payload.status && payload.status_id === undefined) {
+      throw new Error('Missing status or status_id in webhook payload');
     }
 
     const allOrders = await this.orderRepo.findAll();
@@ -571,17 +844,37 @@ export class KoombiyoCourierService {
     const mappedStatus = this.mapKoombiyoStatus(payload.status, payload.status_id);
 
     if (!order) {
-      // Order may be outside this database or created directly on portal
-      console.warn(`[Koombiyo Webhook] Received status "${payload.status}" for unlinked waybill #${waybillId}`);
+      // Order is unlinked to any local order: refuse to modify any database record!
+      console.warn(`[Koombiyo Webhook] Received status "${payload.status}" for unlinked waybill #${waybillId}. No order updated.`);
+      return {
+        success: false,
+        newDeliveryStatus: mappedStatus,
+        message: `Waybill #${waybillId} is not linked to any local REXBEBE order record. No order was updated.`,
+      };
+    }
+
+    // Event deduplication using provider fields: waybill_id + status + status_date
+    const statusDate = payload.status_date ? String(payload.status_date).trim() : '';
+    const isAlreadyCurrentStatus = order.courierDetails?.deliveryStatus === mappedStatus;
+    const lastProcessedDate = (order.courierDetails as any)?.lastWebhookStatusDate || '';
+
+    const isDuplicateEvent =
+      isAlreadyCurrentStatus &&
+      ((statusDate && statusDate === lastProcessedDate) ||
+        (!statusDate && (order.timeline || []).some((t) => t.note?.includes(`Status changed to "${payload.status}"`))));
+
+    if (isDuplicateEvent) {
       return {
         success: true,
+        orderNumber: order.orderNumber,
         newDeliveryStatus: mappedStatus,
-        message: `Waybill #${waybillId} status recorded, but not linked to a local REXBEBE order record.`,
+        message: `Webhook event for waybill #${waybillId} with status "${payload.status}" was already processed (duplicate ignored).`,
+        isDuplicate: true,
       };
     }
 
     const nowIso = new Date().toISOString();
-    const statusDate = payload.status_date || nowIso;
+    const effectiveStatusDate = statusDate || nowIso;
     const isCod =
       order.paymentMethod === 'CASH_ON_DELIVERY' ||
       order.paymentMethod?.toLowerCase().includes('cash') ||
@@ -592,6 +885,9 @@ export class KoombiyoCourierService {
     }
 
     order.courierDetails.deliveryStatus = mappedStatus;
+    (order.courierDetails as any).lastWebhookStatusDate = effectiveStatusDate;
+    (order.courierDetails as any).lastWebhookProcessedAt = nowIso;
+
     if (payload.weight) {
       order.courierDetails.parcelWeight = Number(payload.weight);
     }
@@ -608,11 +904,10 @@ export class KoombiyoCourierService {
     switch (mappedStatus) {
       case 'DELIVERED':
         order.status = 'DELIVERED';
-        order.courierDetails.deliveredDate = statusDate;
+        order.courierDetails.deliveredDate = effectiveStatusDate;
         if (isCod) {
-          // Parcel delivered and cash collected at doorstep by the courier rider.
-          // IMPORTANT: Cash is in courier custody and has NOT yet been remitted to merchant's bank account.
-          // Do not mark paymentStatus as PAID or COD as settled until actual bank remittance is verified!
+          // Cash collected at doorstep by the courier rider.
+          // Note: Cash is in courier custody and not yet remitted to bank account.
           order.codCollectionStatus = 'COLLECTED_BY_COURIER';
           order.courierDetails.codCollectionStatus = 'COLLECTED_BY_COURIER';
           order.codSettlementStatus = 'PENDING_REMITTANCE';
@@ -622,7 +917,7 @@ export class KoombiyoCourierService {
             order.paymentStatus = 'COD_PENDING';
           }
         } else {
-          // Prepaid orders (Credit Card, Online Gateways) are confirmed paid
+          // Prepaid orders confirmed paid
           order.paymentStatus = 'PAID';
         }
         break;
@@ -633,7 +928,7 @@ export class KoombiyoCourierService {
 
       case 'RETURNED_TO_SENDER':
         order.status = 'RETURNED';
-        order.courierDetails.returnedDate = statusDate;
+        order.courierDetails.returnedDate = effectiveStatusDate;
         order.courierDetails.returnReason = payload.reason || 'Returned to warehouse via webhook';
         if (isCod) {
           order.codCollectionStatus = 'COLLECTION_DISPUTED';
@@ -646,7 +941,7 @@ export class KoombiyoCourierService {
         const attempts = order.courierDetails.deliveryAttempts || [];
         attempts.push({
           attemptNumber: attempts.length + 1,
-          date: statusDate,
+          date: effectiveStatusDate,
           reason: payload.reason || 'Attempt failed reported by Koombiyo webhook',
           admin: 'Koombiyo Automated Webhook',
           notes: payload.reason,
@@ -683,6 +978,7 @@ export class KoombiyoCourierService {
       orderNumber: order.orderNumber,
       newDeliveryStatus: mappedStatus,
       message: `Order #${order.orderNumber} successfully updated to "${mappedStatus}".`,
+      isDuplicate: false,
     };
   }
 }

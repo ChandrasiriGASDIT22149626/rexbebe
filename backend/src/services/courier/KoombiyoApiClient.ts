@@ -160,9 +160,11 @@ export class KoombiyoApiClient {
         if (this.refreshToken) {
           try {
             const refreshRes = await this.rawPost('/refresh_token', { refresh_token: this.refreshToken });
-            if (refreshRes.status === 200 && refreshRes.data?.data?.accessToken) {
-              this.accessToken = refreshRes.data.data.accessToken;
-              this.refreshToken = refreshRes.data.data.refreshToken || this.refreshToken;
+            const refData = refreshRes.data?.data || refreshRes.data || {};
+            const refToken = refData.accessToken || refData.access_token || refData.token;
+            if (refreshRes.status === 200 && refToken) {
+              this.accessToken = refToken;
+              this.refreshToken = refData.refreshToken || refData.refresh_token || this.refreshToken;
               this.tokenExpiry = this.extractJwtExpiry(this.accessToken!);
               return this.accessToken!;
             }
@@ -177,13 +179,16 @@ export class KoombiyoApiClient {
           password: this.apiPassword,
         });
 
-        if (loginRes.status !== 200 || !loginRes.data?.data?.accessToken) {
+        const logData = loginRes.data?.data || loginRes.data || {};
+        const logToken = logData.accessToken || logData.access_token || logData.token;
+
+        if (loginRes.status !== 200 || !logToken) {
           const errMsg = loginRes.data?.message || `HTTP ${loginRes.status}`;
           throw new Error(`Koombiyo authentication failed: ${errMsg}`);
         }
 
-        this.accessToken = loginRes.data.data.accessToken;
-        this.refreshToken = loginRes.data.data.refreshToken || null;
+        this.accessToken = logToken;
+        this.refreshToken = logData.refreshToken || logData.refresh_token || null;
         this.tokenExpiry = this.extractJwtExpiry(this.accessToken!);
         return this.accessToken!;
       } finally {
@@ -196,11 +201,13 @@ export class KoombiyoApiClient {
 
   /**
    * Make a raw HTTP POST request to the Koombiyo API (without bearer token auth).
+   * Includes configurable AbortSignal timeout to prevent hanging connections.
    */
   private async rawPost(
     endpoint: string,
     body: Record<string, any> = {},
-    customHeaders: Record<string, string> = {}
+    customHeaders: Record<string, string> = {},
+    timeoutMs: number = 15000
   ): Promise<{ status: number; data: any }> {
     const url = `${this.baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
     const payloadStr = JSON.stringify(body);
@@ -211,21 +218,29 @@ export class KoombiyoApiClient {
       ...customHeaders,
     };
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: payloadStr,
-    });
-
-    let json: any = null;
-    const text = await res.text();
     try {
-      json = JSON.parse(text);
-    } catch {
-      json = { raw: text };
-    }
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: payloadStr,
+        signal: AbortSignal.timeout(timeoutMs),
+      });
 
-    return { status: res.status, data: json };
+      let json: any = null;
+      const text = await res.text();
+      try {
+        json = JSON.parse(text);
+      } catch {
+        json = { raw: text };
+      }
+
+      return { status: res.status, data: json };
+    } catch (err: any) {
+      if (err.name === 'TimeoutError' || err.name === 'AbortError') {
+        throw new Error(`Koombiyo API request to ${endpoint} timed out after ${timeoutMs / 1000} seconds.`);
+      }
+      throw new Error(`Koombiyo API connection error (${endpoint}): ${err.message}`);
+    }
   }
 
   /**
@@ -440,10 +455,8 @@ export class KoombiyoApiClient {
   }> {
     // Validate COD limits as per PDF page 9: Minimum LKR 100, Maximum LKR 500,000
     const codVal = Number(payload.cod_amount || 0);
-    if (codVal > 0) {
-      if (codVal < 100 || codVal > 500000) {
-        throw new Error(`Invalid COD amount: LKR ${codVal}. Koombiyo limits are Minimum LKR 100, Maximum LKR 500,000.`);
-      }
+    if (codVal < 100 || codVal > 500000) {
+      throw new Error(`Invalid COD amount: LKR ${codVal}. Koombiyo limits are Minimum LKR 100, Maximum LKR 500,000.`);
     }
 
     if (!payload.waybill_id || !payload.waybill_id.trim()) {
@@ -491,6 +504,18 @@ export class KoombiyoApiClient {
     }
 
     const errorMsg = res.data?.message || `HTTP ${res.status}`;
+    if (errorMsg.includes('Not Belong to You')) {
+      throw new Error(`Koombiyo dispatch failed: Waybill #${payload.waybill_id} is not allocated to this merchant account.`);
+    }
+    if (errorMsg.includes('already exists')) {
+      throw new Error(`Koombiyo dispatch failed: Waybill #${payload.waybill_id} has already been used on another order.`);
+    }
+    if (errorMsg.includes('banned')) {
+      throw new Error(`Koombiyo dispatch failed: Recipient customer has been restricted by courier.`);
+    }
+    if (errorMsg.includes('phone') || errorMsg.includes('Phone')) {
+      throw new Error(`Koombiyo dispatch failed: Customer phone number was rejected by provider (${errorMsg}).`);
+    }
     throw new Error(`Koombiyo /add_order failed: ${errorMsg}`);
   }
 
@@ -592,28 +617,36 @@ export class KoombiyoApiClient {
     const token = await this.getValidToken();
     const url = `${this.baseUrl}/single_pod`;
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        waybill_id: String(waybillId).trim(),
-        format,
-      }),
-    });
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          waybill_id: String(waybillId).trim(),
+          format,
+        }),
+        signal: AbortSignal.timeout(15000),
+      });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Failed to generate POD PDF (${res.status}): ${errText}`);
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Failed to generate POD PDF (${res.status}): ${errText}`);
+      }
+
+      const arrayBuffer = await res.arrayBuffer();
+      return {
+        buffer: Buffer.from(arrayBuffer),
+        contentType: res.headers.get('content-type') || 'application/pdf',
+      };
+    } catch (err: any) {
+      if (err.name === 'TimeoutError' || err.name === 'AbortError') {
+        throw new Error('Koombiyo POD generation request timed out after 15 seconds.');
+      }
+      throw err;
     }
-
-    const arrayBuffer = await res.arrayBuffer();
-    return {
-      buffer: Buffer.from(arrayBuffer),
-      contentType: res.headers.get('content-type') || 'application/pdf',
-    };
   }
 
   // =========================================================================

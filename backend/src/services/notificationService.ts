@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '../utils/logger';
 import { AuditService } from './auditService';
+import { postgresNotificationRepository } from '../repositories/postgres/PostgresNotificationRepository';
 
 export type NotificationChannel = 'EMAIL' | 'SMS' | 'WHATSAPP';
 export type NotificationEventType =
@@ -218,6 +219,9 @@ export class NotificationService {
     };
 
     // Save to persistent notification log
+    if (process.env.USE_POSTGRES === 'true') {
+      postgresNotificationRepository.recordNotification(record).catch(() => {});
+    }
     const all = this.readFromDisk();
     all.unshift(record);
     if (all.length > 2000) all.length = 2000;

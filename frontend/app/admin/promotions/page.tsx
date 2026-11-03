@@ -22,6 +22,7 @@ import { AdminHeader } from '../../../components/layout/AdminHeader';
 import { useAdminData } from '../../../hooks/AdminContext';
 import { Product } from '../../../types/product';
 import { formatCurrency } from '../../../utils/formatCurrency';
+import { PromotionalPopupManager } from '../../../components/admin/PromotionalPopupManager';
 
 export default function AdminPromotionsPage() {
   const {
@@ -31,7 +32,7 @@ export default function AdminPromotionsPage() {
     toggleBestSeller,
   } = useAdminData();
 
-  const [activeTab, setActiveTab] = useState<'sale' | 'new-in' | 'best-sellers'>('sale');
+  const [activeTab, setActiveTab] = useState<'popup' | 'sale' | 'new-in' | 'best-sellers'>('popup');
   const [searchQuery, setSearchQuery] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -174,8 +175,21 @@ export default function AdminPromotionsPage() {
             <div className="flex items-center space-x-2 overflow-x-auto pb-1 md:pb-0">
               <button
                 type="button"
+                onClick={() => setActiveTab('popup')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shrink-0 ${
+                  activeTab === 'popup'
+                    ? 'bg-pink-600 text-white shadow-2xs'
+                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Promotional Popup Management</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setActiveTab('sale')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shrink-0 ${
                   activeTab === 'sale'
                     ? 'bg-rose-700 text-white shadow-2xs'
                     : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
@@ -190,7 +204,7 @@ export default function AdminPromotionsPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('new-in')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shrink-0 ${
                   activeTab === 'new-in'
                     ? 'bg-amber-800 text-white shadow-2xs'
                     : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
@@ -205,7 +219,7 @@ export default function AdminPromotionsPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('best-sellers')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shrink-0 ${
                   activeTab === 'best-sellers'
                     ? 'bg-emerald-700 text-white shadow-2xs'
                     : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
@@ -218,20 +232,24 @@ export default function AdminPromotionsPage() {
               </button>
             </div>
 
-            <div className="relative max-w-xs w-full">
-              <Search className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                placeholder="Search baby outfit name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
-              />
-            </div>
+            {activeTab !== 'popup' && (
+              <div className="relative max-w-xs w-full">
+                <Search className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search baby outfit name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                />
+              </div>
+            )}
           </div>
 
-          {/* Product Items Table */}
-          <div className="bg-white rounded-3xl border border-stone-200/80 overflow-hidden shadow-2xs">
+          {activeTab === 'popup' ? (
+            <PromotionalPopupManager onShowToast={showToast} />
+          ) : (
+            <div className="bg-white rounded-3xl border border-stone-200/80 overflow-hidden shadow-2xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="bg-[#FAF9F6] border-b border-stone-200 text-stone-600 uppercase text-[10px] tracking-wider font-extrabold select-none">
@@ -406,6 +424,7 @@ export default function AdminPromotionsPage() {
               </table>
             </div>
           </div>
+          )}
         </main>
       </div>
 

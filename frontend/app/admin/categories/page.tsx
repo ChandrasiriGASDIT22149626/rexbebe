@@ -51,6 +51,11 @@ export default function AdminCategoriesPage() {
   // Status Filter: 'all' | 'active' | 'inactive'
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
+  // Subcategories section quick add form
+  const [quickSubParentId, setQuickSubParentId] = useState<string>('');
+  const [quickSubName, setQuickSubName] = useState<string>('');
+  const [isSavingQuickSub, setIsSavingQuickSub] = useState<boolean>(false);
+
   // Modal states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'main' | 'sub'>('main');
@@ -323,7 +328,54 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  // Save changes (Create or Update)
+  // Quick Add Subcategory directly from Subcategories section
+  const handleQuickAddSubcategory = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const parentId = quickSubParentId || (mainCategories[0]?.id ?? '');
+    if (!parentId) {
+      showToast('Please select a Main Category first.', 'error');
+      return;
+    }
+    if (!quickSubName.trim()) {
+      showToast('Please enter a Subcategory Name.', 'error');
+      return;
+    }
+
+    setIsSavingQuickSub(true);
+    try {
+      const cleanSlug = quickSubName
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+      const existingSubs = subcategoriesByParent.get(parentId) || [];
+      const payload: Partial<CategoryItem> = {
+        name: quickSubName.trim(),
+        slug: cleanSlug,
+        parentId: parentId,
+        order: existingSubs.length + 1,
+        isActive: true,
+        status: 'published',
+        href: `/shop/${cleanSlug}`,
+      };
+
+      await categoryService.createCategory(payload);
+      const parentName = mainCategories.find((m) => m.id === parentId)?.name || 'Main Category';
+      showToast(`Subcategory "${quickSubName.trim()}" created successfully under "${parentName}".`);
+      setQuickSubName('');
+      await loadCategories();
+      await refreshNavigationConfig();
+      await refreshProducts();
+    } catch (err: any) {
+      console.error('Failed to create subcategory:', err);
+      showToast(err.message || 'Failed to create subcategory.', 'error');
+    } finally {
+      setIsSavingQuickSub(false);
+    }
+  };
+
+  // Save changes (Create or Update from Modal)
   const handleSaveForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
@@ -338,43 +390,33 @@ export default function AdminCategoriesPage() {
 
     setIsSaving(true);
     try {
-      const cleanSlug = formSlug.trim()
-        ? formSlug
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '')
-        : formName
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
-
-      const parentItem = formMode === 'sub' ? mainCategories.find((c) => c.id === formParentId) : null;
+      const cleanSlug = formName
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
 
       const payload: Partial<CategoryItem> = {
         name: formName.trim(),
-        slug: cleanSlug,
+        slug: editingItem?.slug || cleanSlug,
         parentId: formMode === 'sub' ? formParentId : null,
-        order: Number(formOrder) || 1,
-        isActive: formIsActive,
-        status: formIsActive ? 'published' : 'draft',
-        badge: formDisplayInNav ? undefined : 'HIDDEN',
-        thumbnailImage: formImage || undefined,
-        bannerImage: formImage || undefined,
-        imageAlt: formImageAlt.trim() || undefined,
-        seoTitle: formSeoTitle.trim() || undefined,
-        seoDescription: formSeoDescription.trim() || undefined,
-        // Automatically create canonical routing link
-        href: `/shop/${cleanSlug}`,
+        order: editingItem?.order ?? (formMode === 'main' ? mainCategories.length + 1 : (subcategoriesByParent.get(formParentId)?.length || 0) + 1),
+        isActive: editingItem ? (editingItem.isActive !== false) : true,
+        status: editingItem?.status || 'published',
+        badge: formMode === 'main' ? (formDisplayInNav ? undefined : 'HIDDEN') : undefined,
+        href: editingItem?.href || `/shop/${cleanSlug}`,
       };
 
-      const existing =
-        editingItem ||
-        categories.find(
-          (c) =>
-            c.slug.toLowerCase() === cleanSlug.toLowerCase() ||
-            c.name.trim().toLowerCase() === formName.trim().toLowerCase()
-        );
+      // Preserve existing assets/SEO if editing
+      if (editingItem) {
+        if (editingItem.thumbnailImage) payload.thumbnailImage = editingItem.thumbnailImage;
+        if (editingItem.bannerImage) payload.bannerImage = editingItem.bannerImage;
+        if (editingItem.imageAlt) payload.imageAlt = editingItem.imageAlt;
+        if (editingItem.seoTitle) payload.seoTitle = editingItem.seoTitle;
+        if (editingItem.seoDescription) payload.seoDescription = editingItem.seoDescription;
+      }
+
+      const existing = editingItem;
 
       if (existing) {
         await categoryService.updateCategory(existing.id, payload);
@@ -479,7 +521,7 @@ export default function AdminCategoriesPage() {
                 type="button"
                 onClick={loadCategories}
                 disabled={isLoading}
-                className="p-3 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
+                className="min-w-[46px] min-h-[46px] rounded-xl flex items-center justify-center bg-stone-100 hover:bg-stone-200 text-stone-700 transition-all active:scale-95 cursor-pointer shadow-2xs"
                 title="Refresh list from server"
               >
                 <RotateCcw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -488,7 +530,7 @@ export default function AdminCategoriesPage() {
               <button
                 type="button"
                 onClick={handleOpenAddCategory}
-                className="inline-flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-2xl bg-stone-900 hover:bg-black text-white font-bold text-xs sm:text-sm shadow-sm transition-all"
+                className="min-h-[46px] inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-xs sm:text-sm shadow-sm transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Plus className="w-4 h-4 text-pink-400" />
                 <span>Add Category</span>
@@ -497,7 +539,7 @@ export default function AdminCategoriesPage() {
               <button
                 type="button"
                 onClick={() => handleOpenAddSubcategory()}
-                className="inline-flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-400 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
+                className="min-h-[46px] inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-400 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Subcategory</span>
@@ -507,11 +549,11 @@ export default function AdminCategoriesPage() {
 
           {/* Navigation Mode Tabs: Main Categories vs Subcategories */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-2">
-            <div className="flex items-center space-x-2 bg-stone-200/60 p-1 rounded-2xl text-xs font-bold w-fit">
+            <div className="flex items-center space-x-2 bg-stone-200/60 p-1.5 rounded-2xl text-xs font-bold w-fit">
               <button
                 type="button"
                 onClick={() => setActiveTab('main')}
-                className={`px-4 py-2 rounded-xl transition-all flex items-center space-x-2 ${
+                className={`min-h-[44px] px-5 py-2.5 rounded-xl transition-all flex items-center space-x-2 cursor-pointer active:scale-95 ${
                   activeTab === 'main'
                     ? 'bg-white text-stone-900 shadow-xs'
                     : 'text-stone-600 hover:text-stone-900'
@@ -527,7 +569,7 @@ export default function AdminCategoriesPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('subcategories')}
-                className={`px-4 py-2 rounded-xl transition-all flex items-center space-x-2 ${
+                className={`min-h-[44px] px-5 py-2.5 rounded-xl transition-all flex items-center space-x-2 cursor-pointer active:scale-95 ${
                   activeTab === 'subcategories'
                     ? 'bg-white text-stone-900 shadow-xs'
                     : 'text-stone-600 hover:text-stone-900'
@@ -705,7 +747,7 @@ export default function AdminCategoriesPage() {
                                   setSelectedParentFilter(item.id);
                                   setActiveTab('subcategories');
                                 }}
-                                className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition-colors"
+                                className="min-h-[38px] inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition-all active:scale-95 cursor-pointer shadow-2xs"
                                 title="View subcategories"
                               >
                                 <Layers className="w-3.5 h-3.5" />
@@ -718,7 +760,7 @@ export default function AdminCategoriesPage() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleDisplayInNav(item)}
-                                className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+                                className={`min-h-[38px] inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer shadow-2xs ${
                                   isDisplayInNav
                                     ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                                     : 'bg-stone-100 text-stone-500 border-stone-200 hover:bg-stone-200'
@@ -744,14 +786,14 @@ export default function AdminCategoriesPage() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleActive(item)}
-                                className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all ${
+                                className={`min-h-[38px] inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer shadow-2xs ${
                                   isActive
                                     ? 'bg-sky-50 text-sky-800 border-sky-200'
                                     : 'bg-stone-100 text-stone-500 border-stone-200 hover:bg-stone-200'
                                 }`}
                               >
                                 <span
-                                  className={`w-1.5 h-1.5 rounded-full ${
+                                  className={`w-2 h-2 rounded-full ${
                                     isActive ? 'bg-sky-600' : 'bg-stone-400'
                                   }`}
                                 />
@@ -761,29 +803,29 @@ export default function AdminCategoriesPage() {
 
                             {/* Products count */}
                             <td className="py-3.5 px-4">
-                              <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700">
-                                <Package className="w-3 h-3 text-stone-400" />
+                              <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-stone-100 text-stone-700">
+                                <Package className="w-3.5 h-3.5 text-stone-400" />
                                 <span>{prodCount} products</span>
                               </span>
                             </td>
 
                             {/* Actions */}
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end space-x-1">
+                            <td className="py-3.5 px-4 text-right min-w-[240px]">
+                              <div className="flex items-center justify-end space-x-2">
                                 <button
                                   type="button"
                                   onClick={() => handleOpenAddSubcategory(item.id)}
-                                  className="px-2.5 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 font-bold text-xs transition-colors flex items-center space-x-1"
+                                  className="min-h-[44px] px-4 py-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 font-bold text-xs transition-all active:scale-95 cursor-pointer flex items-center space-x-1.5 shadow-2xs"
                                   title="Add Subcategory under this Main Category"
                                 >
-                                  <Plus className="w-3 h-3" />
+                                  <Plus className="w-4 h-4" />
                                   <span>Subcategory</span>
                                 </button>
                                 <Link
                                   href={`/categories/${item.slug}`}
                                   target="_blank"
                                   title="View on storefront"
-                                  className="p-2 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-all active:scale-95 cursor-pointer shadow-2xs"
                                 >
                                   <ExternalLink className="w-4 h-4" />
                                 </Link>
@@ -791,7 +833,7 @@ export default function AdminCategoriesPage() {
                                   type="button"
                                   onClick={() => handleOpenEdit(item)}
                                   title="Edit Category"
-                                  className="p-2 rounded-xl text-stone-600 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+                                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-stone-600 hover:text-pink-600 hover:bg-pink-50 transition-all active:scale-95 cursor-pointer shadow-2xs"
                                 >
                                   <Edit className="w-4 h-4" />
                                 </button>
@@ -799,7 +841,7 @@ export default function AdminCategoriesPage() {
                                   type="button"
                                   onClick={() => handleOpenDelete(item)}
                                   title="Delete Category"
-                                  className="p-2 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-stone-500 hover:text-rose-600 hover:bg-rose-50 transition-all active:scale-95 cursor-pointer shadow-2xs"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -816,10 +858,73 @@ export default function AdminCategoriesPage() {
           )}
 
           {/* ----------------------------------------------------------- */}
-          {/* TAB 2: SUBCATEGORIES TABLE                                  */}
+          {/* TAB 2: SUBCATEGORIES SECTION                                */}
           {/* ----------------------------------------------------------- */}
           {activeTab === 'subcategories' && (
-            <div className="bg-white rounded-3xl border border-stone-200/80 shadow-sm overflow-hidden space-y-4">
+            <div className="space-y-6">
+              {/* Quick Add Subcategory Card */}
+              <div className="bg-white rounded-3xl border border-stone-200/80 shadow-sm p-5 sm:p-6 space-y-4">
+                <div className="flex items-center space-x-2.5">
+                  <span className="p-2 rounded-xl bg-pink-100 text-pink-700">
+                    <Layers className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-black text-stone-900 font-heading">
+                      Add Subcategory
+                    </h3>
+                    <p className="text-xs text-stone-500">
+                      Select a parent Main Category, type the subcategory name, and save.
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleQuickAddSubcategory} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                  <div className="sm:col-span-5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                      Parent Main Category <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={quickSubParentId || (mainCategories[0]?.id || '')}
+                      onChange={(e) => setQuickSubParentId(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-sm font-semibold text-stone-800 focus:outline-none focus:ring-2 focus:ring-pink-300 min-h-[44px]"
+                    >
+                      {mainCategories.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
+                      Subcategory Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Rompers, Dresses, Blankets"
+                      value={quickSubName}
+                      onChange={(e) => setQuickSubName(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-sm font-semibold text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-300 min-h-[44px]"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <button
+                      type="submit"
+                      disabled={isSavingQuickSub || !quickSubName.trim()}
+                      className="w-full min-h-[44px] px-5 py-2.5 rounded-2xl bg-pink-500 hover:bg-pink-600 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>{isSavingQuickSub ? 'Saving...' : 'Save'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Subcategories Table */}
+              <div className="bg-white rounded-3xl border border-stone-200/80 shadow-sm overflow-hidden space-y-4">
               {/* Context Banner */}
               <div className="p-4 bg-stone-50 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="text-xs text-stone-600">
@@ -1007,13 +1112,13 @@ export default function AdminCategoriesPage() {
                             </td>
 
                             {/* Actions */}
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end space-x-1">
+                            <td className="py-3.5 px-4 text-right min-w-[180px]">
+                              <div className="flex items-center justify-end space-x-2">
                                 <Link
                                   href={`/categories/${item.slug}`}
                                   target="_blank"
                                   title="View subcategory page"
-                                  className="p-2 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-all active:scale-95 cursor-pointer shadow-2xs"
                                 >
                                   <ExternalLink className="w-4 h-4" />
                                 </Link>
@@ -1021,7 +1126,7 @@ export default function AdminCategoriesPage() {
                                   type="button"
                                   onClick={() => handleOpenEdit(item)}
                                   title="Edit Subcategory"
-                                  className="p-2 rounded-xl text-stone-600 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+                                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-stone-600 hover:text-pink-600 hover:bg-pink-50 transition-all active:scale-95 cursor-pointer shadow-2xs"
                                 >
                                   <Edit className="w-4 h-4" />
                                 </button>
@@ -1029,7 +1134,7 @@ export default function AdminCategoriesPage() {
                                   type="button"
                                   onClick={() => handleOpenDelete(item)}
                                   title="Delete Subcategory"
-                                  className="p-2 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-stone-500 hover:text-rose-600 hover:bg-rose-50 transition-all active:scale-95 cursor-pointer shadow-2xs"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -1042,6 +1147,7 @@ export default function AdminCategoriesPage() {
                   </table>
                 </div>
               )}
+              </div>
             </div>
           )}
         </main>
@@ -1081,7 +1187,7 @@ export default function AdminCategoriesPage() {
               <button
                 type="button"
                 onClick={() => setIsFormOpen(false)}
-                className="p-2 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors active:scale-95 cursor-pointer"
                 title="Cancel"
               >
                 <X className="w-5 h-5" />
@@ -1131,297 +1237,48 @@ export default function AdminCategoriesPage() {
                 />
               </div>
 
-              {/* Display in Navigation (Yes / No) */}
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-stone-50 border border-stone-200">
-                <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-stone-800">
-                    Display in Navigation
-                  </div>
-                  <div className="text-[11px] text-stone-500">
-                    {formDisplayInNav
-                      ? 'Visible in header menu and dropdown links'
-                      : 'Hidden from navigation menu (accessible via catalog only)'}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setFormDisplayInNav(!formDisplayInNav)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${
-                    formDisplayInNav ? 'bg-pink-600' : 'bg-stone-300'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                      formDisplayInNav ? 'translate-x-6' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Display Order */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
-                  Display Order
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="999"
-                  value={formOrder}
-                  onChange={(e) => setFormOrder(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-sm font-semibold text-stone-800 focus:outline-none focus:ring-2 focus:ring-pink-300"
-                />
-                <p className="text-[11px] text-stone-400 mt-1">
-                  Position number (1 = appears first in menu and lists).
-                </p>
-              </div>
-
-              {/* Active / Inactive */}
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-stone-50 border border-stone-200">
-                <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-stone-800">
-                    Active / Inactive
-                  </div>
-                  <div className="text-[11px] text-stone-500">
-                    {formIsActive
-                      ? 'Active on storefront and catalog'
-                      : 'Inactive / draft mode (hidden from customers)'}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setFormIsActive(!formIsActive)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${
-                    formIsActive ? 'bg-emerald-500' : 'bg-stone-300'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                      formIsActive ? 'translate-x-6' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Category Image (Optional) */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
-                  Category Photo (Optional)
-                </label>
-
-                {formImage ? (
-                  <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-stone-200 bg-stone-50 flex items-center justify-center group p-2">
-                    <Image
-                      src={formImage}
-                      alt="Category preview"
-                      fill
-                      className="object-contain"
-                    />
-                    <div className="absolute inset-0 bg-stone-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => imageInputRef.current?.click()}
-                        className="p-2 rounded-xl bg-white text-stone-700 font-bold text-xs shadow-md hover:bg-stone-100"
-                      >
-                        Change Image
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormImage('')}
-                        className="p-2 rounded-xl bg-rose-500 text-white font-bold text-xs shadow-md hover:bg-rose-600"
-                      >
-                        Remove
-                      </button>
+              {/* Display in Navigation (Main Category ONLY) */}
+              {formMode === 'main' && (
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-stone-50 border border-stone-200">
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-stone-800">
+                      Enable Display in Navigation
                     </div>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => imageInputRef.current?.click()}
-                    className="cursor-pointer border-2 border-dashed border-stone-300 hover:border-pink-400 p-5 rounded-2xl text-center space-y-1.5 bg-stone-50 hover:bg-pink-50/20 transition-all"
-                  >
-                    <Upload className="w-5 h-5 text-stone-400 mx-auto" />
-                    <div className="text-xs font-bold text-stone-700">
-                      {isUploadingImage ? 'Uploading photo...' : 'Click to upload category photo'}
-                    </div>
-                    <div className="text-[10px] text-stone-400">
-                      PNG, JPG, or WebP up to 8MB
-                    </div>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  ref={imageInputRef}
-                  onChange={handleImageFileChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-              </div>
-
-              {/* Image Alt Text (when image uploaded or planned) */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
-                  Image Alt Text (SEO & Accessibility)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Newborn organic cotton rompers and baby essentials"
-                  value={formImageAlt}
-                  onChange={(e) => setFormImageAlt(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-xs font-semibold text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-300"
-                />
-                <p className="text-[11px] text-stone-400 mt-1">
-                  Accurate description of the category photo for search engines and visually impaired visitors.
-                </p>
-              </div>
-
-              {/* Dedicated SEO Settings Accordion / Card */}
-              <div className="rounded-2xl border border-pink-200/80 bg-gradient-to-br from-pink-50/40 via-white to-sky-50/30 p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs">
-                      🔍
-                    </span>
-                    <div>
-                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-stone-800">
-                        Search Engine Optimization (SEO)
-                      </h4>
-                      <p className="text-[11px] text-stone-500">
-                        Customize how this category appears in Google and social shares.
-                      </p>
+                    <div className="text-[11px] text-stone-500">
+                      {formDisplayInNav
+                        ? 'Visible in header menu and dropdown links'
+                        : 'Hidden from top navigation menu'}
                     </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setShowSeoFields(!showSeoFields)}
-                    className="text-xs font-bold text-pink-600 hover:text-pink-700 underline"
+                    onClick={() => setFormDisplayInNav(!formDisplayInNav)}
+                    className={`relative w-12 h-6 rounded-full transition-colors cursor-pointer ${
+                      formDisplayInNav ? 'bg-pink-600' : 'bg-stone-300'
+                    }`}
                   >
-                    {showSeoFields ? 'Hide Details' : 'Configure SEO'}
+                    <span
+                      className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${
+                        formDisplayInNav ? 'translate-x-6' : 'translate-x-0'
+                      }`}
+                    />
                   </button>
                 </div>
-
-                {showSeoFields && (
-                  <div className="space-y-3.5 pt-2 border-t border-pink-100">
-                    {/* URL Slug */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700">
-                          URL Slug
-                        </label>
-                        <span className="text-[10px] text-stone-400 font-mono">
-                          /shop/{formSlug || formName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}
-                        </span>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="e.g. baby-rompers"
-                        value={formSlug}
-                        onChange={(e) =>
-                          setFormSlug(
-                            e.target.value
-                              .toLowerCase()
-                              .replace(/[^a-z0-9-]/g, '')
-                              .replace(/-+/g, '-')
-                          )
-                        }
-                        className="w-full px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-xs font-mono text-stone-800 focus:outline-none focus:ring-2 focus:ring-pink-300"
-                      />
-                      <p className="text-[10px] text-stone-400 mt-1">
-                        Slugs must contain only lowercase letters, numbers, and hyphens. Changing a published slug will automatically create a 301 redirect.
-                      </p>
-                    </div>
-
-                    {/* SEO Title */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700">
-                          Custom SEO Title
-                        </label>
-                        <span
-                          className={`text-[10px] font-bold ${
-                            formSeoTitle.length > 60 ? 'text-amber-600' : 'text-stone-400'
-                          }`}
-                        >
-                          {formSeoTitle.length}/60 chars
-                        </span>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder={
-                          formName
-                            ? `${formName} | Luxury Baby Boutique Sri Lanka`
-                            : 'Baby Clothing Sri Lanka | REXBEBE'
-                        }
-                        value={formSeoTitle}
-                        onChange={(e) => setFormSeoTitle(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-xs font-semibold text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-300"
-                      />
-                      <p className="text-[10px] text-stone-400 mt-1">
-                        Leave blank to automatically use the standard boutique title format.
-                      </p>
-                    </div>
-
-                    {/* SEO Description */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-700">
-                          Meta Description
-                        </label>
-                        <span
-                          className={`text-[10px] font-bold ${
-                            formSeoDescription.length > 160 ? 'text-amber-600' : 'text-stone-400'
-                          }`}
-                        >
-                          {formSeoDescription.length}/160 chars
-                        </span>
-                      </div>
-                      <textarea
-                        rows={3}
-                        placeholder={`Shop handcrafted ${formName || 'baby items'} in Sri Lanka with certified organic fabrics, soft pastel tones, and islandwide delivery by REXBEBE.`}
-                        value={formSeoDescription}
-                        onChange={(e) => setFormSeoDescription(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl bg-white border border-stone-200 text-xs font-medium text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-pink-300"
-                      />
-                    </div>
-
-                    {/* Google Search Snippet Preview */}
-                    <div className="bg-white p-3 rounded-xl border border-stone-200/90 shadow-2xs space-y-1">
-                      <div className="text-[10px] font-extrabold uppercase tracking-wider text-stone-400">
-                        Google Search Result Preview
-                      </div>
-                      <div className="flex items-center space-x-1.5 text-[11px] text-emerald-800 font-mono truncate">
-                        <span>https://rexbebe.com</span>
-                        <span>›</span>
-                        <span>shop</span>
-                        <span>›</span>
-                        <span className="font-bold">
-                          {formSlug || formName.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'category'}
-                        </span>
-                      </div>
-                      <div className="text-xs sm:text-sm font-semibold text-blue-700 hover:underline truncate">
-                        {formSeoTitle.trim() || `${formName || 'Category Name'} | REXBEBE Luxury Baby Boutique`}
-                      </div>
-                      <div className="text-[11px] text-stone-600 line-clamp-2 leading-relaxed">
-                        {formSeoDescription.trim() ||
-                          `Shop curated ${formName || 'baby essentials'} for babies and toddlers at REXBEBE Sri Lanka. Certified organic cashmere, pure linen, and express islandwide delivery.`}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
 
               {/* Modal Actions */}
               <div className="pt-2 flex items-center justify-end space-x-3 border-t border-stone-100">
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="px-5 py-2.5 rounded-2xl border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-100 transition-colors"
+                  className="min-h-[46px] px-6 py-2.5 rounded-xl border border-stone-200 text-stone-700 font-bold text-xs hover:bg-stone-100 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isSaving || isUploadingImage}
-                  className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-400 text-white font-bold text-xs shadow-md hover:shadow-lg disabled:opacity-50 transition-all"
+                  disabled={isSaving}
+                  className="min-h-[46px] px-7 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-400 text-white font-bold text-xs shadow-md hover:shadow-lg disabled:opacity-50 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   {isSaving ? 'Saving...' : editingItem ? 'Save Changes' : formMode === 'main' ? 'Add Category' : 'Add Subcategory'}
                 </button>
@@ -1513,7 +1370,7 @@ export default function AdminCategoriesPage() {
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2.5 rounded-2xl border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-100 transition-colors"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl border border-stone-200 text-stone-700 font-bold text-xs hover:bg-stone-100 transition-all active:scale-[0.98] cursor-pointer"
               >
                 Cancel
               </button>
@@ -1521,7 +1378,7 @@ export default function AdminCategoriesPage() {
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
-                className="px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md disabled:opacity-50 transition-colors"
+                className="min-h-[46px] px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md disabled:opacity-50 transition-all active:scale-[0.98] cursor-pointer"
               >
                 {isDeleting ? 'Deleting...' : 'Permanently Delete'}
               </button>

@@ -343,9 +343,11 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           adminService.getOverview(),
           adminService.getVisitors(),
         ]).then(([ordersRes, invRes, adjRes, fbRes, usersRes, settingsRes, seoRes, logsRes, overviewRes, visRes]) => {
-          if (ordersRes.status === 'fulfilled' && Array.isArray(ordersRes.value)) {
-            setOrders(ordersRes.value);
-            try { localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(ordersRes.value)); } catch {}
+          if (ordersRes.status === 'fulfilled' && ordersRes.value) {
+            const raw = ordersRes.value as any;
+            const ordersList = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []);
+            setOrders(ordersList);
+            try { localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(ordersList)); } catch {}
           }
           if (invRes.status === 'fulfilled' && invRes.value) setInventoryItems(invRes.value);
           if (adjRes.status === 'fulfilled' && adjRes.value) setStockAdjustments(adjRes.value);
@@ -788,10 +790,11 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('rexbebe_admin_token') : null;
       if (!token) return;
-      const apiOrders = await orderService.getAllOrdersAdmin();
-      if (apiOrders && Array.isArray(apiOrders)) {
-        setOrders(apiOrders);
-        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(apiOrders));
+      const apiOrders: any = await orderService.getAllOrdersAdmin();
+      if (apiOrders) {
+        const ordersList = Array.isArray(apiOrders) ? apiOrders : (Array.isArray(apiOrders?.data) ? apiOrders.data : []);
+        setOrders(ordersList);
+        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(ordersList));
       }
     } catch (e) {
       console.warn('Notice refreshing orders:', e);

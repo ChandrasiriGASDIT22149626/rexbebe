@@ -2,27 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Package,
   FolderTree,
   Warehouse,
   ShoppingBag,
-  Users,
   ArrowLeft,
-  Globe2,
   Sparkles,
-  ShieldCheck,
-  Menu,
-  X,
   Truck,
   Banknote,
-  Settings2,
-  RotateCcw,
   LogOut,
+  X,
+  Menu,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { authService } from '../../services/authService';
 import { useAdminData } from '../../hooks/AdminContext';
 
@@ -39,7 +33,7 @@ interface AdminLinkGroup {
 export function AdminSidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { visitorStats, orders, products } = useAdminData();
+  const { orders, products } = useAdminData();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -73,48 +67,38 @@ export function AdminSidebar() {
     if (href === '/admin') {
       return pathname === '/admin' || pathname === '/admin/store-overview';
     }
-    if (href === '/admin/website/homepage' || href === '/admin/homepage') {
-      return pathname === '/admin/homepage' || pathname.startsWith('/admin/website/homepage');
+    if (href === '/admin/orders') {
+      return pathname === '/admin/orders' || (pathname.startsWith('/admin/orders/') && !pathname.startsWith('/admin/orders/cod'));
     }
-    if (href === '/admin/navigation') {
-      return pathname === '/admin/navigation' || pathname.startsWith('/admin/categories');
+    if (href === '/admin/categories') {
+      return pathname === '/admin/categories' || pathname.startsWith('/admin/categories') || pathname === '/admin/navigation';
     }
-    return pathname === href || (href !== '/admin' && pathname.startsWith(href.split('?')[0]));
+    return pathname === href || pathname.startsWith(href.split('?')[0]);
   };
 
   const NAV_GROUPS: AdminLinkGroup[] = [
     {
-      groupTitle: 'STORE MANAGEMENT',
+      groupTitle: 'STORE OPERATIONS',
       links: [
-        { name: 'Store Overview', href: '/admin', icon: LayoutDashboard },
-        { name: 'Global Visitor Insights', href: '/admin/visitors', icon: Globe2, badge: 'Live' },
+        { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
         { name: 'Orders', href: '/admin/orders', icon: ShoppingBag, badge: orders.length > 0 ? `${orders.length}` : undefined },
         { name: 'COD Orders', href: '/admin/orders/cod', icon: Banknote, badge: 'COD' },
-        { name: 'Courier & Shipping', href: '/admin/shipping', icon: Truck },
-        { name: 'Inventory', href: '/admin/inventory', icon: Warehouse },
       ],
     },
     {
-      groupTitle: 'WEBSITE MANAGEMENT',
+      groupTitle: 'CATALOG & INVENTORY',
       links: [
-        { name: 'Homepage Studio', href: '/admin/homepage', icon: Sparkles, badge: 'Studio' },
-        { name: 'Categories & Menu', href: '/admin/navigation', icon: FolderTree, badge: 'Header' },
-        { name: 'Product Management', href: '/admin/products', icon: Package, badge: `${products.length}` },
+        { name: 'Products', href: '/admin/products', icon: Package, badge: products.length > 0 ? `${products.length}` : undefined },
+        { name: 'Categories', href: '/admin/categories', icon: FolderTree },
+        { name: 'Inventory', href: '/admin/inventory', icon: Warehouse },
+        { name: 'Promotions & Sales', href: '/admin/promotions', icon: Sparkles, badge: 'Sale' },
       ],
     },
     {
       groupTitle: 'LOGISTICS & FINANCE',
       links: [
+        { name: 'Courier & Shipping', href: '/admin/shipping', icon: Truck },
         { name: 'COD Financial Reports', href: '/admin/reports/cod', icon: Banknote, badge: 'COD' },
-        { name: 'Returns & RTS Center', href: '/admin/returns', icon: RotateCcw, badge: 'RTS' },
-        { name: 'Customers', href: '/admin/customers', icon: Users },
-      ],
-    },
-    {
-      groupTitle: 'ADMIN SETTINGS',
-      links: [
-        { name: 'Admin Users & Permissions', href: '/admin/users', icon: ShieldCheck },
-        { name: 'Delivery Zones & Charges', href: '/admin/settings/delivery', icon: Settings2 },
       ],
     },
   ];
@@ -133,7 +117,7 @@ export function AdminSidebar() {
                 REXBEBE
               </h2>
               <span className="text-[9px] uppercase tracking-widest text-amber-400/90 font-bold block -mt-0.5">
-                Admin Control Suite
+                Admin Management Suite
               </span>
             </div>
           </div>
@@ -141,7 +125,7 @@ export function AdminSidebar() {
         {isMobileOpen && (
           <button
             onClick={() => setIsMobileOpen(false)}
-            className="lg:hidden p-2 rounded-xl bg-stone-800 text-stone-400 hover:text-white cursor-pointer"
+            className="lg:hidden min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center bg-stone-800 text-stone-400 hover:text-white transition-colors active:scale-95 cursor-pointer"
             aria-label="Close Admin Sidebar"
           >
             <X className="w-5 h-5" />
@@ -150,28 +134,9 @@ export function AdminSidebar() {
       </div>
 
       {/* Scrollable Navigation Groups */}
-      <div className="flex-1 overflow-y-auto scrollbar-none touch-scroll min-h-0 pointer-events-auto">
-        {/* Global Live Traffic Badge */}
-        <div className="p-4 mx-4 mt-4 bg-stone-900/90 rounded-2xl border border-stone-800 flex items-center justify-between shadow-inner">
-          <div className="flex items-center space-x-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-xs font-bold text-stone-300">Live Traffic</span>
-          </div>
-          <Link
-            href="/admin/visitors"
-            prefetch={false}
-            onClick={() => setIsMobileOpen(false)}
-            className="text-[11px] font-extrabold text-amber-400 hover:underline flex items-center space-x-1 cursor-pointer"
-          >
-            <span>{visitorStats.totalVisits || 6} Visitors</span>
-          </Link>
-        </div>
-
+      <div className="flex-1 overflow-y-auto scrollbar-none touch-scroll min-h-0 pointer-events-auto pt-4">
         {/* Navigation Link Groups */}
-        <div className="p-4 space-y-6">
+        <div className="px-4 pb-4 space-y-6">
           {NAV_GROUPS.map((group, idx) => (
             <div key={idx} className="space-y-1">
               <h3 className="px-3 text-[10px] font-black uppercase tracking-wider text-stone-500 mb-2">
@@ -188,7 +153,7 @@ export function AdminSidebar() {
                     onClick={() => {
                       setIsMobileOpen(false);
                     }}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer pointer-events-auto select-none ${
+                    className={`min-h-[44px] flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer pointer-events-auto select-none active:scale-[0.98] ${
                       isActive
                         ? 'bg-amber-500 text-stone-950 font-black shadow-md'
                         : 'text-stone-400 hover:text-stone-100 hover:bg-stone-800/80 active:bg-stone-800'
@@ -223,14 +188,14 @@ export function AdminSidebar() {
           href="/"
           target="_blank"
           prefetch={false}
-          className="flex items-center justify-center space-x-2 w-full py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-bold transition-all border border-stone-800 shadow-sm cursor-pointer"
+          className="min-h-[44px] flex items-center justify-center space-x-2 w-full px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-bold transition-all border border-stone-800 shadow-sm cursor-pointer active:scale-[0.98]"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Exit to Public Storefront</span>
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center justify-center space-x-2 w-full py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 hover:text-white text-xs font-bold transition-all border border-rose-900/50 shadow-sm cursor-pointer"
+          className="min-h-[44px] flex items-center justify-center space-x-2 w-full px-4 py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 hover:text-white text-xs font-bold transition-all border border-rose-900/50 shadow-sm cursor-pointer active:scale-[0.98]"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>Sign Out</span>
@@ -246,7 +211,7 @@ export function AdminSidebar() {
         {sidebarContent}
       </aside>
 
-      {/* Desktop Layout Spacer: preserves exact column width & prevents content overlap */}
+      {/* Desktop Layout Spacer */}
       <div className="hidden lg:block w-72 shrink-0 pointer-events-none" aria-hidden="true" />
 
       {/* Mobile Drawer Trigger (Floating Action Button) */}
@@ -260,7 +225,7 @@ export function AdminSidebar() {
         </button>
       </div>
 
-      {/* Mobile Drawer (Accessible via open-admin-nav event or floating button) */}
+      {/* Mobile Drawer */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex pointer-events-auto">
           <div
@@ -275,3 +240,5 @@ export function AdminSidebar() {
     </>
   );
 }
+
+export default AdminSidebar;

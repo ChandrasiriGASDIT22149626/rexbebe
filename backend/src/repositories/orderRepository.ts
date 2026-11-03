@@ -1,11 +1,13 @@
 import fs from 'fs';
 import path from 'path';
+import { postgresOrderRepository } from './postgres/PostgresOrderRepository';
 
 export interface OrderItemRecord {
   id: string;
   productId?: string;
   variantId: string;
   title: string;
+  sku?: string;
   partName?: string;
   purchaseType?: string;
   partColors?: Record<string, string>;
@@ -102,6 +104,11 @@ export interface CourierDetails {
   deliveredDate?: string;
   returnedDate?: string;
   courierNotes?: string;
+  dispatchUncertain?: boolean;
+  uncertainReason?: string;
+  dispatchAttemptedAt?: string;
+  lastWebhookStatusDate?: string;
+  lastWebhookProcessedAt?: string;
   verifiedReturnCharges?: number;
   returnInspection?: ReturnInspectionRecord;
   unresolvedReturnAlert?: {
@@ -200,6 +207,10 @@ export interface OrderRecord {
 export class OrderRepository {
   private filePath = path.join(__dirname, '../../data/orders.json');
 
+  public isPostgresMode(): boolean {
+    return process.env.USE_POSTGRES === 'true' || Boolean((this as any).forcePostgres);
+  }
+
   private readFromDisk(): OrderRecord[] {
     try {
       if (fs.existsSync(this.filePath)) {
@@ -225,10 +236,16 @@ export class OrderRepository {
   }
 
   async findAll(): Promise<OrderRecord[]> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.findAll();
+    }
     return this.readFromDisk();
   }
 
   async findById(id: string): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.findById(id);
+    }
     if (!id) return null;
     const orders = this.readFromDisk();
     const cleanId = id.trim().toLowerCase();
@@ -242,6 +259,9 @@ export class OrderRepository {
   }
 
   async create(orderData: Omit<OrderRecord, 'id' | 'orderNumber' | 'createdAt'> & { orderNumber?: string }): Promise<{ order: OrderRecord; isDuplicate: boolean }> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.create(orderData);
+    }
     const orders = this.readFromDisk();
 
     // 1. Idempotency Check: prevent duplicate orders with same idempotencyKey
@@ -293,6 +313,9 @@ export class OrderRepository {
   }
 
   async updateOrder(id: string, updates: Partial<OrderRecord>): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.updateOrder(id, updates);
+    }
     const orders = this.readFromDisk();
     const order = orders.find(o => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -314,6 +337,9 @@ export class OrderRepository {
       deliveryStatus?: any;
     }
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.updateStatus(id, status, carrier, trackingNumber, note, admin, extras);
+    }
     const orders = this.readFromDisk();
     const order = orders.find(o => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -398,6 +424,9 @@ export class OrderRepository {
       notes?: string;
     }
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.assignCourier(id, details);
+    }
     const orders = this.readFromDisk();
     const order = orders.find(o => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -446,6 +475,9 @@ export class OrderRepository {
       collectedAmount?: number;
     }
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.recordDeliveryAndPayment(id, details);
+    }
     const orders = this.readFromDisk();
     const order = orders.find(o => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -492,6 +524,9 @@ export class OrderRepository {
       note?: string;
     }
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.recordCodRemittance(id, remittance);
+    }
     const orders = this.readFromDisk();
     const order = orders.find(o => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -521,6 +556,9 @@ export class OrderRepository {
   }
 
   async addInternalNote(id: string, note: string): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.addInternalNote(id, note);
+    }
     const orders = this.readFromDisk();
     const order = orders.find(o => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -534,6 +572,9 @@ export class OrderRepository {
   }
 
   async refundOrder(id: string, reason?: string): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.refundOrder(id, reason || 'Refund issued');
+    }
     const orders = this.readFromDisk();
     const order = orders.find(o => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -557,6 +598,9 @@ export class OrderRepository {
     payload: ManualCourierBookingPayload,
     admin?: string
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.bookCourierManual(id, payload);
+    }
     const orders = this.readFromDisk();
     const order = orders.find((o) => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -614,6 +658,9 @@ export class OrderRepository {
     payload: DeliveryStatusUpdatePayload,
     admin?: string
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.updateCourierDeliveryStatus(id, payload);
+    }
     const orders = this.readFromDisk();
     const order = orders.find((o) => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -793,6 +840,9 @@ export class OrderRepository {
   }
 
   async addCourierNote(id: string, note: string, admin?: string): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.addCourierNote(id, note, admin);
+    }
     const orders = this.readFromDisk();
     const order = orders.find((o) => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -833,6 +883,9 @@ export class OrderRepository {
       notes?: string;
     }
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.recordCodCollectionEvent(id, payload);
+    }
     const orders = this.readFromDisk();
     const order = orders.find((o) => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -887,6 +940,9 @@ export class OrderRepository {
     settlement: SettlementRecord,
     admin?: string
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.applySettlement(id, settlement, admin);
+    }
     const orders = this.readFromDisk();
     const order = orders.find((o) => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -925,6 +981,9 @@ export class OrderRepository {
     payload: RecordDeliveryAttemptPayload,
     admin?: string
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.recordDeliveryAttempt(id, payload, admin);
+    }
     const orders = this.readFromDisk();
     const order = orders.find((o) => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -1013,6 +1072,9 @@ export class OrderRepository {
     payload: InitiateReturnToSenderPayload,
     admin?: string
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.initiateReturnToSender(id, payload, admin);
+    }
     const orders = this.readFromDisk();
     const order = orders.find((o) => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -1066,6 +1128,9 @@ export class OrderRepository {
     payload: ReturnInspectionPayload,
     inspector?: string
   ): Promise<OrderRecord | null> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.recordReturnInspection(id, payload, inspector);
+    }
     const orders = this.readFromDisk();
     const order = orders.find((o) => o.id === id || o.orderNumber === id);
     if (!order) return null;
@@ -1152,6 +1217,9 @@ export class OrderRepository {
   }
 
   async getUnresolvedCases(): Promise<UnresolvedReturnCase[]> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.getUnresolvedCases();
+    }
     const orders = this.readFromDisk();
     const cases: UnresolvedReturnCase[] = [];
 
@@ -1213,6 +1281,9 @@ export class OrderRepository {
     parcelCondition?: string;
     unresolvedOnly?: boolean;
   }): Promise<OrderRecord[]> {
+    if (this.isPostgresMode()) {
+      return postgresOrderRepository.getFailedAndReturnOrders(filters);
+    }
     const orders = this.readFromDisk();
     return orders.filter((order) => {
       const courier = order.courierDetails;

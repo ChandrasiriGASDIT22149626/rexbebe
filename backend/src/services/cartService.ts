@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { ProductRepository, ProductRecord, ProductVariant } from '../repositories/productRepository';
+import { postgresCartRepository } from '../repositories/postgres/PostgresCartRepository';
 
 export interface CartItemRecord {
   variantId: string;
@@ -35,6 +36,10 @@ const STORAGE_PATH = path.resolve(__dirname, '../../data/carts.json');
 export class CartService {
   private productRepo = new ProductRepository();
 
+  public isPostgresMode(): boolean {
+    return process.env.USE_POSTGRES === 'true';
+  }
+
   private loadCartsFromDisk(): Record<string, { id: string; items: { variantId: string; quantity: number }[]; updatedAt?: string }> {
     try {
       if (fs.existsSync(STORAGE_PATH)) {
@@ -47,8 +52,13 @@ export class CartService {
     return {};
   }
 
-  private saveCartsToDisk(carts: Record<string, any>): void {
+  private saveCartsToDisk(carts: Record<string, any>, specificCartId?: string): void {
     try {
+      if (this.isPostgresMode() && specificCartId && carts[specificCartId]) {
+        postgresCartRepository.saveCart(specificCartId, carts[specificCartId].items || []).catch((err) => {
+          console.error('[CartService] Failed to sync cart to PostgreSQL:', err);
+        });
+      }
       const dir = path.dirname(STORAGE_PATH);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
@@ -120,8 +130,8 @@ export class CartService {
     }
 
     const subtotal = enrichedItems.reduce((sum, item) => sum + item.subtotal, 0);
-    const shippingFee = subtotal >= 50000 || subtotal === 0 ? 0 : 1500;
-    const total = subtotal + shippingFee;
+    const shippingFee = 0;
+    const total = subtotal;
     const itemCount = enrichedItems.reduce((sum, item) => sum + item.quantity, 0);
 
     return {
@@ -136,6 +146,12 @@ export class CartService {
   }
 
   async getCart(cartId: string): Promise<CartSession> {
+    if (this.isPostgresMode()) {
+      const dbCart = await postgresCartRepository.getCart(cartId);
+      if (dbCart) {
+        return this.enrichCart(cartId, dbCart.items);
+      }
+    }
     const carts = this.loadCartsFromDisk();
     const raw = carts[cartId] || { id: cartId, items: [] };
     return this.enrichCart(cartId, raw.items);
@@ -165,7 +181,7 @@ export class CartService {
     }
 
     carts[cartId].updatedAt = new Date().toISOString();
-    this.saveCartsToDisk(carts);
+    this.saveCartsToDisk(carts, cartId);
 
     return this.enrichCart(cartId, carts[cartId].items);
   }
@@ -192,7 +208,7 @@ export class CartService {
     }
 
     carts[cartId].updatedAt = new Date().toISOString();
-    this.saveCartsToDisk(carts);
+    this.saveCartsToDisk(carts, cartId);
 
     return this.enrichCart(cartId, carts[cartId].items);
   }
@@ -202,17 +218,20 @@ export class CartService {
     if (carts[cartId]) {
       carts[cartId].items = carts[cartId].items.filter((i: any) => i.variantId !== variantId);
       carts[cartId].updatedAt = new Date().toISOString();
-      this.saveCartsToDisk(carts);
+      this.saveCartsToDisk(carts, cartId);
     }
     return this.enrichCart(cartId, carts[cartId]?.items || []);
   }
 
   async clearCart(cartId: string): Promise<CartSession> {
+    if (this.isPostgresMode()) {
+      await postgresCartRepository.clearCart(cartId);
+    }
     const carts = this.loadCartsFromDisk();
     if (carts[cartId]) {
       carts[cartId].items = [];
       carts[cartId].updatedAt = new Date().toISOString();
-      this.saveCartsToDisk(carts);
+      this.saveCartsToDisk(carts, cartId);
     }
     return this.enrichCart(cartId, []);
   }
@@ -240,7 +259,7 @@ export class CartService {
       items: sanitizedItems,
       updatedAt: new Date().toISOString(),
     };
-    this.saveCartsToDisk(carts);
+    this.saveCartsToDisk(carts, cartId);
 
     return this.enrichCart(cartId, sanitizedItems);
   }

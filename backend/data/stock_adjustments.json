@@ -1,5 +1,31 @@
 [
   {
+    "id": "adj-1793601190164",
+    "productId": "prod-1792940183449",
+    "productName": "Pink Dino Dreams",
+    "sku": "REX-BABY-3166-2436months-BAB",
+    "variant": "Baby Pink 24-36 months",
+    "previousQuantity": 8,
+    "newQuantity": 7,
+    "change": -1,
+    "reason": "Order #RXB-2026-450643 placed by Sathira Test Customer (CASH_ON_DELIVERY)",
+    "adjustedBy": "Order Processing",
+    "timestamp": "2026-11-02T06:33:10.164Z"
+  },
+  {
+    "id": "adj-1793601090511",
+    "productId": "prod-1792940183449",
+    "productName": "Pink Dino Dreams",
+    "sku": "REX-BABY-3166-2436months-BAB",
+    "variant": "Baby Pink 24-36 months",
+    "previousQuantity": 9,
+    "newQuantity": 8,
+    "change": -1,
+    "reason": "Order #RXB-2026-396246 placed by Sathira Test Customer (CASH_ON_DELIVERY)",
+    "adjustedBy": "Order Processing",
+    "timestamp": "2026-11-02T06:31:30.511Z"
+  },
+  {
     "id": "adj-1793165895710",
     "productId": "prod-1792940183449",
     "productName": "Pink Dino Dreams",

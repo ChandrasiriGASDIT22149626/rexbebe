@@ -200,23 +200,33 @@ export class OrderService {
     // 4. Safe stock deduction and audit logging (skip if idempotent duplicate)
     if (!isDuplicate) {
       for (const item of validatedItems) {
-        const currentProducts = await this.productRepo.findAll();
-        let currentVariant: any = null;
-        for (const p of currentProducts) {
-          const v = p.variants?.find((varItem: any) => varItem.id === item.variantId);
-          if (v) {
-            currentVariant = v;
-            break;
-          }
-        }
-        if (currentVariant) {
-          const newQty = Math.max(0, (currentVariant.stockQuantity ?? 0) - item.quantity);
-          await this.inventoryRepo.updateStock(
+        if (process.env.USE_POSTGRES === 'true') {
+          // Atomic SQL-level conditional decrement (WHERE stockQuantity >= qty) preventing race conditions
+          await this.inventoryRepo.atomicDeductStock(
             item.variantId,
-            newQty,
+            item.quantity,
             `Order #${createdOrder.orderNumber} placed by ${orderPayload.customerName} (${orderPayload.paymentMethod})`,
             'Order Processing'
           );
+        } else {
+          const currentProducts = await this.productRepo.findAll();
+          let currentVariant: any = null;
+          for (const p of currentProducts) {
+            const v = p.variants?.find((varItem: any) => varItem.id === item.variantId);
+            if (v) {
+              currentVariant = v;
+              break;
+            }
+          }
+          if (currentVariant) {
+            const newQty = Math.max(0, (currentVariant.stockQuantity ?? 0) - item.quantity);
+            await this.inventoryRepo.updateStock(
+              item.variantId,
+              newQty,
+              `Order #${createdOrder.orderNumber} placed by ${orderPayload.customerName} (${orderPayload.paymentMethod})`,
+              'Order Processing'
+            );
+          }
         }
       }
     }
@@ -623,6 +633,10 @@ export class OrderService {
 
   async handleKoombiyoWebhook(payload: any) {
     return koombiyoCourierService.handleWebhook(payload);
+  }
+
+  async reconcileKoombiyoDispatch(orderId: string, admin?: string, forceClear?: boolean) {
+    return koombiyoCourierService.reconcileUncertainDispatch(orderId, admin, forceClear);
   }
 
   async testKoombiyoWebhook(targetUrl: string, samplePayload?: any) {

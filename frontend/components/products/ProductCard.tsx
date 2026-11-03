@@ -3,17 +3,12 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { ShoppingBag, Eye, Heart } from 'lucide-react';
 import { Product } from '../../types/product';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { useCart } from '../../hooks/useCart';
 import { WishlistButton } from './WishlistButton';
-
-const QuickViewModal = dynamic(
-  () => import('./QuickViewModal').then((m) => m.QuickViewModal),
-  { ssr: false }
-);
+import { QuickViewModal } from './QuickViewModal';
 
 export const ProductCard = React.memo(function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();

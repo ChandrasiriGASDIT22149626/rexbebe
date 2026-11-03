@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { ProductRepository, ProductRecord } from '../repositories/productRepository';
 import { prisma } from '../config/database';
+import { postgresWishlistRepository } from '../repositories/postgres/PostgresWishlistRepository';
 
 export interface WishlistSession {
   id: string;
@@ -16,6 +17,10 @@ const STORAGE_PATH = path.resolve(__dirname, '../../data/wishlists.json');
 export class WishlistService {
   private productRepo = new ProductRepository();
 
+  public isPostgresMode(): boolean {
+    return process.env.USE_POSTGRES === 'true';
+  }
+
   private loadWishlistsFromDisk(): Record<string, { id: string; productIds: string[]; updatedAt?: string }> {
     try {
       if (fs.existsSync(STORAGE_PATH)) {
@@ -28,8 +33,13 @@ export class WishlistService {
     return {};
   }
 
-  private saveWishlistsToDisk(wishlists: Record<string, any>): void {
+  private saveWishlistsToDisk(wishlists: Record<string, any>, specificId?: string, customerId?: string): void {
     try {
+      if (this.isPostgresMode() && specificId && wishlists[specificId]) {
+        postgresWishlistRepository.saveWishlist(specificId, wishlists[specificId].productIds || [], customerId).catch((err) => {
+          console.error('[WishlistService] Failed to sync wishlist to PostgreSQL:', err);
+        });
+      }
       const dir = path.dirname(STORAGE_PATH);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
@@ -66,6 +76,12 @@ export class WishlistService {
    * Checks persistent PostgreSQL database via Prisma if connected, falling back to durable JSON storage.
    */
   async getWishlist(wishlistId: string, customerId?: string): Promise<WishlistSession> {
+    if (this.isPostgresMode()) {
+      const dbWishlist = await postgresWishlistRepository.getWishlist(wishlistId, customerId);
+      if (dbWishlist) {
+        return this.enrichWishlist(wishlistId, dbWishlist.productIds);
+      }
+    }
     const wishlists = this.loadWishlistsFromDisk();
     let productIds: string[] = wishlists[wishlistId]?.productIds || [];
 
@@ -107,7 +123,7 @@ export class WishlistService {
     if (!wishlists[wishlistId].productIds.includes(productId)) {
       wishlists[wishlistId].productIds.push(productId);
       wishlists[wishlistId].updatedAt = new Date().toISOString();
-      this.saveWishlistsToDisk(wishlists);
+      this.saveWishlistsToDisk(wishlists, wishlistId, customerId);
     }
 
     // Persist to PostgreSQL via Prisma if customerId exists
@@ -141,7 +157,7 @@ export class WishlistService {
     if (wishlists[wishlistId]) {
       wishlists[wishlistId].productIds = wishlists[wishlistId].productIds.filter((id: string) => id !== productId);
       wishlists[wishlistId].updatedAt = new Date().toISOString();
-      this.saveWishlistsToDisk(wishlists);
+      this.saveWishlistsToDisk(wishlists, wishlistId, customerId);
     }
 
     if (customerId) {
@@ -164,11 +180,14 @@ export class WishlistService {
    * Clears all items from the wishlist.
    */
   async clearWishlist(wishlistId: string, customerId?: string): Promise<WishlistSession> {
+    if (this.isPostgresMode()) {
+      await postgresWishlistRepository.clearWishlist(wishlistId);
+    }
     const wishlists = this.loadWishlistsFromDisk();
     if (wishlists[wishlistId]) {
       wishlists[wishlistId].productIds = [];
       wishlists[wishlistId].updatedAt = new Date().toISOString();
-      this.saveWishlistsToDisk(wishlists);
+      this.saveWishlistsToDisk(wishlists, wishlistId, customerId);
     }
 
     if (customerId) {
@@ -198,7 +217,7 @@ export class WishlistService {
       productIds: cleanIds,
       updatedAt: new Date().toISOString(),
     };
-    this.saveWishlistsToDisk(wishlists);
+    this.saveWishlistsToDisk(wishlists, wishlistId, customerId);
 
     if (customerId) {
       try {

@@ -6,30 +6,33 @@ import { WishlistProvider } from '../hooks/useWishlist';
 import { ThemeProvider } from '../hooks/useTheme';
 import { ClientOnlyPreloader } from '../components/ui/ClientOnlyPreloader';
 import { AdminDataProvider } from '../hooks/AdminContext';
-import { VisitorTracker } from '../components/common/VisitorTracker';
+import { WhatsAppFloatingButton } from '../components/layout/WhatsAppFloatingButton';
 import { OrganizationJsonLd, WebSiteJsonLd, LocalBusinessJsonLd } from '../components/seo/JsonLd';
 import { GoogleAnalytics } from '../components/analytics/GoogleAnalytics';
 import { SITE_URL, BRAND_NAME, generateOpenGraph, generateTwitter } from '../config/seoConfig';
 
 const outfit = Outfit({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
+  weight: ['400', '600', '700', '800'],
   variable: '--font-outfit',
   display: 'swap',
+  preload: true,
 });
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-plus-jakarta',
   display: 'swap',
+  preload: true,
 });
 
 const fredoka = Fredoka({
   subsets: ['latin'],
-  weight: ['600', '700'],
+  weight: ['600'],
   variable: '--font-fredoka',
   display: 'swap',
+  preload: false,
 });
 
 export const viewport: Viewport = {
@@ -131,10 +134,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <GoogleAnalytics />
           <ClientOnlyPreloader />
           <AdminDataProvider>
-            <VisitorTracker />
             <CartProvider>
               <WishlistProvider>
                 {children}
+                <WhatsAppFloatingButton />
               </WishlistProvider>
             </CartProvider>
           </AdminDataProvider>

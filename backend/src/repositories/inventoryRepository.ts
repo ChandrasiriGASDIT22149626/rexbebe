@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { ProductRepository } from './productRepository';
+import { postgresInventoryRepository } from './postgres/PostgresInventoryRepository';
 
 export interface InventoryItemView {
   productId: string;
@@ -57,7 +58,14 @@ export class InventoryRepository {
     }
   }
 
+  public isPostgresMode(): boolean {
+    return process.env.USE_POSTGRES === 'true';
+  }
+
   async findAll(): Promise<InventoryItemView[]> {
+    if (this.isPostgresMode()) {
+      return postgresInventoryRepository.findAll();
+    }
     const products = await this.productRepo.findAll();
     const items: InventoryItemView[] = [];
 
@@ -119,6 +127,9 @@ export class InventoryRepository {
     reason: string = 'Manual stock adjustment',
     adjustedBy: string = 'admin@rexbebe.com'
   ): Promise<InventoryItemView | null> {
+    if (this.isPostgresMode()) {
+      return postgresInventoryRepository.updateStock(variantId, quantity, reason, adjustedBy);
+    }
     if (quantity < 0) {
       throw new Error('Stock quantity cannot be negative.');
     }
@@ -205,7 +216,24 @@ export class InventoryRepository {
     };
   }
 
+  async atomicDeductStock(
+    variantId: string,
+    quantity: number,
+    reason?: string,
+    actingUser?: string
+  ): Promise<{ success: boolean; remainingQuantity: number }> {
+    if (this.isPostgresMode()) {
+      return postgresInventoryRepository.atomicDeductStock(variantId, quantity, reason, actingUser);
+    }
+    // Fallback in JSON mode
+    const item = await this.updateStock(variantId, 0, reason, actingUser);
+    return { success: true, remainingQuantity: item?.quantity || 0 };
+  }
+
   async getAdjustments(): Promise<StockAdjustmentRecord[]> {
+    if (this.isPostgresMode()) {
+      return postgresInventoryRepository.getAdjustments();
+    }
     return this.readAdjustments();
   }
 }

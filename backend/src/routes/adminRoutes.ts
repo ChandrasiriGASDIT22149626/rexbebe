@@ -6,6 +6,10 @@ import { navigationStorage } from '../services/navigationStorage';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/authMiddleware';
 import { requireAdmin, requireSuperAdmin } from '../middleware/adminMiddleware';
 import { adminUserService, sanitizeUser } from '../services/adminUserService';
+import { postgresSettingsRepository } from '../repositories/postgres/PostgresSettingsRepository';
+import { postgresReviewRepository } from '../repositories/postgres/PostgresReviewRepository';
+import { postgresAdminUserRepository } from '../repositories/postgres/PostgresAdminUserRepository';
+import { postgresAuditRepository } from '../repositories/postgres/PostgresAuditRepository';
 
 const router = Router();
 
@@ -244,20 +248,27 @@ router.get('/overview', authenticateToken, requireAdmin, (req: AuthenticatedRequ
 // -------------------------------------------------------------
 // 2. HOMEPAGE STUDIO CONFIGURATION (DATABASE / FILE PERSISTENT)
 // -------------------------------------------------------------
-router.get('/homepage', (req: Request, res: Response) => {
+router.get('/homepage', async (req: Request, res: Response) => {
+  if (process.env.USE_POSTGRES === 'true') {
+    const config = await postgresSettingsRepository.getHomepageConfig();
+    if (config) return sendSuccess(res, config, 'Homepage configuration retrieved');
+  }
   const config = readJsonFile<any>(homepageFilePath, {});
   return sendSuccess(res, config, 'Homepage configuration retrieved');
 });
 
-router.put('/homepage', authenticateToken, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.put('/homepage', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const current = readJsonFile<any>(homepageFilePath, {});
   const updated = { ...current, ...req.body };
   writeJsonFile(homepageFilePath, updated);
+  if (process.env.USE_POSTGRES === 'true') {
+    await postgresSettingsRepository.updateHomepageConfig(updated);
+  }
   recordAudit(req.user?.email || 'admin@rexbebe.com', req.user?.name || 'Admin Executive', 'HOMEPAGE_UPDATE', 'Updated homepage studio sections');
   return sendSuccess(res, updated, 'Changes saved successfully.');
 });
 
-router.post('/homepage/reset', authenticateToken, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.post('/homepage/reset', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   // Reset to default brand configuration
   const defaultHomepage = {
     hero: {
@@ -277,6 +288,9 @@ router.post('/homepage/reset', authenticateToken, requireAdmin, (req: Authentica
     },
   };
   writeJsonFile(homepageFilePath, defaultHomepage);
+  if (process.env.USE_POSTGRES === 'true') {
+    await postgresSettingsRepository.updateHomepageConfig(defaultHomepage);
+  }
   recordAudit(req.user?.email || 'admin@rexbebe.com', req.user?.name || 'Admin Executive', 'HOMEPAGE_RESET', 'Reset homepage studio to brand defaults');
   return sendSuccess(res, defaultHomepage, 'Homepage configuration reset to defaults');
 });
@@ -367,7 +381,11 @@ router.delete('/analytics/visitors', authenticateToken, requireAdmin, (req: Auth
 // -------------------------------------------------------------
 // 5. CUSTOMER FEEDBACK & REVIEWS
 // -------------------------------------------------------------
-router.get('/feedback', authenticateToken, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/feedback', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  if (process.env.USE_POSTGRES === 'true') {
+    const feedback = await postgresReviewRepository.findAll({ status: req.query.status as string });
+    return sendSuccess(res, feedback, 'Customer feedback records retrieved');
+  }
   const feedback = readJsonFile<any[]>(feedbackFilePath, []);
   const { type, status, search } = req.query;
 
@@ -392,9 +410,15 @@ router.get('/feedback', authenticateToken, requireAdmin, (req: AuthenticatedRequ
   return sendSuccess(res, filtered, 'Customer feedback records retrieved');
 });
 
-router.patch('/feedback/:id/status', authenticateToken, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.patch('/feedback/:id/status', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
   const { status } = req.body;
+  if (process.env.USE_POSTGRES === 'true') {
+    const updated = await postgresReviewRepository.updateStatus(id, status);
+    if (updated) {
+      return sendSuccess(res, updated, `Feedback status updated to ${status}`);
+    }
+  }
   const feedback = readJsonFile<any[]>(feedbackFilePath, []);
   const item = feedback.find(f => f.id === id);
 
@@ -427,13 +451,16 @@ router.post('/feedback/:id/notes', authenticateToken, requireAdmin, (req: Authen
   return sendSuccess(res, item, 'Internal note added to feedback');
 });
 
-router.delete('/feedback/:id', authenticateToken, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.delete('/feedback/:id', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
+  if (process.env.USE_POSTGRES === 'true') {
+    await postgresReviewRepository.delete(id);
+  }
   let feedback = readJsonFile<any[]>(feedbackFilePath, []);
   const beforeLen = feedback.length;
   feedback = feedback.filter(f => f.id !== id);
 
-  if (feedback.length === beforeLen) {
+  if (feedback.length === beforeLen && process.env.USE_POSTGRES !== 'true') {
     return sendError(res, `Feedback item ${id} not found`, 404);
   }
 
@@ -445,7 +472,11 @@ router.delete('/feedback/:id', authenticateToken, requireAdmin, (req: Authentica
 // -------------------------------------------------------------
 // 6. ADMIN USERS & PERMISSION MANAGEMENT (SUPER_ADMIN ONLY)
 // -------------------------------------------------------------
-router.get('/users', authenticateToken, requireSuperAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/users', authenticateToken, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  if (process.env.USE_POSTGRES === 'true') {
+    const users = await postgresAdminUserRepository.getAll();
+    return sendSuccess(res, users, 'Admin users retrieved');
+  }
   const sanitized = adminUserService.getAll();
   return sendSuccess(res, sanitized, 'Admin users retrieved');
 });
@@ -472,10 +503,17 @@ router.post('/users', authenticateToken, requireSuperAdmin, async (req: Authenti
   }
 });
 
-router.patch('/users/:id/status', authenticateToken, requireSuperAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.patch('/users/:id/status', authenticateToken, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
   const { status } = req.body;
   try {
+    if (process.env.USE_POSTGRES === 'true') {
+      const updated = await postgresAdminUserRepository.updateStatus(id, status);
+      if (updated) {
+        recordAudit(req.user?.email || 'admin@rexbebe.com', req.user?.name || 'Super Admin', 'USER_STATUS_CHANGE', `Updated admin ${updated.email} status to ${status}`);
+        return sendSuccess(res, updated, 'Admin user updated successfully');
+      }
+    }
     const updated = adminUserService.updateStatus(id, status);
     recordAudit(req.user?.email || 'admin@rexbebe.com', req.user?.name || 'Super Admin', 'USER_STATUS_CHANGE', `Updated admin ${updated.email} status to ${status}`);
     return sendSuccess(res, updated, 'Admin user updated successfully');
@@ -484,27 +522,32 @@ router.patch('/users/:id/status', authenticateToken, requireSuperAdmin, (req: Au
   }
 });
 
-router.delete('/users/:id', authenticateToken, requireSuperAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.delete('/users/:id', authenticateToken, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
+  if (process.env.USE_POSTGRES === 'true') {
+    await postgresAdminUserRepository.delete(id);
+  }
   const users = readJsonFile<any[]>(usersFilePath, []);
   const userIndex = users.findIndex(u => u.id === id);
-  if (userIndex === -1) {
+  if (userIndex === -1 && process.env.USE_POSTGRES !== 'true') {
     return sendError(res, `Admin user '${id}' not found`, 404);
   }
 
-  const user = users[userIndex];
-  if (user.email === 'admin@rexbebe.com' || user.id === req.user?.id) {
-    return sendError(res, 'The primary administrator account or your own current active account cannot be deleted.', 403);
-  }
+  if (userIndex !== -1) {
+    const user = users[userIndex];
+    if (user.email === 'admin@rexbebe.com' || user.id === req.user?.id) {
+      return sendError(res, 'The primary administrator account or your own current active account cannot be deleted.', 403);
+    }
 
-  const superAdmins = users.filter(u => u.role === 'SUPER_ADMIN');
-  if (user.role === 'SUPER_ADMIN' && superAdmins.length <= 1) {
-    return sendError(res, 'Cannot delete the last Super Administrator. The system requires at least one Super Administrator.', 403);
-  }
+    const superAdmins = users.filter(u => u.role === 'SUPER_ADMIN');
+    if (user.role === 'SUPER_ADMIN' && superAdmins.length <= 1) {
+      return sendError(res, 'Cannot delete the last Super Administrator. The system requires at least one Super Administrator.', 403);
+    }
 
-  users.splice(userIndex, 1);
-  writeJsonFile(usersFilePath, users);
-  recordAudit(req.user?.email || 'admin@rexbebe.com', req.user?.name || 'Super Admin', 'USER_DELETED', `Permanently deleted administrator account "${user.name}" (${user.email})`);
+    users.splice(userIndex, 1);
+    writeJsonFile(usersFilePath, users);
+    recordAudit(req.user?.email || 'admin@rexbebe.com', req.user?.name || 'Super Admin', 'USER_DELETED', `Permanently deleted administrator account "${user.name}" (${user.email})`);
+  }
 
   return sendSuccess(res, { deleted: true, id }, 'The item has been permanently deleted.');
 });
@@ -512,15 +555,22 @@ router.delete('/users/:id', authenticateToken, requireSuperAdmin, (req: Authenti
 // -------------------------------------------------------------
 // 7. STORE SETTINGS & LOGISTICS
 // -------------------------------------------------------------
-router.get('/settings', authenticateToken, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/settings', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  if (process.env.USE_POSTGRES === 'true') {
+    const settings = await postgresSettingsRepository.getStoreSettings();
+    if (settings) return sendSuccess(res, settings, 'Store settings retrieved');
+  }
   const settings = readJsonFile<any>(settingsFilePath, {});
   return sendSuccess(res, settings, 'Store settings retrieved');
 });
 
-router.put('/settings', authenticateToken, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.put('/settings', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const current = readJsonFile<any>(settingsFilePath, {});
   const updated = { ...current, ...req.body };
   writeJsonFile(settingsFilePath, updated);
+  if (process.env.USE_POSTGRES === 'true') {
+    await postgresSettingsRepository.updateStoreSettings(updated);
+  }
   recordAudit(req.user?.email || 'admin@rexbebe.com', req.user?.name || 'Super Admin', 'SETTINGS_UPDATE', 'Updated boutique store configuration');
   return sendSuccess(res, updated, 'Changes saved successfully.');
 });
@@ -528,15 +578,22 @@ router.put('/settings', authenticateToken, requireAdmin, (req: AuthenticatedRequ
 // -------------------------------------------------------------
 // 8. GLOBAL SEO SETTINGS
 // -------------------------------------------------------------
-router.get('/seo', authenticateToken, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/seo', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  if (process.env.USE_POSTGRES === 'true') {
+    const seo = await postgresSettingsRepository.getSeoSettings();
+    if (seo) return sendSuccess(res, seo, 'SEO settings retrieved');
+  }
   const seo = readJsonFile<any>(seoFilePath, {});
   return sendSuccess(res, seo, 'SEO settings retrieved');
 });
 
-router.put('/seo', authenticateToken, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.put('/seo', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const current = readJsonFile<any>(seoFilePath, {});
   const updated = { ...current, ...req.body };
   writeJsonFile(seoFilePath, updated);
+  if (process.env.USE_POSTGRES === 'true') {
+    await postgresSettingsRepository.updateSeoSettings(updated);
+  }
   recordAudit(req.user?.email || 'admin@rexbebe.com', req.user?.name || 'Admin Executive', 'SEO_UPDATE', 'Updated global SEO settings');
   return sendSuccess(res, updated, 'Changes saved successfully.');
 });
@@ -544,7 +601,11 @@ router.put('/seo', authenticateToken, requireAdmin, (req: AuthenticatedRequest, 
 // -------------------------------------------------------------
 // 9. SECURITY & ACTIVITY AUDIT LOGS
 // -------------------------------------------------------------
-router.get('/audit-logs', authenticateToken, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/audit-logs', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  if (process.env.USE_POSTGRES === 'true') {
+    const logs = await postgresAuditRepository.getAll({ limit: 200 });
+    return sendSuccess(res, logs, 'Audit trail logs retrieved');
+  }
   const logs = readJsonFile<any[]>(auditLogsFilePath, []);
   return sendSuccess(res, logs, 'Audit trail logs retrieved');
 });

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
+import { postgresAdminUserRepository } from '../repositories/postgres/PostgresAdminUserRepository';
 
 export interface AdminUser {
   id: string;
@@ -71,9 +72,23 @@ export class AdminUserService {
     return readUsers().map(sanitizeUser);
   }
 
+  async getAllAsync(): Promise<SanitizedAdminUser[]> {
+    if (process.env.USE_POSTGRES === 'true') {
+      return postgresAdminUserRepository.getAll();
+    }
+    return this.getAll();
+  }
+
   findById(id: string): AdminUser | null {
     const users = readUsers();
     return users.find(u => u.id === id) || null;
+  }
+
+  async findByIdAsync(id: string): Promise<AdminUser | null> {
+    if (process.env.USE_POSTGRES === 'true') {
+      return postgresAdminUserRepository.findById(id);
+    }
+    return this.findById(id);
   }
 
   findByEmailOrUsername(identifier: string): AdminUser | null {
@@ -83,6 +98,13 @@ export class AdminUserService {
       u.email.toLowerCase() === clean || 
       (u.username && u.username.toLowerCase() === clean)
     ) || null;
+  }
+
+  async findByEmailOrUsernameAsync(identifier: string): Promise<AdminUser | null> {
+    if (process.env.USE_POSTGRES === 'true') {
+      return postgresAdminUserRepository.findByEmail(identifier);
+    }
+    return this.findByEmailOrUsername(identifier);
   }
 
   async verifyPassword(password: string, hash: string): Promise<boolean> {
@@ -95,6 +117,9 @@ export class AdminUserService {
   }
 
   updateLastLogin(id: string): void {
+    if (process.env.USE_POSTGRES === 'true') {
+      postgresAdminUserRepository.recordLogin(id).catch(() => {});
+    }
     const users = readUsers();
     const user = users.find(u => u.id === id);
     if (user) {
@@ -133,6 +158,9 @@ export class AdminUserService {
 
     users.push(newUser);
     writeUsers(users);
+    if (process.env.USE_POSTGRES === 'true') {
+      postgresAdminUserRepository.create(newUser).catch(() => {});
+    }
     return sanitizeUser(newUser);
   }
 
@@ -143,6 +171,9 @@ export class AdminUserService {
     user.status = status;
     user.updatedAt = new Date().toISOString();
     writeUsers(users);
+    if (process.env.USE_POSTGRES === 'true') {
+      postgresAdminUserRepository.updateStatus(id, status).catch(() => {});
+    }
     return sanitizeUser(user);
   }
 
@@ -195,7 +226,17 @@ export class AdminUserService {
       };
       users.unshift(newPrimary);
       writeUsers(users);
+      if (process.env.USE_POSTGRES === 'true') {
+        postgresAdminUserRepository.create(newPrimary).catch(() => {});
+      }
       console.log(`[Admin Security] Created primary super admin (${defaultEmail}) with secure bcrypt password hash.`);
+    }
+
+    if (process.env.USE_POSTGRES === 'true') {
+      const activeUser = users.find(u => u.email.toLowerCase() === defaultEmail.toLowerCase());
+      if (activeUser) {
+        postgresAdminUserRepository.create(activeUser).catch(() => {});
+      }
     }
   }
 }

@@ -1,11 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { sendSuccess, sendError } from '../utils/response';
 import { navigationStorage } from '../services/navigationStorage';
+import { postgresNavigationRepository } from '../repositories/postgres/PostgresNavigationRepository';
+import { categoryRepository } from '../repositories/categoryRepository';
 
 const router = Router();
 
 // Public: Get published active navigation tree
-router.get('/', (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const isAuth = Boolean(req.headers.authorization || req.query._admin === 'true');
     if (isAuth) {
@@ -15,6 +17,10 @@ router.get('/', (req: Request, res: Response) => {
     } else {
       res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
     }
+    if (process.env.USE_POSTGRES === 'true') {
+      const publicNav = await postgresNavigationRepository.getPublic();
+      return sendSuccess(res, publicNav, 'Public navigation structure retrieved');
+    }
     navigationStorage.syncWithCategoryRecords(categoryRepository.getAll());
     const publicNav = navigationStorage.getPublic();
     return sendSuccess(res, publicNav, 'Public navigation structure retrieved');
@@ -23,12 +29,14 @@ router.get('/', (req: Request, res: Response) => {
   }
 });
 
-import { categoryRepository } from '../repositories/categoryRepository';
-
 // Admin: Get all navigation items including inactive
-router.get('/all', (req: Request, res: Response) => {
+router.get('/all', async (req: Request, res: Response) => {
   try {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    if (process.env.USE_POSTGRES === 'true') {
+      const allNav = await postgresNavigationRepository.getAll();
+      return sendSuccess(res, allNav, 'Complete navigation structure retrieved');
+    }
     navigationStorage.syncWithCategoryRecords(categoryRepository.getAll());
     const allNav = navigationStorage.getAll();
     return sendSuccess(res, allNav, 'Complete navigation structure retrieved');

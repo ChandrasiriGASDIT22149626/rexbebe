@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { postgresNavigationRepository } from '../repositories/postgres/PostgresNavigationRepository';
 
 export interface NavSubItem {
   id: string;
@@ -311,6 +312,11 @@ class NavigationStorage {
 
   private saveToDisk(): void {
     try {
+      if (process.env.USE_POSTGRES === 'true') {
+        postgresNavigationRepository.updateAll(this.config).catch((err) => {
+          console.error('[NavigationStorage] Failed to update PostgreSQL navigation:', err);
+        });
+      }
       const dir = path.dirname(STORAGE_FILE_PATH);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
@@ -324,6 +330,13 @@ class NavigationStorage {
   public getAll(): NavigationConfig {
     this.config = this.loadFromDisk();
     return this.config;
+  }
+
+  public async getAllAsync(): Promise<NavigationConfig> {
+    if (process.env.USE_POSTGRES === 'true') {
+      return postgresNavigationRepository.getAll();
+    }
+    return this.getAll();
   }
 
   public syncWithCategoryRecords(cats: any[]): boolean {
