@@ -67,7 +67,7 @@ export const uploadService = {
         },
         body: JSON.stringify({
           data: base64Data,
-          filename: filename || `recolor-${Date.now()}.png`,
+          filename: filename || `upload-${Date.now()}.png`,
         }),
       });
 
