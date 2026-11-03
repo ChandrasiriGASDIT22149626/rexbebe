@@ -131,8 +131,8 @@ export function PaymentMethod({
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm font-bold text-stone-900">PayHere Sri Lanka Gateway</span>
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                    Instant Online
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                    Coming Soon
                   </span>
                 </div>
                 <p className="text-xs text-stone-600 font-medium">

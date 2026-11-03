@@ -12,6 +12,9 @@ function getEffectiveApiBaseUrl(): string {
         parsed.protocol === 'http:' &&
         (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1')
       ) {
+        if (currentHost.includes('vercel.app') || currentHost.includes('rexbebe.com')) {
+          return 'https://rexbebe.vercel.app/api';
+        }
         return '/api';
       }
       // If client is on 127.0.0.1, localhost, or LAN, match hostname

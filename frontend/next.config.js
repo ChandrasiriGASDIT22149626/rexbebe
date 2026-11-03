@@ -91,7 +91,11 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const isProdOrVercel = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    const defaultBackendUrl = isProdOrVercel
+      ? 'https://rexbebe.vercel.app/api'
+      : 'http://localhost:5000/api';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || defaultBackendUrl;
     const backendHost = backendUrl.replace(/\/api\/?$/, '');
     return [
       {
