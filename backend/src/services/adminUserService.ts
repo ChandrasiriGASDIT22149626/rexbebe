@@ -102,7 +102,12 @@ export class AdminUserService {
 
   async findByEmailOrUsernameAsync(identifier: string): Promise<AdminUser | null> {
     if (process.env.USE_POSTGRES === 'true') {
-      return postgresAdminUserRepository.findByEmail(identifier);
+      try {
+        const pgUser = await postgresAdminUserRepository.findByEmail(identifier);
+        if (pgUser) return pgUser;
+      } catch (err) {
+        console.warn('[AdminUserService] Postgres lookup warning, checking fallback:', err);
+      }
     }
     return this.findByEmailOrUsername(identifier);
   }

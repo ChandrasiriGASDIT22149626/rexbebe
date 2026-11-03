@@ -48,12 +48,28 @@ export class DatabaseManager {
   private configureEngine(): void {
     const dbUrl = (process.env.DATABASE_URL || '').trim();
     if (dbUrl && !dbUrl.includes('dummy') && !dbUrl.startsWith('memory:')) {
-      this.pool = new Pool({
+      const isServerlessOrProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+      const useSsl =
+        process.env.DB_SSL === 'true' ||
+        dbUrl.includes('sslmode=require') ||
+        dbUrl.includes('supabase.co') ||
+        dbUrl.includes('neon.tech') ||
+        dbUrl.includes('render.com') ||
+        dbUrl.includes('aws.com') ||
+        dbUrl.includes('aivencloud.com');
+
+      const poolConfig: any = {
         connectionString: dbUrl,
-        max: 20,
+        max: isServerlessOrProd ? (Number(process.env.DB_POOL_MAX) || 3) : 20,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 5000,
-      });
+        connectionTimeoutMillis: 10000,
+      };
+
+      if (useSsl) {
+        poolConfig.ssl = { rejectUnauthorized: false };
+      }
+
+      this.pool = new Pool(poolConfig);
       this.isPgliteMode = false;
     } else {
       this.isPgliteMode = true;

@@ -23,12 +23,16 @@ const pagesFilePath = path.resolve(__dirname, '../../data/pages.json');
 const homepageFilePath = path.resolve(__dirname, '../../data/homepage.json');
 const auditLogsFilePath = path.resolve(__dirname, '../../data/audit_logs.json');
 
-// Ensure upload and originals backup directories exist
-[FRONTEND_UPLOADS_DIR, BACKEND_UPLOADS_DIR, FRONTEND_ORIGINALS_DIR, BACKEND_ORIGINALS_DIR].forEach((dir) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-});
+// Ensure upload and originals backup directories exist (safe in read-only serverless)
+try {
+  [FRONTEND_UPLOADS_DIR, BACKEND_UPLOADS_DIR, FRONTEND_ORIGINALS_DIR, BACKEND_ORIGINALS_DIR].forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+} catch (err) {
+  // Gracefully ignored in read-only serverless environments like Vercel
+}
 
 function readJson<T>(filePath: string, fallback: T): T {
   try {

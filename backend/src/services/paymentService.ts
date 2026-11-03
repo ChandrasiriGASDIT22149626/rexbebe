@@ -17,16 +17,19 @@ export class PaymentService {
       .digest('hex')
       .toUpperCase();
 
+    const frontendBaseUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    const backendBaseUrl = (process.env.BACKEND_URL || process.env.APP_URL || 'http://localhost:5000').replace(/\/+$/, '');
+
     return {
-      sandbox: true,
+      sandbox: process.env.PAYHERE_SANDBOX !== 'false',
       merchantId,
       orderId,
       amount: formattedAmount,
       currency,
       hash,
-      returnUrl: `http://localhost:3000/order/${orderId}?status=success`,
-      cancelUrl: `http://localhost:3000/checkout?status=cancel`,
-      notifyUrl: `http://localhost:5000/api/payments/callback`,
+      returnUrl: `${frontendBaseUrl}/order/${orderId}?status=success`,
+      cancelUrl: `${frontendBaseUrl}/checkout?status=cancel`,
+      notifyUrl: `${backendBaseUrl}/api/payments/callback`,
     };
   }
 
