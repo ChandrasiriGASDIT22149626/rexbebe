@@ -214,7 +214,18 @@ export function CheckoutForm() {
         }
       }
 
-      // 5. Clear cart and redirect to order confirmation page
+      // 5. Cache placed order for zero-latency instant confirmation page display
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem(`rexbebe_order_${newOrder.orderNumber}`, JSON.stringify(newOrder));
+          if (newOrder.id) {
+            sessionStorage.setItem(`rexbebe_order_${newOrder.id}`, JSON.stringify(newOrder));
+          }
+          sessionStorage.setItem('rexbebe_latest_order', JSON.stringify(newOrder));
+        } catch {}
+      }
+
+      // 6. Clear cart and redirect to order confirmation page
       clearCart();
       router.push(`/order/${newOrder.orderNumber}`);
     } catch (err: any) {

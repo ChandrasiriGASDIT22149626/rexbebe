@@ -1,28 +1,113 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingBag, Eye, Heart } from 'lucide-react';
-import { Product } from '../../types/product';
-import { formatCurrency } from '../../utils/formatCurrency';
+import { Eye, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Product, ProductVariant } from '../../types/product';
 import { useCart } from '../../hooks/useCart';
 import { WishlistButton } from './WishlistButton';
 import { QuickViewModal } from './QuickViewModal';
+import { InstallmentBadges } from './InstallmentBadges';
 
-export const ProductCard = React.memo(function ProductCard({ product }: { product: Product }) {
+interface ProductCardProps {
+  product: Product;
+  priority?: boolean;
+}
+
+export const ProductCard = React.memo(function ProductCard({
+  product,
+  priority = false,
+}: ProductCardProps) {
   const { addToCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
-  const [selectedColorName, setSelectedColorName] = useState<string | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isImgLoaded, setIsImgLoaded] = useState(false);
+  const [sizePromptFlash, setSizePromptFlash] = useState(false);
 
-  const images = product.images || [];
-  const primaryImage = images[0]?.url || '/images/products/organic-onesie.webp';
-  const secondaryImage = images[1]?.url || primaryImage;
+  // Extract all images
+  const images = useMemo(() => {
+    if (product.images && product.images.length > 0) {
+      return product.images;
+    }
+    return [{ id: 'img-fallback', url: '/images/products/organic-onesie.webp', alt: product.name, position: 0 }];
+  }, [product.images, product.name]);
 
-  // Resolve thumbnail variant for ultra-light product grid rendering
+  // Extract all configured sizes for this product from variants and product.sizes
+  const configuredSizes = useMemo(() => {
+    const list: string[] = [];
+    const seen = new Set<string>();
+
+    // 1. From product.sizes if explicitly declared
+    if (product.sizes && Array.isArray(product.sizes)) {
+      product.sizes.forEach((s) => {
+        if (s && !seen.has(s.trim())) {
+          seen.add(s.trim());
+          list.push(s.trim());
+        }
+      });
+    }
+
+    // 2. From product.variants
+    (product.variants || []).forEach((v) => {
+      if (v.size && !seen.has(v.size.trim())) {
+        seen.add(v.size.trim());
+        list.push(v.size.trim());
+      }
+    });
+
+    return list;
+  }, [product.sizes, product.variants]);
+
+  // Selected size state
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+
+  // Calculate total stock from variants or top-level product
+  const totalStock = useMemo(() => {
+    if (typeof product.stockQuantity === 'number') {
+      return product.stockQuantity;
+    }
+    return (product.variants || []).reduce((sum, v) => sum + (v.stockQuantity || 0), 0);
+  }, [product.stockQuantity, product.variants]);
+
+  const isSoldOut = totalStock <= 0;
+
+  // Determine stock availability per size
+  const isSizeAvailable = (size: string): boolean => {
+    if (isSoldOut) return false;
+    const variants = (product.variants || []).filter(
+      (v) => v.size?.toLowerCase() === size.toLowerCase()
+    );
+    if (variants.length === 0) {
+      // If variant has no specific size track, check product overall stock
+      return totalStock > 0;
+    }
+    return variants.some((v) => (v.stockQuantity ?? 0) > 0);
+  };
+
+  // Find active variant based on selected size
+  const activeVariant: ProductVariant = useMemo(() => {
+    const variants = product.variants || [];
+    if (selectedSize) {
+      const match = variants.find(
+        (v) => v.size?.toLowerCase() === selectedSize.toLowerCase() && (v.stockQuantity ?? 0) > 0
+      ) || variants.find((v) => v.size?.toLowerCase() === selectedSize.toLowerCase());
+      if (match) return match;
+    }
+
+    return variants[0] || {
+      id: `var-default-${product.id}`,
+      sku: product.sku || 'REX-STD',
+      price: product.price,
+      stockQuantity: totalStock,
+    };
+  }, [product.variants, product.id, product.sku, product.price, selectedSize, totalStock]);
+
+  // Resolve thumbnail variant for light rendering
   const getCardThumbnailUrl = (url: string) => {
-    if (!url) return '/images/products/organic-onesie-thumb.webp';
+    if (!url) return '/images/products/organic-onesie.webp';
     if (url.includes('-thumb.')) return url;
     if (url.endsWith('.webp')) return url.replace('.webp', '-thumb.webp');
     if (url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.png')) {
@@ -31,40 +116,17 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
     return url;
   };
 
-  // Resolve colour-specific image if a colour is selected/hovered
-  const displayImage = React.useMemo(() => {
-    if (!selectedColorName) return primaryImage;
-    const matchImg = images.find(
-      (img) => img.colorName?.toLowerCase() === selectedColorName.toLowerCase()
-    );
-    if (matchImg?.url) return matchImg.url;
-    const matchVar = product.variants?.find(
-      (v) => v.color?.toLowerCase() === selectedColorName.toLowerCase() && v.imageUrl
-    );
-    return matchVar?.imageUrl || primaryImage;
-  }, [selectedColorName, images, product.variants, primaryImage]);
+  // Current primary and secondary image URLs
+  const primaryImageUrl = images[activeImageIndex]?.url || images[0]?.url || '/images/products/organic-onesie.webp';
+  const secondaryImageUrl = images.length > 1 ? images[1]?.url : primaryImageUrl;
 
-  const [currentImgSrc, setCurrentImgSrc] = useState<string>(() => getCardThumbnailUrl(displayImage));
-  const [currentSecSrc, setCurrentSecSrc] = useState<string>(() => getCardThumbnailUrl(secondaryImage));
+  const [currentImgSrc, setCurrentImgSrc] = useState<string>(() => getCardThumbnailUrl(primaryImageUrl));
 
-  React.useEffect(() => {
-    setCurrentImgSrc(getCardThumbnailUrl(displayImage));
-  }, [displayImage]);
+  useEffect(() => {
+    setCurrentImgSrc(getCardThumbnailUrl(primaryImageUrl));
+  }, [primaryImageUrl]);
 
-  React.useEffect(() => {
-    setCurrentSecSrc(getCardThumbnailUrl(secondaryImage));
-  }, [secondaryImage]);
-
-  const defaultVariant = product.variants?.[0] || {
-    id: `var-default-${product.id}`,
-    sku: product.sku || 'REX-STD',
-    price: product.price,
-    stockQuantity: product.stockQuantity || 0,
-  };
-
-  const totalStock = product.stockQuantity ?? (product.variants || []).reduce((sum, v) => sum + (v.stockQuantity || 0), 0);
-  const isSoldOut = totalStock <= 0;
-
+  // Sale calculations
   const isSaleActive = Boolean(
     (product.isSaleBadge ?? true) &&
     product.comparePrice &&
@@ -73,149 +135,147 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
     (!product.saleEndDate || new Date(product.saleEndDate) >= new Date())
   );
 
-  const discountPercent = isSaleActive && product.comparePrice
-    ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
-    : 0;
-
-  // 3x Buy-Now-Pay-Later installment (e.g. Koko / Mintpay popular in Sri Lanka)
-  const installmentAmount = (product.price / 3).toLocaleString('en-LK', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  // Only display colours that the admin actually configured
-  const swatches = React.useMemo(() => {
-    if (product.colors && product.colors.length > 0) {
-      return product.colors;
-    }
-    const list: { name: string; hex: string }[] = [];
-    const seen = new Set<string>();
-    (product.variants || []).forEach((v) => {
-      if (v.colorHex && !seen.has(v.colorHex.toLowerCase())) {
-        seen.add(v.colorHex.toLowerCase());
-        list.push({ name: v.color || 'Color', hex: v.colorHex });
-      }
-    });
-    return list;
-  }, [product]);
-
-  const handleQuickAdd = async (e: React.MouseEvent) => {
+  // Handle Quick Add to Cart
+  const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
     if (isSoldOut) return;
+
+    // If size selection is required and not selected yet, prompt user
+    if (configuredSizes.length > 0 && !selectedSize) {
+      // Find first available in-stock size and select it, or highlight selector
+      const firstAvailable = configuredSizes.find((s) => isSizeAvailable(s));
+      if (firstAvailable) {
+        setSelectedSize(firstAvailable);
+        // Find variant for that size
+        const matchedVar = (product.variants || []).find(
+          (v) => v.size?.toLowerCase() === firstAvailable.toLowerCase() && (v.stockQuantity ?? 0) > 0
+        ) || activeVariant;
+
+        setIsAdding(true);
+        addToCart(product, matchedVar);
+        setTimeout(() => setIsAdding(false), 900);
+      } else {
+        setSizePromptFlash(true);
+        setTimeout(() => setSizePromptFlash(false), 1200);
+      }
+      return;
+    }
+
     setIsAdding(true);
-    addToCart(product, defaultVariant);
-    setTimeout(() => setIsAdding(false), 800);
+    addToCart(product, activeVariant);
+    setTimeout(() => setIsAdding(false), 900);
   };
 
-  const [isHovered, setIsHovered] = useState(false);
-  const [isImgLoaded, setIsImgLoaded] = useState(false);
+  // Carousel arrow handlers
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveImageIndex((prev) => (prev + 1) % images.length);
+  };
 
   return (
     <>
       <div
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className="group relative flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/90 dark:border-slate-800 hover:border-amber-400/80 dark:hover:border-amber-400/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-300 ease-out will-change-transform h-full overflow-hidden"
+        onMouseLeave={() => {
+          setIsHovered(false);
+          setActiveImageIndex(0);
+        }}
+        className="group relative flex flex-col w-full bg-white dark:bg-slate-900 text-left transition-all duration-200"
       >
-        {/* Product Image Container (Fixed 4:5 Aspect Ratio, Soft Cream Background, Card 2 Reference Size) */}
-        <div className="relative w-full aspect-[4/5] flex-shrink-0 bg-[#FAF7F2] dark:bg-slate-900 overflow-hidden cursor-pointer select-none flex items-center justify-center p-2 sm:p-2.5">
-          <div
-            onClick={() => setIsQuickViewOpen(true)}
-            className="relative w-full aspect-[1312/1199] overflow-hidden flex items-center justify-center"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') setIsQuickViewOpen(true);
-            }}
+        {/* =========================================================================
+            1. PRODUCT IMAGE CONTAINER (Portrait 3:4 Aspect Ratio, Clean Neutral BG)
+           ========================================================================= */}
+        <div className="relative w-full aspect-[3/4] bg-[#F7F7F7] dark:bg-slate-800 overflow-hidden cursor-pointer select-none">
+          <Link
+            href={`/products/${product.slug}`}
+            className="block relative w-full h-full"
             aria-label={`View ${product.name}`}
           >
             {/* Shimmer Placeholder while loading */}
             {!isImgLoaded && (
-              <div className="absolute inset-0 bg-[#F5EFE6]/60 dark:bg-slate-800 animate-pulse rounded-lg pointer-events-none" />
+              <div className="absolute inset-0 bg-neutral-200/50 dark:bg-slate-700/50 animate-pulse pointer-events-none" />
             )}
 
-            {/* Primary or Colour-Specific Image */}
+            {/* Primary Product Image */}
             <Image
               src={currentImgSrc}
               alt={product.name}
               fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
-              loading="lazy"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              priority={priority}
+              loading={priority ? undefined : 'lazy'}
               decoding="async"
               onLoad={() => setIsImgLoaded(true)}
-              className={`w-full h-full object-contain object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform ${
-                images.length > 1 && !selectedColorName
-                  ? 'group-hover:opacity-0 group-hover:scale-105 opacity-100 scale-100'
-                  : 'group-hover:scale-105 opacity-100 scale-100'
+              className={`w-full h-full object-cover object-center pointer-events-none transition-opacity duration-300 ease-in-out ${
+                isHovered && images.length > 1 && activeImageIndex === 0 ? 'opacity-0' : 'opacity-100'
               }`}
-              priority={false}
               onError={() => {
                 setIsImgLoaded(true);
-                if (currentImgSrc.includes('-thumb.webp')) {
-                  // If thumbnail fails to load, gracefully fallback to main image
-                  setCurrentImgSrc(displayImage);
+                if (currentImgSrc.includes('-thumb.')) {
+                  setCurrentImgSrc(primaryImageUrl);
                 } else if (currentImgSrc !== '/images/products/organic-onesie.webp') {
                   setCurrentImgSrc('/images/products/organic-onesie.webp');
                 }
               }}
             />
 
-            {/* Secondary Image loaded strictly on card hover for smooth lookbook preview without extra network overhead */}
-            {isHovered && images.length > 1 && !selectedColorName && (
+            {/* Secondary Image on Hover for Smooth Fashion Lookbook Swap */}
+            {images.length > 1 && (
               <Image
-                src={currentSecSrc}
-                alt={`${product.name} back view`}
+                src={getCardThumbnailUrl(secondaryImageUrl)}
+                alt={`${product.name} secondary view`}
                 fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 loading="lazy"
                 decoding="async"
-                className="w-full h-full object-contain object-center pointer-events-none transition-[opacity,transform] duration-300 ease-out will-change-transform opacity-0 scale-100 group-hover:opacity-100 group-hover:scale-105"
-                onError={() => {
-                  if (currentSecSrc.includes('-thumb.webp')) {
-                    setCurrentSecSrc(secondaryImage);
-                  } else if (currentSecSrc !== currentImgSrc) {
-                    setCurrentSecSrc(currentImgSrc);
-                  }
+                className={`w-full h-full object-cover object-center pointer-events-none transition-opacity duration-300 ease-in-out ${
+                  isHovered && activeImageIndex === 0 ? 'opacity-100' : 'opacity-0'
+                }`}
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
                 }}
               />
             )}
-          </div>
+          </Link>
 
-          {/* Top-Right Badges */}
-          <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none flex flex-col gap-1 items-end">
+          {/* =========================================================================
+              2. STOCK AVAILABILITY BADGE (Top-Left: Teal 'In stock' or Dark 'Sold out')
+             ========================================================================= */}
+          <div className="absolute top-2.5 left-2.5 z-10 pointer-events-none">
             {isSoldOut ? (
-              <span className="px-2.5 py-0.5 bg-stone-900 text-white text-[10px] sm:text-[11px] font-black rounded-md shadow-xs tracking-tight uppercase">
-                Sold Out
+              <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-neutral-800 text-white text-[10px] sm:text-[11px] font-medium tracking-wide uppercase">
+                Sold out
               </span>
             ) : (
-              <>
-                {product.isNewArrival && (
-                  <span className="px-2.5 py-0.5 bg-[#2563EB] text-white text-[10px] sm:text-[11px] font-bold rounded-md shadow-xs tracking-tight">
-                    New
-                  </span>
-                )}
-                {isSaleActive && (
-                  <span className="px-2.5 py-0.5 bg-rose-600 text-white text-[10px] sm:text-[11px] font-bold rounded-md shadow-xs tracking-tight">
-                    {discountPercent > 0 ? `-${discountPercent}%` : 'Sale'}
-                  </span>
-                )}
-                {!product.isNewArrival && !isSaleActive && product.isBestSeller && (
-                  <span className="px-2.5 py-0.5 bg-emerald-700 text-white text-[10px] sm:text-[11px] font-bold rounded-md shadow-xs tracking-tight">
-                    Best Seller
-                  </span>
-                )}
-              </>
+              <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[#00A699] text-white text-[10px] sm:text-[11px] font-medium tracking-wide">
+                In stock
+              </span>
             )}
           </div>
 
-          {/* Top-Left Wishlist Heart Button */}
-          <div className="absolute top-2.5 left-2.5 z-10 opacity-90 group-hover:opacity-100 transition-opacity">
-            <WishlistButton productId={product.id} product={product} />
-          </div>
+          {/* =========================================================================
+              3. ACTION BUTTONS (Top-Right: Wishlist Heart & Quick View)
+             ========================================================================= */}
+          <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-1.5 items-center">
+            {/* Wishlist Button */}
+            <div className="transition-transform duration-200 hover:scale-105">
+              <WishlistButton
+                productId={product.id}
+                product={product}
+                className="w-8 h-8 sm:w-9 sm:h-9 !bg-white/95 hover:!bg-white text-neutral-700 shadow-sm flex items-center justify-center !p-0"
+              />
+            </div>
 
-          {/* Dual Action Bar (Slide up on desktop hover: View Product + Quick Add) */}
-          <div className="absolute inset-x-0 bottom-0 p-2.5 z-10 translate-y-full group-hover:translate-y-0 transition-transform duration-250 ease-out hidden sm:flex items-center space-x-2 bg-gradient-to-t from-stone-950/70 via-stone-950/40 to-transparent">
+            {/* Quick View Eye Button */}
             <button
               type="button"
               onClick={(e) => {
@@ -223,7 +283,52 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
                 e.stopPropagation();
                 setIsQuickViewOpen(true);
               }}
-              className="flex-1 py-2 px-2.5 bg-white/95 hover:bg-stone-900 text-stone-900 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center space-x-1.5 backdrop-blur-xs active:scale-95"
+              className="w-8 h-8 sm:w-9 sm:h-9 bg-white/95 hover:bg-white text-neutral-700 hover:text-black rounded-full shadow-sm flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 hover:scale-105"
+              title="Quick view"
+              aria-label={`Quick view ${product.name}`}
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* =========================================================================
+              4. IMAGE CAROUSEL ARROWS (Bottom-Right: Shown on hover when multiple images)
+             ========================================================================= */}
+          {images.length > 1 && (
+            <div className="absolute bottom-2.5 right-2.5 z-10 hidden sm:flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <button
+                type="button"
+                onClick={handlePrevImage}
+                className="w-7 h-7 rounded-full bg-white/90 hover:bg-white text-neutral-800 shadow-sm flex items-center justify-center transition-transform active:scale-90"
+                aria-label="Previous image"
+                title="Previous image"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextImage}
+                className="w-7 h-7 rounded-full bg-white/90 hover:bg-white text-neutral-800 shadow-sm flex items-center justify-center transition-transform active:scale-90"
+                aria-label="Next image"
+                title="Next image"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* =========================================================================
+              5. DESKTOP HOVER SLIDE-UP ACTION BAR (Quick Add)
+             ========================================================================= */}
+          <div className="absolute inset-x-0 bottom-0 p-2.5 z-10 translate-y-full group-hover:translate-y-0 transition-transform duration-200 ease-out hidden sm:flex items-center gap-2 bg-gradient-to-t from-black/60 via-black/25 to-transparent">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsQuickViewOpen(true);
+              }}
+              className="flex-1 py-2 px-2 bg-white/95 hover:bg-white text-neutral-900 text-xs font-semibold uppercase tracking-wider rounded-none transition-all shadow-sm flex items-center justify-center space-x-1.5 active:scale-98"
               title="View Product"
             >
               <Eye className="w-3.5 h-3.5" />
@@ -235,114 +340,121 @@ export const ProductCard = React.memo(function ProductCard({ product }: { produc
                 type="button"
                 onClick={handleQuickAdd}
                 disabled={isAdding}
-                className="flex-1 py-2 px-2.5 bg-stone-900 hover:bg-amber-900 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center space-x-1.5 active:scale-95"
-                title="Quick Add to Bag"
+                className={`flex-1 py-2 px-2 text-xs font-semibold uppercase tracking-wider rounded-none transition-all shadow-sm flex items-center justify-center space-x-1.5 active:scale-98 ${
+                  isAdding
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-neutral-900 hover:bg-black text-white'
+                }`}
+                title="Add to Cart"
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
-                <span>{isAdding ? 'Added ✓' : 'Add'}</span>
+                <span>{isAdding ? 'Added ✓' : 'Add to Cart'}</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Product Details Section (Consistent Heights & Spacing across all cards) */}
-        <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between bg-white dark:bg-slate-900">
-          <div className="space-y-1">
-            {/* Product Name (Fixed Height, 1-Line Truncate) */}
-            <Link href={`/products/${product.slug}`} className="block group/link">
-              <h3 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-slate-100 uppercase tracking-tight truncate group-hover/link:text-amber-800 dark:group-hover/link:text-amber-400 transition-colors h-5 leading-5">
-                {product.name}
-              </h3>
-            </Link>
+        {/* =========================================================================
+            6. PRODUCT DETAILS SECTION (Directly Beneath Image, Matching Reference)
+           ========================================================================= */}
+        <div className="pt-2.5 sm:pt-3 pb-1 flex flex-col space-y-1">
+          {/* Product Name (Title Case, Clean Sans-Serif, Regular Weight) */}
+          <Link href={`/products/${product.slug}`} className="block group/link">
+            <h3 className="text-[13px] sm:text-[14px] md:text-[15px] font-normal text-neutral-800 dark:text-neutral-200 capitalize truncate group-hover/link:text-black dark:group-hover/link:text-white transition-colors">
+              {product.name}
+            </h3>
+          </Link>
 
-            {/* Pricing Row (Fixed Height) */}
-            <div className="flex items-baseline space-x-2 pt-0.5 h-5 sm:h-6">
-              <span className="text-sm sm:text-base font-black text-stone-950 dark:text-white font-mono">
-                {formatCurrency(product.price)}
+          {/* Pricing Row (Bold, Exact Format matching Reference) */}
+          <div className="flex items-baseline gap-2 pt-0.5">
+            <span className="text-sm sm:text-base font-bold text-neutral-900 dark:text-white">
+              Rs {product.price.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            {isSaleActive && product.comparePrice && (
+              <span className="text-xs sm:text-[13px] text-neutral-400 dark:text-neutral-500 line-through">
+                Rs {product.comparePrice.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
-              {isSaleActive && product.comparePrice && (
-                <span className="text-xs sm:text-[13px] text-stone-400 dark:text-slate-400 line-through font-mono">
-                  {formatCurrency(product.comparePrice)}
-                </span>
-              )}
-            </div>
-
-            {/* Installment Subtext (Fixed Height) */}
-            <p className="text-[10px] sm:text-[11px] text-stone-500 dark:text-slate-400 font-medium tracking-tight truncate h-4">
-              or LKR {installmentAmount} with{' '}
-              <span className="font-bold text-stone-700 dark:text-slate-300">koko</span>{' '}
-              <span className="font-bold text-sky-700 dark:text-sky-400">mintpay</span>
-            </p>
+            )}
           </div>
 
-          {/* Color Swatch Dots & Mobile Actions (Fixed Height) */}
-          <div className="pt-2 flex items-center justify-between min-h-[28px]">
-            {swatches.length > 0 ? (
-              <div className="flex items-center space-x-1.5 overflow-hidden">
-                {swatches.slice(0, 5).map((s, idx) => {
-                  const isSelected = selectedColorName?.toLowerCase() === s.name.toLowerCase();
-                  return (
-                    <button
-                      key={`${s.hex}-${idx}`}
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setSelectedColorName((prev) => (prev === s.name ? null : s.name));
-                      }}
-                      onMouseEnter={() => setSelectedColorName(s.name)}
-                      className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border transition-all cursor-pointer ${
-                        isSelected
-                          ? 'ring-2 ring-stone-900 dark:ring-white ring-offset-1 scale-110 border-white'
-                          : 'border-stone-300 dark:border-slate-600 hover:scale-110'
-                      }`}
-                      style={{ backgroundColor: s.hex }}
-                      title={`View ${s.name} colour`}
-                      aria-label={`View ${s.name} colour`}
-                    />
-                  );
-                })}
-                {swatches.length > 5 && (
-                  <span className="text-[10px] text-stone-400 font-semibold">+{swatches.length - 5}</span>
-                )}
-              </div>
-            ) : (
-              <div className="h-4" />
-            )}
+          {/* Installment Subtext (Dynamic 3 installments + Mintpay & Koko Logos) */}
+          <InstallmentBadges price={product.price} currencyPrefix="Rs" />
 
-            {/* Mobile Action Buttons: View + Add */}
-            <div className="flex items-center space-x-1.5 sm:hidden">
+          {/* =========================================================================
+              7. PRODUCT SIZE SELECTOR (Beneath Installments, Matching Reference)
+             ========================================================================= */}
+          {configuredSizes.length > 0 && (
+            <div
+              className={`pt-2 flex flex-wrap gap-1 sm:gap-1.5 items-center transition-all ${
+                sizePromptFlash ? 'ring-2 ring-amber-400 rounded-sm p-0.5' : ''
+              }`}
+            >
+              {configuredSizes.map((size) => {
+                const available = isSizeAvailable(size);
+                const isSelected = selectedSize?.toLowerCase() === size.toLowerCase();
+
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    disabled={!available}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (available) {
+                        setSelectedSize((prev) =>
+                          prev?.toLowerCase() === size.toLowerCase() ? null : size
+                        );
+                      }
+                    }}
+                    className={`min-w-[28px] sm:min-w-[32px] h-[24px] sm:h-[26px] px-1 sm:px-1.5 text-[10px] sm:text-[11px] flex items-center justify-center transition-all select-none ${
+                      isSelected
+                        ? 'border-2 border-neutral-900 dark:border-white font-bold text-neutral-900 dark:text-white bg-white dark:bg-slate-800'
+                        : available
+                        ? 'border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 bg-white dark:bg-slate-900 hover:border-neutral-500'
+                        : 'border border-neutral-200 dark:border-neutral-800 text-neutral-300 dark:text-neutral-600 bg-neutral-50 dark:bg-slate-800/40 cursor-not-allowed line-through'
+                    }`}
+                    title={available ? `Select size ${size}` : `Size ${size} is sold out`}
+                    aria-label={`Size ${size}${available ? '' : ' (Sold out)'}`}
+                  >
+                    {size}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Mobile Quick Action Buttons (Compact, touch-friendly) */}
+          <div className="pt-2 flex sm:hidden items-center justify-between">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsQuickViewOpen(true);
+              }}
+              className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 hover:text-black uppercase tracking-wider flex items-center gap-1"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Details</span>
+            </button>
+
+            {!isSoldOut && (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsQuickViewOpen(true);
-                }}
-                className="p-1.5 rounded-full bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-200 transition-colors shadow-2xs"
-                title="View Product"
-                aria-label="View Product"
+                onClick={handleQuickAdd}
+                disabled={isAdding}
+                className="px-3 py-1 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1 active:scale-95 transition-transform"
               >
-                <Eye className="w-3.5 h-3.5" />
+                <ShoppingBag className="w-3 h-3" />
+                <span>{isAdding ? 'Added' : 'Add'}</span>
               </button>
-
-              {!isSoldOut && (
-                <button
-                  type="button"
-                  onClick={handleQuickAdd}
-                  className="p-1.5 rounded-full bg-stone-900 dark:bg-slate-700 text-white hover:bg-amber-900 dark:hover:bg-amber-600 transition-colors shadow-2xs"
-                  title="Add to Cart"
-                  aria-label="Add to Cart"
-                >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Interactive Quick View Modal (Mounted on Demand) */}
+      {/* Interactive Quick View Modal */}
       {isQuickViewOpen && (
         <QuickViewModal
           product={product}

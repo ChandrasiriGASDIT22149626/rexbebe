@@ -1078,9 +1078,9 @@ function CategoryShoppingInner({
           )}
         </div>
 
-        {/* Product Grid: Spacious 3-Column Layout on Desktop for Larger Product Boxes */}
+        {/* Product Grid: 4-Column Layout on Desktop matching Premium Fashion Catalog */}
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-7">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

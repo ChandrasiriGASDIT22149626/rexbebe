@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { postgresOrderRepository } from './postgres/PostgresOrderRepository';
 
 export interface OrderItemRecord {
@@ -207,29 +208,71 @@ export interface OrderRecord {
 export class OrderRepository {
   private filePath = path.join(__dirname, '../../data/orders.json');
 
+  // Offline fallback only: in-memory map & os.tmpdir() are NEVER used as production truth when PostgreSQL is active
+  private static inMemoryOrders: Map<string, OrderRecord> = new Map();
+
   public isPostgresMode(): boolean {
-    return process.env.USE_POSTGRES === 'true' || Boolean((this as any).forcePostgres);
+    if (process.env.USE_POSTGRES === 'false') return false;
+    return (
+      process.env.USE_POSTGRES === 'true' ||
+      Boolean((this as any).forcePostgres) ||
+      Boolean(
+        process.env.DATABASE_URL &&
+        !process.env.DATABASE_URL.includes('dummy') &&
+        !process.env.DATABASE_URL.startsWith('memory:')
+      )
+    );
+  }
+
+  private getEffectiveFilePath(): string {
+    const isServerless =
+      process.env.VERCEL === '1' ||
+      Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+      process.env.NODE_ENV === 'production';
+
+    if (isServerless) {
+      const tmpPath = path.join(os.tmpdir(), 'orders.json');
+      if (!fs.existsSync(tmpPath) && fs.existsSync(this.filePath)) {
+        try {
+          fs.copyFileSync(this.filePath, tmpPath);
+        } catch {}
+      }
+      return tmpPath;
+    }
+    return this.filePath;
   }
 
   private readFromDisk(): OrderRecord[] {
     try {
-      if (fs.existsSync(this.filePath)) {
-        const raw = fs.readFileSync(this.filePath, 'utf-8');
-        return JSON.parse(raw);
+      const activePath = this.getEffectiveFilePath();
+      if (fs.existsSync(activePath)) {
+        const raw = fs.readFileSync(activePath, 'utf-8');
+        const diskOrders: OrderRecord[] = JSON.parse(raw);
+        diskOrders.forEach(o => {
+          if (o.id) OrderRepository.inMemoryOrders.set(o.id.toLowerCase(), o);
+          if (o.orderNumber) OrderRepository.inMemoryOrders.set(o.orderNumber.toLowerCase(), o);
+        });
+        return diskOrders;
       }
     } catch (err) {
       console.error('[OrderRepository] Error reading orders from disk:', err);
     }
-    return [];
+    return Array.from(new Set(OrderRepository.inMemoryOrders.values()));
   }
 
   private writeToDisk(orders: OrderRecord[]): void {
+    orders.forEach(o => {
+      if (o.id) OrderRepository.inMemoryOrders.set(o.id.toLowerCase(), o);
+      if (o.orderNumber) OrderRepository.inMemoryOrders.set(o.orderNumber.toLowerCase(), o);
+    });
+
     try {
-      const dir = path.dirname(this.filePath);
+      const activePath = this.getEffectiveFilePath();
+      const dir = path.dirname(activePath);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(this.filePath, JSON.stringify(orders, null, 2), 'utf-8');
+      fs.writeFileSync(activePath, JSON.stringify(orders, null, 2), 'utf-8');
     } catch (err) {
       console.error('[OrderRepository] Error writing orders to disk:', err);
     }
@@ -247,15 +290,28 @@ export class OrderRepository {
       return postgresOrderRepository.findById(id);
     }
     if (!id) return null;
-    const orders = this.readFromDisk();
     const cleanId = id.trim().toLowerCase();
-    return (
+
+    // 1. Fast in-memory lookup
+    if (OrderRepository.inMemoryOrders.has(cleanId)) {
+      return OrderRepository.inMemoryOrders.get(cleanId) || null;
+    }
+
+    // 2. Disk / /tmp lookup
+    const orders = this.readFromDisk();
+    const found =
       orders.find(
         o =>
           (o.id && o.id.toLowerCase() === cleanId) ||
           (o.orderNumber && o.orderNumber.toLowerCase() === cleanId)
-      ) || null
-    );
+      ) || null;
+
+    if (found) {
+      if (found.id) OrderRepository.inMemoryOrders.set(found.id.toLowerCase(), found);
+      if (found.orderNumber) OrderRepository.inMemoryOrders.set(found.orderNumber.toLowerCase(), found);
+    }
+
+    return found;
   }
 
   async create(orderData: Omit<OrderRecord, 'id' | 'orderNumber' | 'createdAt'> & { orderNumber?: string }): Promise<{ order: OrderRecord; isDuplicate: boolean }> {

@@ -12,7 +12,7 @@ export function NewArrivals() {
   const newArrivals = products.filter(
     (p) => p.isNewArrival && p.status !== 'draft' && p.status !== 'unpublished'
   );
-  const newProducts = (newArrivals.length > 0 ? newArrivals : products).slice(0, 5);
+  const newProducts = (newArrivals.length > 0 ? newArrivals : products).slice(0, 8);
 
   return (
     <section className="py-14 sm:py-20 bg-gradient-to-b from-white via-pink-50/20 to-sky-50/20 relative overflow-hidden">
@@ -119,18 +119,17 @@ export function NewArrivals() {
           </Link>
         </div>
 
-        {/* 5 Overlapping Cards Grid or Empty State */}
+        {/* 4 Cards Per Row Grid (Clean, Evenly Spaced, Fashion Lookbook Layout) */}
         {newProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4 items-stretch px-1">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 items-start">
             {newProducts.map((product, idx) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ zIndex: 40, scale: 1.03, y: -10 }}
-                className="h-full relative transition-all duration-300 z-10 hover:z-40"
+                transition={{ duration: 0.4, delay: idx * 0.05 }}
+                className="w-full"
               >
                 <ProductCard product={product} />
               </motion.div>

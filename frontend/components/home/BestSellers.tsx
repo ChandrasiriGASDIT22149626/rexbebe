@@ -174,18 +174,17 @@ export function BestSellers() {
           </Link>
         </div>
 
-        {/* 4 Overlapping Cards Grid or Empty State */}
+        {/* 4 Cards Per Row Grid (Clean, Evenly Spaced, Fashion Lookbook Layout) */}
         {featuredFavorites.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 items-stretch px-1">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 items-start">
             {featuredFavorites.map((product, idx) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, y: 36, rotate: idx % 2 === 0 ? -1.2 : 1.2, scale: 0.95 }}
-                whileInView={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.65, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ zIndex: 40, scale: 1.03, y: -12 }}
-                className="h-full relative transition-all duration-300 z-10 hover:z-40"
+                transition={{ duration: 0.4, delay: idx * 0.05 }}
+                className="w-full"
               >
                 <ProductCard product={product} />
               </motion.div>

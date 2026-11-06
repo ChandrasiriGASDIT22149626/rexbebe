@@ -37,14 +37,40 @@ export default function OrderSuccessPage() {
 
   useEffect(() => {
     let isMounted = true;
+
+    // Check sessionStorage first for instantaneous load without server roundtrip latency
+    if (typeof window !== 'undefined') {
+      try {
+        const cached =
+          sessionStorage.getItem(`rexbebe_order_${rawId}`) ||
+          sessionStorage.getItem(`rexbebe_order_${rawId.toLowerCase()}`) ||
+          sessionStorage.getItem('rexbebe_latest_order');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && (parsed.orderNumber === rawId || parsed.id === rawId || !rawId)) {
+            if (isMounted) {
+              setOrder(parsed);
+              setLoading(false);
+            }
+          }
+        }
+      } catch {}
+    }
+
     async function loadOrder() {
       if (!rawId) {
-        setLoading(false);
+        if (isMounted) setLoading(false);
         return;
       }
       try {
         const found = await orderService.getOrderById(rawId);
-        if (isMounted) setOrder(found);
+        if (isMounted && found) {
+          setOrder(found);
+          try {
+            sessionStorage.setItem(`rexbebe_order_${found.orderNumber}`, JSON.stringify(found));
+            if (found.id) sessionStorage.setItem(`rexbebe_order_${found.id}`, JSON.stringify(found));
+          } catch {}
+        }
       } catch (err) {
         console.warn('Could not fetch order from backend:', err);
       } finally {
@@ -71,6 +97,52 @@ export default function OrderSuccessPage() {
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  if (loading && !order) {
+    return (
+      <>
+        <Header />
+        <main className="py-20 max-w-xl mx-auto px-4 text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <h2 className="font-serif text-xl text-stone-900">Loading Order Confirmation...</h2>
+          <p className="text-stone-500 text-xs">Retrieving order #{rawId} details securely from backend</p>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (!order) {
+    return (
+      <>
+        <Header />
+        <main className="py-16 max-w-md mx-auto px-4 text-center space-y-6">
+          <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto border border-amber-200">
+            <Package className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="font-serif text-2xl text-stone-900 font-medium">Order Verification Pending</h1>
+            <p className="text-stone-600 text-xs leading-relaxed">
+              Order reference <strong className="font-mono text-stone-800">#{rawId}</strong> has been received. If your order was just placed, backend record synchronization is currently in progress.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.reload()}
+            >
+              Refresh Order Details
+            </Button>
+            <Link href="/" className="inline-flex justify-center">
+              <Button size="sm">Return to Storefront</Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -410,25 +482,25 @@ export default function OrderSuccessPage() {
 
               <div className="space-y-1 text-stone-700">
                 <p className="font-bold text-stone-900 text-sm">
-                  {order?.shippingAddress?.recipientName || order?.customerName || 'Elena Silva'}
+                  {order.shippingAddress?.recipientName || order.customerName || 'Customer'}
                 </p>
                 <p className="flex items-center space-x-1.5 text-stone-600">
                   <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                  <span>{order?.shippingAddress?.phone || order?.phone || '+94 77 123 4567'}</span>
+                  <span>{order.shippingAddress?.phone || order.phone || '—'}</span>
                 </p>
                 <p className="pt-1">
-                  {order?.shippingAddress?.street || '45 Park Avenue, Suite 12'}
+                  {order.shippingAddress?.street || 'Address on file'}
                 </p>
                 <p>
-                  {order?.shippingAddress?.city || 'Colombo'},{' '}
+                  {order.shippingAddress?.city ? `${order.shippingAddress.city}, ` : ''}
                   <strong className="text-stone-900 font-semibold">
-                    {order?.shippingAddress?.district || 'Colombo'} District
+                    {order.shippingAddress?.district || 'Western'} District
                   </strong>
                 </p>
                 <p className="text-stone-500">
-                  {order?.shippingAddress?.country || 'Sri Lanka'}
+                  {order.shippingAddress?.country || 'Sri Lanka'}
                 </p>
-                {order?.shippingAddress?.deliveryInstructions && (
+                {order.shippingAddress?.deliveryInstructions && (
                   <p className="pt-2 text-[11px] text-amber-900 italic bg-amber-50/50 p-2 rounded-lg border border-amber-100">
                     Note: &ldquo;{order.shippingAddress.deliveryInstructions}&rdquo;
                   </p>
@@ -448,11 +520,11 @@ export default function OrderSuccessPage() {
                 <div className="flex justify-between">
                   <span>Product Subtotal</span>
                   <span className="font-semibold text-stone-900">
-                    {formatCurrency(order?.subtotal || 13500)}
+                    {formatCurrency(order.subtotal ?? 0)}
                   </span>
                 </div>
 
-                {order?.discount ? (
+                {order.discount ? (
                   <div className="flex justify-between text-emerald-700 font-medium">
                     <span>Discount</span>
                     <span>−{formatCurrency(order.discount)}</span>
@@ -462,22 +534,22 @@ export default function OrderSuccessPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <span>
-                      Delivery ({order?.shippingAddress?.district || 'Colombo'})
+                      Delivery ({order.shippingAddress?.district || 'Delivery Area'})
                     </span>
-                    {order?.deliveryZoneSnapshot?.zoneName && (
+                    {order.deliveryZoneSnapshot?.zoneName && (
                       <span className="block text-[10px] text-amber-800 font-bold">
                         {order.deliveryZoneSnapshot.zoneName}
                       </span>
                     )}
                   </div>
                   <div>
-                    {order?.requiresDeliveryReview ? (
+                    {order.requiresDeliveryReview ? (
                       <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                         Review Pending
                       </span>
                     ) : (
                       <span className="font-semibold text-emerald-700">
-                        {(order?.shippingFee ?? 500) === 0 ? 'FREE' : formatCurrency(order?.shippingFee ?? 500)}
+                        {(order.shippingFee ?? 0) === 0 ? 'FREE' : formatCurrency(order.shippingFee ?? 0)}
                       </span>
                     )}
                   </div>
