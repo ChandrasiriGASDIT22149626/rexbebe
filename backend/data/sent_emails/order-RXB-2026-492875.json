@@ -1,0 +1,38 @@
+{
+  "orderNumber": "RXB-2026-492875",
+  "recipient": "nisali.perera@example.com",
+  "subject": "REXBEBE Order Confirmation #RXB-2026-492875",
+  "sentAt": "2026-11-07T06:27:41.882Z",
+  "totalAmount": 1500,
+  "items": [
+    {
+      "id": "orditem-1794032855853-iywl",
+      "variantId": "",
+      "title": "Pink Dino Dreams - Baby Pink 24-36 months",
+      "partColors": null,
+      "color": "Baby Pink",
+      "size": "24-36 months",
+      "image": "/uploads/1792940141383-47d819d8-f579-4a76-bd22-84199fe6dcdb.webp",
+      "price": 500,
+      "quantity": 2,
+      "totalPrice": 1000
+    }
+  ],
+  "customer": {
+    "name": "Nisali Perera",
+    "email": "nisali.perera@example.com",
+    "phone": "0771234567"
+  },
+  "shippingAddress": {
+    "city": "Colombo 05",
+    "town": "Colombo",
+    "phone": "0771234567",
+    "street": "124 Havelock Road",
+    "country": "Sri Lanka",
+    "district": "Colombo",
+    "postalCode": "00500",
+    "recipientName": "Nisali Perera",
+    "deliveryInstructions": "Please call before arriving"
+  },
+  "paymentMethod": "CASH_ON_DELIVERY"
+}

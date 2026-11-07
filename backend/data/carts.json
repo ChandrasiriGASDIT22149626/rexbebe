@@ -1,8 +1,13 @@
 {
   "cart-1793165831164-5ydbzxd": {
     "id": "cart-1793165831164-5ydbzxd",
-    "items": [],
-    "updatedAt": "2026-10-28T05:38:15.745Z"
+    "items": [
+      {
+        "variantId": "var-bunny-love-06months-Red",
+        "quantity": 2
+      }
+    ],
+    "updatedAt": "2026-11-07T06:08:57.622Z"
   },
   "cart-1793694061447-n6ap6jm": {
     "id": "cart-1793694061447-n6ap6jm",
