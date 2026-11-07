@@ -12,14 +12,10 @@ export function NewArrivals() {
   const newArrivals = products.filter(
     (p) => p.isNewArrival && p.status !== 'draft' && p.status !== 'unpublished'
   );
-  const newProducts = (newArrivals.length > 0 ? newArrivals : products).slice(0, 8);
+  const newProducts = (newArrivals.length > 0 ? newArrivals : products).slice(0, 4);
 
   return (
-    <section className="py-14 sm:py-20 bg-gradient-to-b from-white via-pink-50/20 to-sky-50/20 relative overflow-hidden">
-      
-      {/* Background Subtle Pastel Glowing Orbs */}
-      <div className="absolute top-1/3 left-10 w-[380px] h-[380px] bg-pink-200/30 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-[380px] h-[380px] bg-sky-200/30 rounded-full blur-3xl pointer-events-none" />
+    <section className="py-14 sm:py-20 bg-white border-b border-neutral-100 relative overflow-hidden">
 
       {/* FLOATING CUTE ANIMATED BACKGROUND ANIMAL ORNAMENTS */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">

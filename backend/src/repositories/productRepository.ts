@@ -213,11 +213,22 @@ export class ProductRepository {
   }
 
   async findAll(query?: any): Promise<ProductRecord[]> {
+    let sourceProducts: ProductRecord[] = [];
     if (this.isPostgresMode()) {
-      return postgresProductRepository.findAll();
+      try {
+        const dbProds = await postgresProductRepository.findAll();
+        if (dbProds && dbProds.length > 0) {
+          sourceProducts = dbProds;
+        }
+      } catch (err) {
+        console.warn('[ProductRepository] Error loading from Postgres, falling back to disk:', err);
+      }
     }
-    this.products = this.loadFromDisk();
-    let result = [...this.products];
+    if (sourceProducts.length === 0) {
+      this.products = this.loadFromDisk();
+      sourceProducts = [...this.products];
+    }
+    let result = [...sourceProducts];
 
     if (query?.category) {
       const cat = String(query.category).toLowerCase().trim();
@@ -342,7 +353,12 @@ export class ProductRepository {
 
   async findBySlug(slug: string): Promise<ProductRecord | null> {
     if (this.isPostgresMode()) {
-      return postgresProductRepository.findBySlug(slug);
+      try {
+        const prod = await postgresProductRepository.findBySlug(slug);
+        if (prod) return prod;
+      } catch (err) {
+        console.warn('[ProductRepository] Postgres findBySlug error:', err);
+      }
     }
     this.products = this.loadFromDisk();
     const cleanSlug = String(slug || '').toLowerCase();
@@ -354,7 +370,12 @@ export class ProductRepository {
 
   async findById(id: string): Promise<ProductRecord | null> {
     if (this.isPostgresMode()) {
-      return postgresProductRepository.findById(id);
+      try {
+        const prod = await postgresProductRepository.findById(id);
+        if (prod) return prod;
+      } catch (err) {
+        console.warn('[ProductRepository] Postgres findById error:', err);
+      }
     }
     this.products = this.loadFromDisk();
     const indexed = ProductRepository.idIndex.get(id);
@@ -365,11 +386,16 @@ export class ProductRepository {
 
   async findVariant(variantId: string): Promise<{ product: ProductRecord; variant: ProductVariant } | null> {
     if (this.isPostgresMode()) {
-      return postgresProductRepository.findVariant(variantId);
+      try {
+        const v = await postgresProductRepository.findVariant(variantId);
+        if (v) return v;
+      } catch (err) {
+        console.warn('[ProductRepository] Postgres findVariant error:', err);
+      }
     }
     this.products = this.loadFromDisk();
     for (const p of this.products) {
-      const v = (p.variants || []).find((varItem) => varItem.id === variantId);
+      const v = (p.variants || []).find((v) => v.id === variantId);
       if (v) return { product: p, variant: v };
     }
     return null;

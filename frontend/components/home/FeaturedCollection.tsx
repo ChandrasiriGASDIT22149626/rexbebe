@@ -110,12 +110,7 @@ export function FeaturedCollection() {
   };
 
   return (
-    <section className="py-16 sm:py-24 relative overflow-hidden select-none bg-gradient-to-b from-[#FAF9F6] via-[#FFF5F8]/40 to-[#F0FDF4]/30 border-y border-white/80">
-      
-      {/* Background Soft Pastel Glowing Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-[480px] h-[480px] bg-pink-200/30 rounded-full blur-3xl pointer-events-none animate-pulse-soft" />
-      <div className="absolute bottom-1/4 right-1/4 w-[480px] h-[480px] bg-sky-200/30 rounded-full blur-3xl pointer-events-none animate-pulse-soft" />
-      <div className="absolute top-1/2 right-1/3 w-[360px] h-[360px] bg-emerald-200/25 rounded-full blur-3xl pointer-events-none" />
+    <section className="py-16 sm:py-24 relative overflow-hidden select-none bg-white border-y border-neutral-100">
 
       {/* FLOATING CUTE ANIMATED BACKGROUND ANIMAL & BABY ORNAMENTS */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">

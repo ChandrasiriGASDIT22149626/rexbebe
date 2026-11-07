@@ -12,7 +12,7 @@ import { getDatabaseSeoSettings } from '../services/serverSeoService';
 import { SITE_URL, BRAND_NAME, generateOpenGraph, generateTwitter } from '../config/seoConfig';
 
 const CategorySection = dynamic(() => import('../components/home/CategorySection'));
-const BestSellers = dynamic(() => import('../components/home/BestSellers'));
+const ShopByAge = dynamic(() => import('../components/home/ShopByAge'));
 const NewArrivals = dynamic(() => import('../components/home/NewArrivals'));
 const LittleEssentials = dynamic(() => import('../components/home/LittleEssentials'));
 const TheLittleEdit = dynamic(() => import('../components/home/TheLittleEdit'));
@@ -51,16 +51,16 @@ export async function generateMetadata(): Promise<Metadata> {
     robots: seo.allowRobotsIndexing === false
       ? { index: false, follow: false }
       : {
+        index: true,
+        follow: true,
+        googleBot: {
           index: true,
           follow: true,
-          googleBot: {
-            index: true,
-            follow: true,
-            'max-video-preview': -1,
-            'max-image-preview': 'large',
-            'max-snippet': -1,
-          },
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
         },
+      },
   };
 }
 
@@ -68,15 +68,15 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="overflow-x-hidden bg-gradient-to-b from-[#FAF9F6] via-[#FDF2F8]/30 via-[#ECFDF5]/20 to-[#FAF9F6]">
+      <main className="overflow-x-hidden bg-white">
         {/* 1. Animated Hero World */}
         <Hero />
 
-        {/* 2. Shop the Little World (Circular & Floating Categories) */}
+        {/* 2. Restored Shop the Little World (Circular & Floating Categories) */}
         <CategorySection />
 
-        {/* 3. Featured Little Favorites (Parent Favorites) */}
-        <BestSellers />
+        {/* 3. New Shop By Age Section (Large Staggered Zigzag Cards) */}
+        <ShopByAge />
 
         {/* 4. New Arrivals Showcase */}
         <NewArrivals />

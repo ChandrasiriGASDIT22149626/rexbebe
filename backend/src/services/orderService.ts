@@ -25,6 +25,7 @@ import {
 import { AuditService } from './auditService';
 import { NotificationService } from './notificationService';
 import { CodAnalyticsService } from './codAnalyticsService';
+import { EmailService } from './emailService';
 
 export class OrderService {
   private orderRepo = new OrderRepository();
@@ -61,6 +62,21 @@ export class OrderService {
           foundVariant = v;
           parentProduct = prod;
           break;
+        }
+      }
+
+      if (!foundVariant) {
+        for (const prod of allProducts) {
+          if (item.variantId.includes(prod.id) || (prod.slug && item.variantId.includes(prod.slug))) {
+            parentProduct = prod;
+            foundVariant = prod.variants?.[0] || {
+              id: item.variantId,
+              sku: prod.sku || 'REX-STD',
+              price: prod.price,
+              stockQuantity: prod.stockQuantity || 10,
+            };
+            break;
+          }
         }
       }
 
@@ -200,15 +216,23 @@ export class OrderService {
     // 4. Safe stock deduction and audit logging (skip if idempotent duplicate)
     if (!isDuplicate) {
       for (const item of validatedItems) {
+        let stockDeducted = false;
         if (process.env.USE_POSTGRES === 'true') {
-          // Atomic SQL-level conditional decrement (WHERE stockQuantity >= qty) preventing race conditions
-          await this.inventoryRepo.atomicDeductStock(
-            item.variantId,
-            item.quantity,
-            `Order #${createdOrder.orderNumber} placed by ${orderPayload.customerName} (${orderPayload.paymentMethod})`,
-            'Order Processing'
-          );
-        } else {
+          try {
+            // Atomic SQL-level conditional decrement (WHERE stockQuantity >= qty) preventing race conditions
+            await this.inventoryRepo.atomicDeductStock(
+              item.variantId,
+              item.quantity,
+              `Order #${createdOrder.orderNumber} placed by ${orderPayload.customerName} (${orderPayload.paymentMethod})`,
+              'Order Processing'
+            );
+            stockDeducted = true;
+          } catch (pgStockErr: any) {
+            console.warn(`[Inventory] Postgres atomic deduction fallback for variant ${item.variantId}:`, pgStockErr.message);
+          }
+        }
+
+        if (!stockDeducted) {
           const currentProducts = await this.productRepo.findAll();
           let currentVariant: any = null;
           for (const p of currentProducts) {
@@ -245,7 +269,14 @@ export class OrderService {
       },
     });
 
-    // Dispatch order confirmation notification
+    // Dispatch automatic order confirmation email with full details
+    try {
+      await EmailService.sendOrderConfirmation(createdOrder);
+    } catch (emailErr) {
+      console.warn('[EmailService] Failed to send order confirmation email:', emailErr);
+    }
+
+    // Dispatch order confirmation notification suite
     try {
       await NotificationService.notifyOrderEvent(createdOrder, 'ORDER_CONFIRMATION');
     } catch (notifErr) {

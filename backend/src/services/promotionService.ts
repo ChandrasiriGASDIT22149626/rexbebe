@@ -31,7 +31,7 @@ const DEFAULT_POPUP_CONFIG: PromotionalPopupConfig = {
   discountType: 'PERCENTAGE',
   promoCode: 'LITTLE20',
   minSpend: 0,
-  imageUrl: '/images/products/organic-onesie.jpg',
+  imageUrl: '/images/products/cocomelon-pink-folded-tshirt.jpg',
   shopNowText: 'Shop Little Ones Sale 🛍',
   shopNowHref: '/sale',
   startDate: '2026-11-01',

@@ -100,7 +100,7 @@ export function SalePopupCard({ forceOpen = false, previewData }: { forceOpen?: 
 
   if (!isOpen || !data) return null;
 
-  const displayImage = data.imageUrl || '/images/products/organic-onesie.jpg';
+  const displayImage = data.imageUrl || '/images/products/cocomelon-pink-folded-tshirt.jpg';
 
   return (
     <AnimatePresence>
@@ -126,12 +126,12 @@ export function SalePopupCard({ forceOpen = false, previewData }: { forceOpen?: 
           </button>
 
           {/* LEFT SECTION (Mobile: Top Banner, Desktop: Left Column) */}
-          <div className="relative w-full md:w-5/12 h-48 sm:h-56 md:h-auto min-h-[200px] md:min-h-[380px] bg-pink-100/60 dark:bg-slate-800 shrink-0 overflow-hidden">
+          <div className="relative w-full md:w-5/12 h-52 sm:h-60 md:h-auto min-h-[220px] md:min-h-[380px] bg-pink-100/60 dark:bg-slate-800 shrink-0 overflow-hidden">
             <Image
               src={displayImage}
               alt={data.heading || 'REXBEBE Baby Clothing Sale'}
               fill
-              className="object-cover object-center"
+              className="object-cover object-[center_55%] md:object-[48%_center]"
               sizes="(max-width: 768px) 100vw, 320px"
               priority
             />

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Product, ProductVariant } from '../../types/product';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { Button } from '../ui/Button';
@@ -31,7 +32,16 @@ export function ProductInfo({
   onActiveImageChange?: (url: string) => void;
   onGarmentSelectionChange?: (info: { partName?: string; colorName?: string; hasAuthenticImage?: boolean }) => void;
 }) {
-  const { addToCart } = useCart();
+  const router = useRouter();
+  const { addToCart, closeCart } = useCart();
+
+  const handleProceedToCheckout = () => {
+    if (selectedVariant && !isOutOfStock) {
+      addToCart(product, selectedVariant, quantity);
+      closeCart();
+      router.push('/checkout');
+    }
+  };
 
   // Purchasable individual components
   const purchasableParts = useMemo(() => {
@@ -689,13 +699,13 @@ export function ProductInfo({
           </button>
         </div>
 
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
           <Button
-            variant="primary"
+            variant="secondary"
             size="lg"
             disabled={!selectedVariant || isOutOfStock}
-            className={`flex-1 btn-rexbebe-3d text-sm font-black py-3.5 tracking-wider uppercase ${
-              !selectedVariant || isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-300' : ''
+            className={`flex-1 text-xs font-bold py-3.5 tracking-wider uppercase border-neutral-300 ${
+              !selectedVariant || isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-100' : 'hover:border-black'
             }`}
             onClick={() => {
               if (selectedVariant && !isOutOfStock) {
@@ -707,25 +717,43 @@ export function ProductInfo({
               ? 'Option Unavailable'
               : isOutOfStock
               ? 'Sold Out'
-              : `Add to Cart — ${formatCurrency((selectedVariant.price || activePrice) * quantity)}`}
+              : 'Add to Cart'}
           </Button>
 
-          <div className="shrink-0">
-            <WishlistButton productId={product.id} />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setRegistrySaved(!registrySaved)}
-            className={`p-3.5 rounded-2xl border transition-all flex items-center justify-center flex-shrink-0 ${
-              registrySaved
-                ? 'bg-pink-100 border-pink-300 text-pink-700'
-                : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+          <Button
+            variant="primary"
+            size="lg"
+            disabled={!selectedVariant || isOutOfStock}
+            className={`flex-1 btn-rexbebe-3d text-xs font-black py-3.5 tracking-wider uppercase ${
+              !selectedVariant || isOutOfStock ? 'opacity-50 cursor-not-allowed bg-slate-300' : ''
             }`}
-            title="Add to Baby Registry"
+            onClick={handleProceedToCheckout}
           >
-            <Gift className="w-5 h-5" />
-          </button>
+            {!selectedVariant
+              ? 'Option Unavailable'
+              : isOutOfStock
+              ? 'Sold Out'
+              : `Proceed to Checkout — ${formatCurrency((selectedVariant.price || activePrice) * quantity)}`}
+          </Button>
+
+          <div className="flex items-center gap-2 justify-center sm:justify-start">
+            <div className="shrink-0">
+              <WishlistButton productId={product.id} />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setRegistrySaved(!registrySaved)}
+              className={`p-3.5 rounded-2xl border transition-all flex items-center justify-center flex-shrink-0 ${
+                registrySaved
+                  ? 'bg-pink-100 border-pink-300 text-pink-700'
+                  : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+              }`}
+              title="Add to Baby Registry"
+            >
+              <Gift className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 

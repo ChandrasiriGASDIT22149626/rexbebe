@@ -190,10 +190,7 @@ export function CategorySection() {
   };
 
   return (
-    <section ref={sectionRef} className="py-14 sm:py-18 relative overflow-hidden select-none bg-user-pastel-header border-y border-white/60">
-      
-      {/* Translucent Soft Dreamy Overlay for Depth */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/10 to-white/30 backdrop-blur-md pointer-events-none" />
+    <section ref={sectionRef} className="pt-3 sm:pt-4 lg:pt-5 pb-10 sm:pb-14 relative overflow-hidden select-none bg-white border-y border-neutral-100">
 
       {/* FLOATING CUTE ANIMATED BACKGROUND ANIMAL & BABY ORNAMENTS */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -252,13 +249,13 @@ export function CategorySection() {
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
         viewport={{ once: true, margin: '-40px' }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-6 sm:space-y-8"
+        className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-4 sm:space-y-5"
       >
         
         {/* Section Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-white/60 pb-6 gap-4 px-2 relative">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-white/60 pb-3 sm:pb-4 gap-3 px-2 relative">
           <div className="flex-shrink-0">
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1 bg-white/90 backdrop-blur-md rounded-full border border-pink-200/80 shadow-xs mb-2.5">
+            <div className="inline-flex items-center space-x-2 px-3 py-0.5 bg-white/90 backdrop-blur-md rounded-full border border-pink-200/80 shadow-xs mb-1.5">
               <Sparkles className="w-3.5 h-3.5 text-pink-500" />
               <span className="text-[11px] font-bold tracking-widest uppercase text-slate-800 font-heading">
                 Explore The Boutique 🌸

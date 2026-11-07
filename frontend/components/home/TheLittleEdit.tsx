@@ -9,10 +9,7 @@ import { Button } from '../ui/Button';
 
 export function TheLittleEdit() {
   return (
-    <section className="py-14 sm:py-20 relative overflow-hidden select-none bg-user-pastel-header border-y border-white/60">
-      
-      {/* Translucent Soft Dreamy Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/10 to-white/30 backdrop-blur-md pointer-events-none" />
+    <section className="py-14 sm:py-20 relative overflow-hidden select-none bg-white border-y border-neutral-100">
 
       {/* FLOATING CUTE ANIMATED BACKGROUND ANIMAL & BABY ORNAMENTS */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">

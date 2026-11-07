@@ -47,7 +47,7 @@ export function CategoryHeaderBanner({
   const [activeGalleryModal, setActiveGalleryModal] = useState<string | null>(null);
 
   return (
-    <div className="relative overflow-hidden bg-user-pastel-header border-b border-white/60 select-none py-5 sm:py-7 mb-6">
+    <div className="relative overflow-hidden bg-white border-b border-neutral-100 select-none py-5 sm:py-7 mb-6">
       {/* Background Soft Shader */}
       <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/10 to-white/40 backdrop-blur-md pointer-events-none" />
 

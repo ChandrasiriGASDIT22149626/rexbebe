@@ -9,7 +9,7 @@ const startServer = async () => {
   await adminUserService.ensurePrimaryAdmin();
 
   const PORT = Number(config.port) || 5000;
-  const server = app.listen(PORT, '0.0.0.0', () => {
+  const server = app.listen(PORT, () => {
     logger.info(`==================================================`);
     logger.info(` REXBEBE REST API Server running on port ${PORT}`);
     logger.info(` Health Check: http://localhost:${PORT}/api/health`);

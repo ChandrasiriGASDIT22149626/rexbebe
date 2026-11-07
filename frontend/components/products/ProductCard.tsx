@@ -135,37 +135,15 @@ export const ProductCard = React.memo(function ProductCard({
     (!product.saleEndDate || new Date(product.saleEndDate) >= new Date())
   );
 
-  // Handle Quick Add to Cart
+  // Handle Add to Cart: Opens product options selection screen
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (isSoldOut) return;
 
-    // If size selection is required and not selected yet, prompt user
-    if (configuredSizes.length > 0 && !selectedSize) {
-      // Find first available in-stock size and select it, or highlight selector
-      const firstAvailable = configuredSizes.find((s) => isSizeAvailable(s));
-      if (firstAvailable) {
-        setSelectedSize(firstAvailable);
-        // Find variant for that size
-        const matchedVar = (product.variants || []).find(
-          (v) => v.size?.toLowerCase() === firstAvailable.toLowerCase() && (v.stockQuantity ?? 0) > 0
-        ) || activeVariant;
-
-        setIsAdding(true);
-        addToCart(product, matchedVar);
-        setTimeout(() => setIsAdding(false), 900);
-      } else {
-        setSizePromptFlash(true);
-        setTimeout(() => setSizePromptFlash(false), 1200);
-      }
-      return;
-    }
-
-    setIsAdding(true);
-    addToCart(product, activeVariant);
-    setTimeout(() => setIsAdding(false), 900);
+    // Open options selection modal so customer selects required size, colour, quantity, and can proceed to checkout
+    setIsQuickViewOpen(true);
   };
 
   // Carousel arrow handlers
@@ -192,12 +170,12 @@ export const ProductCard = React.memo(function ProductCard({
         className="group relative flex flex-col w-full bg-white dark:bg-slate-900 text-left transition-all duration-200"
       >
         {/* =========================================================================
-            1. PRODUCT IMAGE CONTAINER (Portrait 3:4 Aspect Ratio, Clean Neutral BG)
+            1. PRODUCT IMAGE CONTAINER (Consistent Portrait 4:5, Uncropped Aspect Ratio)
            ========================================================================= */}
-        <div className="relative w-full aspect-[3/4] bg-[#F7F7F7] dark:bg-slate-800 overflow-hidden cursor-pointer select-none">
+        <div className="relative w-full aspect-[4/5] bg-[#F8F8F8] dark:bg-slate-800 overflow-hidden cursor-pointer select-none">
           <Link
             href={`/products/${product.slug}`}
-            className="block relative w-full h-full"
+            className="block relative w-full h-full p-1.5 sm:p-2"
             aria-label={`View ${product.name}`}
           >
             {/* Shimmer Placeholder while loading */}
@@ -215,7 +193,7 @@ export const ProductCard = React.memo(function ProductCard({
               loading={priority ? undefined : 'lazy'}
               decoding="async"
               onLoad={() => setIsImgLoaded(true)}
-              className={`w-full h-full object-cover object-center pointer-events-none transition-opacity duration-300 ease-in-out ${
+              className={`w-full h-full object-contain object-center pointer-events-none transition-opacity duration-300 ease-in-out ${
                 isHovered && images.length > 1 && activeImageIndex === 0 ? 'opacity-0' : 'opacity-100'
               }`}
               onError={() => {
@@ -237,7 +215,7 @@ export const ProductCard = React.memo(function ProductCard({
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 loading="lazy"
                 decoding="async"
-                className={`w-full h-full object-cover object-center pointer-events-none transition-opacity duration-300 ease-in-out ${
+                className={`w-full h-full object-contain object-center pointer-events-none transition-opacity duration-300 ease-in-out ${
                   isHovered && activeImageIndex === 0 ? 'opacity-100' : 'opacity-0'
                 }`}
                 onError={(e) => {
@@ -417,7 +395,7 @@ export const ProductCard = React.memo(function ProductCard({
                     title={available ? `Select size ${size}` : `Size ${size} is sold out`}
                     aria-label={`Size ${size}${available ? '' : ' (Sold out)'}`}
                   >
-                    {size}
+                    {size.replace(/\s*months?/i, 'M')}
                   </button>
                 );
               })}
@@ -454,12 +432,13 @@ export const ProductCard = React.memo(function ProductCard({
         </div>
       </div>
 
-      {/* Interactive Quick View Modal */}
+      {/* Interactive Product Options & Quick View Modal */}
       {isQuickViewOpen && (
         <QuickViewModal
           product={product}
           isOpen={isQuickViewOpen}
           onClose={() => setIsQuickViewOpen(false)}
+          initialSize={selectedSize}
         />
       )}
     </>

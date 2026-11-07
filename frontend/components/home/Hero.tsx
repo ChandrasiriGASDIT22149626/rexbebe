@@ -88,7 +88,7 @@ export function Hero() {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative min-h-[85vh] lg:min-h-[92vh] w-full overflow-hidden flex items-center justify-center select-none bg-[#EAF7FD]"
+      className="relative h-[calc(100vh-150px)] min-h-[360px] sm:h-[calc(100vh-156px)] sm:min-h-[420px] lg:h-[calc(100vh-190px)] lg:min-h-[480px] lg:max-h-[760px] w-full overflow-hidden flex items-center justify-center select-none bg-white"
     >
       {/* ========================================================================= */}
       {/* 1. LAYER 0: FULL-WIDTH 3D ENVIRONMENT BACKGROUND & ATMOSPHERE            */}
@@ -107,7 +107,7 @@ export function Hero() {
             fetchPriority="high"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1376px"
             quality={80}
-            className="object-cover object-center transform scale-105 filter brightness-[1.02] contrast-[1.01]"
+            className="object-cover object-[center_35%] transform scale-105 filter brightness-[1.02] contrast-[1.01]"
           />
         </div>
 
@@ -184,7 +184,7 @@ export function Hero() {
       <motion.div style={{ x: shouldReduceMotion ? 0 : charX, y: shouldReduceMotion ? 0 : charY }} className="absolute inset-0 z-20 pointer-events-none">
         
         {/* REXBEBE 3D Dinosaur Mascot Character */}
-        <div className="absolute bottom-2 right-2 sm:bottom-6 sm:right-[4%] lg:right-[8%] w-[160px] min-[400px]:w-[200px] sm:w-[320px] lg:w-[440px] aspect-square pointer-events-auto group cursor-pointer">
+        <div className="absolute bottom-0.5 right-1 sm:bottom-2 sm:right-[4%] lg:right-[6%] w-[110px] min-[400px]:w-[130px] sm:w-[190px] md:w-[230px] lg:w-[280px] xl:w-[320px] aspect-square pointer-events-auto group cursor-pointer">
           
           {/* Interactive Speech Bubble */}
           <motion.div
@@ -192,20 +192,20 @@ export function Hero() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             key={speechBubbleText}
             transition={{ type: 'spring', damping: 15 }}
-            className="absolute -top-12 sm:-top-12 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-xl px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-2xl shadow-rexbebe-3d border-2 border-sky-200 text-slate-800 text-[11px] sm:text-xs md:text-sm font-bold flex items-center space-x-2 whitespace-normal sm:whitespace-nowrap max-w-[190px] sm:max-w-none text-center sm:text-left z-30"
+            className="absolute -top-9 sm:-top-10 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-xl px-2 sm:px-3.5 py-0.5 sm:py-1.5 rounded-2xl shadow-rexbebe-3d border-2 border-sky-200 text-slate-800 text-[10px] sm:text-xs md:text-sm font-bold flex items-center space-x-1.5 whitespace-normal sm:whitespace-nowrap max-w-[160px] sm:max-w-none text-center sm:text-left z-30"
           >
-            <Sparkles className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin shrink-0" />
             <span className="truncate sm:overflow-visible">{speechBubbleText}</span>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white" />
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-white" />
           </motion.div>
 
           {/* Dinosaur 3D Character Render */}
           <motion.div
             animate={
               isHoveredDino
-                ? { y: [0, -25, 0], rotate: [0, -5, 5, 0], scale: 1.05 }
+                ? { y: [0, -16, 0], rotate: [0, -4, 4, 0], scale: 1.04 }
                 : isInView && !shouldReduceMotion
-                ? { y: [0, -12, 0], rotate: [-1.5, 1.5, -1.5], scale: 1 }
+                ? { y: [0, -8, 0], rotate: [-1.5, 1.5, -1.5], scale: 1 }
                 : { y: 0, rotate: 0, scale: 1 }
             }
             transition={{
@@ -222,23 +222,23 @@ export function Hero() {
                 src="/images/hero/dino_mascot.webp"
                 alt="REXBEBE Mascot Dino"
                 fill
-                sizes="(max-width: 640px) 200px, (max-width: 1024px) 320px, 440px"
+                sizes="(max-width: 640px) 130px, (max-width: 1024px) 230px, 320px"
                 className="object-contain"
               />
             </div>
           </motion.div>
 
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-48 h-6 bg-slate-900/15 rounded-full blur-md animate-pulse-soft" />
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-4 bg-slate-900/15 rounded-full blur-md animate-pulse-soft" />
         </div>
 
         {/* Cute Kitten Mascot Companion */}
-        <div className="absolute bottom-4 right-[32%] lg:right-[36%] w-[160px] sm:w-[210px] aspect-square hidden sm:block pointer-events-auto cursor-pointer">
+        <div className="absolute bottom-1 right-[24%] lg:right-[28%] w-[90px] sm:w-[120px] md:w-[140px] lg:w-[160px] aspect-square hidden sm:block pointer-events-auto cursor-pointer">
           <motion.div
             animate={
               isHoveredKitty
-                ? { y: [0, -18, 0], rotate: [0, 8, -8, 0] }
+                ? { y: [0, -12, 0], rotate: [0, 6, -6, 0] }
                 : isInView && !shouldReduceMotion
-                ? { y: [0, -8, 0], rotate: [1, -1, 1] }
+                ? { y: [0, -5, 0], rotate: [1, -1, 1] }
                 : { y: 0, rotate: 0 }
             }
             transition={{
@@ -255,13 +255,13 @@ export function Hero() {
               alt="REXBEBE Companion Kitty"
               fill
               unoptimized
-              sizes="(max-width: 1024px) 160px, 210px"
+              sizes="(max-width: 1024px) 140px, 160px"
               loading="lazy"
               className="object-contain"
             />
           </motion.div>
 
-          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900/15 rounded-full blur-sm" />
+          <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-20 h-3 bg-slate-900/15 rounded-full blur-sm" />
         </div>
 
       </motion.div>
@@ -270,18 +270,18 @@ export function Hero() {
       {/* ========================================================================= */}
       {/* 4. HERO CONTENT OVERLAY (NATURALLY BLENDED STORYBOOK TITLE & COPY)        */}
       {/* ========================================================================= */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 w-full relative z-30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-10 w-full relative z-30">
         <div className="max-w-xl lg:max-w-2xl">
           
           {/* Box removed: Typography floats directly on the landscape artwork */}
           <motion.div
-            initial={{ opacity: 0, y: 25 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="space-y-4 sm:space-y-6"
+            className="space-y-3 sm:space-y-4"
           >
             {/* Headline Section: 3D Glossy Inflatable Balloon Typography in Baby Pink & Baby Green */}
-            <div className="space-y-1 sm:space-y-2 relative">
+            <div className="space-y-0.5 sm:space-y-1 relative">
               
               {/* Cute Floating Pastel Cherry Blossom & Heart Accents matching the reference vibe */}
               <motion.div
@@ -314,7 +314,7 @@ export function Hero() {
                   initial={{ opacity: 0, y: 15, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                  className="balloon-text-pink text-4xl min-[400px]:text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.15] block"
+                  className="balloon-text-pink text-2xl min-[400px]:text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-[1.1] block"
                 >
                   {hero.headlineLine1 || 'Little Moments'}
                 </motion.span>
@@ -323,7 +323,7 @@ export function Hero() {
                   initial={{ opacity: 0, y: 15, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                  className="balloon-text-green text-4xl min-[400px]:text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.15] inline-flex items-center space-x-2 sm:space-x-3 pt-1"
+                  className="balloon-text-green text-2xl min-[400px]:text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-[1.1] inline-flex items-center space-x-2 sm:space-x-3 pt-0.5"
                 >
                   <span>{hero.headlineLine2 || 'Big Adventures.'}</span>
 
@@ -347,7 +347,7 @@ export function Hero() {
                   className="relative inline-block align-middle ml-1 sm:ml-2 transform -translate-y-1 drop-shadow-[0_4px_10px_rgba(58,184,131,0.4)]"
                 >
                   <svg
-                    className="w-9 h-9 min-[400px]:w-11 min-[400px]:h-11 sm:w-16 sm:h-16 filter drop-shadow-sm"
+                    className="w-7 h-7 min-[400px]:w-8 min-[400px]:h-8 sm:w-11 sm:h-11 lg:w-14 lg:h-14 filter drop-shadow-sm"
                     viewBox="0 0 64 64"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"

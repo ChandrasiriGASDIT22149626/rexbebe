@@ -50,7 +50,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="relative bg-user-pastel-header text-purple-950 pt-16 sm:pt-24 pb-8 overflow-hidden border-t border-white/80">
+    <footer className="relative bg-white text-slate-900 pt-16 sm:pt-24 pb-8 overflow-hidden border-t border-neutral-100">
       {/* Header / Hero 3D Pastel World Background Image */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image

@@ -2,12 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
-import { AnnouncementBar } from '../header/AnnouncementBar';
 import { HeaderLogo } from '../header/HeaderLogo';
 import { MainNavigation } from '../header/MainNavigation';
 import { MobileMenu } from './MobileMenu';
 import { CartDrawer } from '../cart/CartDrawer';
-import { InternationalGeoBanner } from './InternationalGeoBanner';
 import { SearchOverlay } from '../header/SearchOverlay';
 import { SearchButtonHeader } from '../header/SearchButtonHeader';
 import { ThemeToggleButton } from '../header/ThemeToggleButton';
@@ -60,16 +58,10 @@ export function Header() {
 
   return (
     <>
-      {/* Global Geo-IP International Shipping & Duty Banner */}
-      <InternationalGeoBanner />
-
-      {/* Top Announcement Bar */}
-      <AnnouncementBar />
-
-      {/* Main Sticky Header: Soft User Pastel Gradient */}
+      {/* Main Sticky Header: Pure White (#FFFFFF) */}
       <header
-        className={`sticky top-0 z-50 bg-user-pastel-header dark:bg-slate-950/90 dark:backdrop-blur-2xl backdrop-blur-xl border-b border-white/60 dark:border-slate-800 shadow-[0_8px_30px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 ${
-          hasScrolled ? 'py-1.5 lg:py-2 shadow-slate-900/10' : 'py-3 lg:py-3.5'
+        className={`sticky top-0 z-50 bg-white dark:bg-slate-950/90 dark:backdrop-blur-2xl backdrop-blur-xl border-b border-neutral-100 dark:border-slate-800 shadow-xs transition-all duration-300 ${
+          hasScrolled ? 'py-1 lg:py-1.5 shadow-slate-900/10' : 'py-1.5 lg:py-2'
         }`}
       >
         <div className="w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
@@ -77,12 +69,12 @@ export function Header() {
           {/* DESKTOP LAYOUT (Logo on Left, Simplified Main Navigation Centered, Action Buttons on Right) */}
           <div
             className={`hidden lg:flex items-center justify-between transition-all duration-300 ${
-              hasScrolled ? 'h-20 lg:h-[84px]' : 'h-24 sm:h-28 lg:h-[114px]'
+              hasScrolled ? 'h-14 lg:h-[64px]' : 'h-16 sm:h-20 lg:h-[78px]'
             }`}
           >
             {/* Top-Left Corner REXBEBE Logo Container */}
             <div className="flex-shrink-0 flex items-center pr-2">
-              <HeaderLogo imgClassName="w-28 sm:w-32 md:w-36 lg:w-32 xl:w-40 2xl:w-44" />
+              <HeaderLogo imgClassName="w-24 sm:w-28 md:w-30 lg:w-28 xl:w-34 2xl:w-38" />
             </div>
 
             {/* Desktop Main Navigation (Capsule Layout) */}
@@ -94,7 +86,7 @@ export function Header() {
             </div>
 
             {/* Right Action Icons Cluster (Search, Dark/Light Mode, Wishlist, Cart) */}
-            <div className="flex-shrink-0 flex items-center justify-end space-x-2 xl:space-x-2.5 min-w-[140px] xl:min-w-[160px]">
+            <div className="flex-shrink-0 flex items-center justify-end space-x-1.5 xl:space-x-2 min-w-[130px] xl:min-w-[150px]">
               <SearchButtonHeader onClick={() => setIsSearchOpen(true)} />
               <ThemeToggleButton />
               <WishlistButtonHeader />

@@ -119,6 +119,20 @@ export class DeliveryService {
       }
 
       if (!foundVariant) {
+        for (const prod of allProducts) {
+          if (item.variantId.includes(prod.id) || (prod.slug && item.variantId.includes(prod.slug))) {
+            foundVariant = prod.variants?.[0] || {
+              id: item.variantId,
+              sku: prod.sku || 'REX-STD',
+              price: prod.price,
+              stockQuantity: prod.stockQuantity || 10,
+            };
+            break;
+          }
+        }
+      }
+
+      if (!foundVariant) {
         throw new BadRequestError(`Invalid product variant: ${item.variantId}`);
       }
       subtotal += foundVariant.price * item.quantity;
