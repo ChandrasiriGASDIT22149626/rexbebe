@@ -53,7 +53,7 @@ export function CheckoutForm() {
         setAppliedCoupon(stored.toUpperCase());
         setCouponInput(stored.toUpperCase());
       }
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   // Recalculate authoritative server pricing when district, town, payment method, cart items, or coupon change
@@ -65,6 +65,8 @@ export function CheckoutForm() {
       const result = await deliveryService.calculatePricing({
         district: deliveryInfo.district || 'Colombo',
         town: deliveryInfo.city || 'Colombo',
+        street: deliveryInfo.street || undefined,
+        postalCode: deliveryInfo.postalCode || undefined,
         items: items.map((i) => ({ variantId: i.variant.id, quantity: i.quantity })),
         paymentMethod: paymentType,
         couponCode: appliedCoupon || undefined,
@@ -76,7 +78,7 @@ export function CheckoutForm() {
     } finally {
       setCalculating(false);
     }
-  }, [items, deliveryInfo.district, deliveryInfo.city, paymentType, appliedCoupon]);
+  }, [items, deliveryInfo.district, deliveryInfo.city, deliveryInfo.street, deliveryInfo.postalCode, paymentType, appliedCoupon]);
 
   const handleApplyCoupon = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -117,7 +119,7 @@ export function CheckoutForm() {
     setCouponNotice(null);
     try {
       sessionStorage.removeItem('rexbebe_applied_promo');
-    } catch (_) {}
+    } catch (_) { }
   };
 
   useEffect(() => {
@@ -222,7 +224,7 @@ export function CheckoutForm() {
             sessionStorage.setItem(`rexbebe_order_${newOrder.id}`, JSON.stringify(newOrder));
           }
           sessionStorage.setItem('rexbebe_latest_order', JSON.stringify(newOrder));
-        } catch {}
+        } catch { }
       }
 
       // 6. Clear cart and redirect to order confirmation page
@@ -314,9 +316,8 @@ export function CheckoutForm() {
 
             {couponNotice && (
               <p
-                className={`text-xs font-medium flex items-center space-x-1 ${
-                  couponNotice.success ? 'text-emerald-600' : 'text-rose-600'
-                }`}
+                className={`text-xs font-medium flex items-center space-x-1 ${couponNotice.success ? 'text-emerald-600' : 'text-rose-600'
+                  }`}
               >
                 <span>{couponNotice.text}</span>
               </p>
@@ -376,8 +377,8 @@ export function CheckoutForm() {
           {loading
             ? 'Placing Order...'
             : paymentType === 'CASH_ON_DELIVERY'
-            ? `Confirm & Place Order (${formatCurrency(amountToCollect)})`
-            : `Pay Online with PayHere (${formatCurrency(total)})`}
+              ? `Confirm & Place Order (${formatCurrency(amountToCollect)})`
+              : `Pay Online with PayHere (${formatCurrency(total)})`}
         </Button>
 
         <p className="text-[11px] text-stone-500 text-center flex items-center justify-center space-x-1.5">

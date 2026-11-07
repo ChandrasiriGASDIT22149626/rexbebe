@@ -134,6 +134,8 @@ export const deliveryService = {
   async calculatePricing(payload: {
     district: string;
     town?: string;
+    street?: string;
+    postalCode?: string;
     items: { variantId: string; quantity: number }[];
     paymentMethod: string;
     couponCode?: string;
@@ -141,6 +143,28 @@ export const deliveryService = {
     advancePayment?: number;
   }): Promise<PricingCalculationResult> {
     return fetchApi<PricingCalculationResult>('/delivery/calculate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getKoombiyoDistricts(): Promise<{ district_id: number; district_name: string }[]> {
+    return fetchApi<{ district_id: number; district_name: string }[]>('/delivery/koombiyo/districts');
+  },
+
+  async getKoombiyoCities(district: string, search?: string): Promise<{ city_id: number; city_name: string; postal_code: string }[]> {
+    const q = new URLSearchParams({ district });
+    if (search) q.append('search', search);
+    return fetchApi<{ city_id: number; city_name: string; postal_code: string }[]>(`/delivery/koombiyo/cities?${q.toString()}`);
+  },
+
+  async resolveKoombiyoAddress(payload: {
+    district?: string;
+    town?: string;
+    street?: string;
+    postalCode?: string;
+  }): Promise<any> {
+    return fetchApi<any>('/delivery/koombiyo/resolve', {
       method: 'POST',
       body: JSON.stringify(payload),
     });

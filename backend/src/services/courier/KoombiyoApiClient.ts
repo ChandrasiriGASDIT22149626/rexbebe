@@ -373,6 +373,15 @@ export class KoombiyoApiClient {
     totalCount: number;
     filteredCount: number;
   }> {
+    const cacheKey = params.city_id !== undefined ? `city_${params.city_id}` : '';
+    if (cacheKey && this.cachedRates.has(cacheKey)) {
+      return {
+        rates: [this.cachedRates.get(cacheKey)!],
+        totalCount: 1,
+        filteredCount: 1,
+      };
+    }
+
     const payload: Record<string, string> = {};
     if (params.city_id !== undefined) payload.city_id = String(params.city_id);
     if (params.zone_id !== undefined) payload.zone_id = String(params.zone_id);
@@ -387,8 +396,13 @@ export class KoombiyoApiClient {
     }
 
     const data = res.data?.data || {};
+    const rates: KoombiyoDeliveryRate[] = data.delivery_rates || [];
+    if (cacheKey && rates.length > 0) {
+      this.cachedRates.set(cacheKey, rates[0]);
+    }
+
     return {
-      rates: data.delivery_rates || [],
+      rates,
       totalCount: Number(data.total_count || 0),
       filteredCount: Number(data.filtered_count || 0),
     };
@@ -686,18 +700,11 @@ export class KoombiyoApiClient {
   // =========================================================================
 
   /**
-   * Resolves customer address to official Koombiyo district_id, city_id, and delivery rate.
-   * Maps user-entered town/city name against Koombiyo official database.
+   * Get the authoritative Koombiyo delivery rate for a district using its primary city.
    */
-  public async resolveAddress(districtName: string, cityName: string): Promise<ResolvedKoombiyoAddress | null> {
-    if (!this.hasCredentials()) {
-      return null;
-    }
-
+  public async getDistrictDefaultRate(districtName: string): Promise<ResolvedKoombiyoAddress | null> {
+    if (!this.hasCredentials()) return null;
     const cleanDistrict = (districtName || '').trim().toLowerCase();
-    const cleanCity = (cityName || '').trim().toLowerCase();
-
-    // 1. Match district
     const districts = await this.getDistricts();
     const matchedDist = districts.find(
       (d) =>
@@ -705,56 +712,182 @@ export class KoombiyoApiClient {
         cleanDistrict.includes(d.district_name.toLowerCase()) ||
         d.district_name.toLowerCase().includes(cleanDistrict)
     );
+    if (!matchedDist) return null;
 
-    if (!matchedDist) {
+    // Use district name as target city (capital of district)
+    const cities = await this.getCities(matchedDist.district_id);
+    let primaryCity = cities.find(
+      (c) => c.city_name.trim().toLowerCase() === matchedDist.district_name.toLowerCase()
+    );
+    if (!primaryCity && cities.length > 0) {
+      primaryCity = cities[0];
+    }
+    if (!primaryCity) return null;
+
+    let deliveryCharge = 450;
+    let chargePerKg = 100;
+    let branchName = matchedDist.district_name;
+
+    try {
+      const rateRes = await this.getDeliveryRates({ city_id: primaryCity.city_id });
+      if (rateRes.rates.length > 0) {
+        deliveryCharge = parseFloat(rateRes.rates[0].initial_charge) || 450;
+        chargePerKg = parseFloat(rateRes.rates[0].charge_per_kg) || 100;
+        branchName = rateRes.rates[0].branch_name || matchedDist.district_name;
+      }
+    } catch (_) {}
+
+    return {
+      districtId: String(matchedDist.district_id),
+      districtName: matchedDist.district_name,
+      cityId: String(primaryCity.city_id),
+      cityName: primaryCity.city_name.trim(),
+      postalCode: primaryCity.postal_code !== '-' ? primaryCity.postal_code : '',
+      deliveryCharge,
+      chargePerKg,
+      branchName,
+      matchedScore: 0.9,
+      confidence: 'HIGH',
+    };
+  }
+
+  /**
+   * Resolves customer address to official Koombiyo district_id, city_id, and delivery rate.
+   * Maps user-entered town/city name against Koombiyo official database.
+   */
+  public async resolveAddress(
+    districtName?: string,
+    cityName?: string,
+    postalCode?: string,
+    streetAddress?: string
+  ): Promise<ResolvedKoombiyoAddress | null> {
+    if (!this.hasCredentials()) {
       return null;
     }
 
-    // 2. Query cities for this district
-    let cities = await this.getCities(matchedDist.district_id, cityName);
+    const cleanDistrict = (districtName || '').trim().toLowerCase();
+    const cleanCity = (cityName || '').trim().toLowerCase().replace(/[\,\.]/g, ' ').replace(/\s+/g, ' ').trim();
 
-    // If empty with exact name, fetch all cities for this district to search locally
-    if (cities.length === 0) {
-      cities = await this.getCities(matchedDist.district_id);
+    if (!cleanCity && cleanDistrict) {
+      return this.getDistrictDefaultRate(districtName!);
     }
+
+    const districts = await this.getDistricts();
+    let matchedDist = cleanDistrict
+      ? districts.find(
+          (d) =>
+            d.district_name.toLowerCase() === cleanDistrict ||
+            cleanDistrict.includes(d.district_name.toLowerCase()) ||
+            d.district_name.toLowerCase().includes(cleanDistrict)
+        )
+      : null;
 
     let bestCity: KoombiyoCity | null = null;
     let confidence: ResolvedKoombiyoAddress['confidence'] = 'UNMAPPED';
     let matchedScore = 0;
 
-    // Exact match
-    const exact = cities.find((c) => c.city_name.trim().toLowerCase() === cleanCity);
-    if (exact) {
-      bestCity = exact;
-      confidence = 'EXACT';
-      matchedScore = 1.0;
-    } else {
-      // Substring match
-      const sub = cities.find(
-        (c) =>
-          c.city_name.toLowerCase().includes(cleanCity) ||
-          cleanCity.includes(c.city_name.toLowerCase())
-      );
-      if (sub) {
-        bestCity = sub;
-        confidence = 'HIGH';
-        matchedScore = 0.85;
-      } else if (cities.length > 0) {
-        // Fallback to first city if district has default
-        bestCity = cities.find((c) => c.city_name.toLowerCase() === matchedDist.district_name.toLowerCase()) || cities[0];
-        confidence = 'APPROXIMATE';
-        matchedScore = 0.5;
+    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const findInCities = (cities: KoombiyoCity[]) => {
+      if (!cities || cities.length === 0) return null;
+      const targetNorm = normalize(cleanCity);
+
+      // 1. Exact match (case & whitespace trimmed)
+      let found = cities.find((c) => c.city_name.trim().toLowerCase() === cleanCity);
+      if (found) return { city: found, conf: 'EXACT' as const, score: 1.0 };
+
+      // 2. Normalized match (e.g. jaela vs ja-ela)
+      found = cities.find((c) => normalize(c.city_name) === targetNorm);
+      if (found) return { city: found, conf: 'EXACT' as const, score: 0.98 };
+
+      // 3. Word token / variation match (e.g. "colombo 03" vs "colombo 3" vs "colombo3")
+      found = cities.find((c) => {
+        const cn = normalize(c.city_name);
+        return cn === targetNorm.replace(/^0+/, '') || targetNorm === cn.replace(/^0+/, '');
+      });
+      if (found) return { city: found, conf: 'HIGH' as const, score: 0.95 };
+
+      // 4. Substring match
+      found = cities.find((c) => {
+        const cn = c.city_name.trim().toLowerCase();
+        return cn.length >= 4 && (cleanCity.includes(cn) || cn.includes(cleanCity));
+      });
+      if (found) return { city: found, conf: 'HIGH' as const, score: 0.85 };
+
+      // 5. Postal code match if provided
+      if (postalCode && postalCode.trim()) {
+        const cleanPost = postalCode.trim();
+        found = cities.find((c) => c.postal_code && c.postal_code === cleanPost);
+        if (found) return { city: found, conf: 'HIGH' as const, score: 0.9 };
+      }
+
+      // 6. Street address word match if provided
+      if (streetAddress && streetAddress.trim()) {
+        const words = streetAddress.toLowerCase().split(/[\s,\-\/]+/);
+        for (const w of words) {
+          if (w.length >= 4) {
+            found = cities.find((c) => c.city_name.trim().toLowerCase() === w);
+            if (found) return { city: found, conf: 'APPROXIMATE' as const, score: 0.75 };
+          }
+        }
+      }
+
+      return null;
+    };
+
+    // If district matched, search in this district
+    if (matchedDist) {
+      // First try quick API query with city_name
+      const candidateCities = await this.getCities(matchedDist.district_id, cleanCity);
+      let match = findInCities(candidateCities);
+      if (match) {
+        bestCity = match.city;
+        confidence = match.conf;
+        matchedScore = match.score;
+      } else {
+        // Fetch full district city list
+        const allDistrictCities = await this.getCities(matchedDist.district_id);
+        match = findInCities(allDistrictCities);
+        if (match) {
+          bestCity = match.city;
+          confidence = match.conf;
+          matchedScore = match.score;
+        }
       }
     }
 
-    if (!bestCity) {
+    // Cross-district search: If not found in selected district, check other districts
+    if (!bestCity && cleanCity.length >= 3) {
+      for (const d of districts) {
+        if (matchedDist && d.district_id === matchedDist.district_id) continue;
+        const candidateCities = await this.getCities(d.district_id, cleanCity);
+        const match = findInCities(candidateCities);
+        if (match && (match.conf === 'EXACT' || match.conf === 'HIGH')) {
+          matchedDist = d;
+          bestCity = match.city;
+          confidence = 'HIGH';
+          matchedScore = 0.88;
+          break;
+        }
+      }
+    }
+
+    // If still no city match, fallback to district capital city so customer is never blocked
+    if (!bestCity && matchedDist) {
+      const allCities = await this.getCities(matchedDist.district_id);
+      bestCity = allCities.find((c) => c.city_name.toLowerCase() === matchedDist!.district_name.toLowerCase()) || allCities[0];
+      confidence = 'APPROXIMATE';
+      matchedScore = 0.6;
+    }
+
+    if (!bestCity || !matchedDist) {
       return null;
     }
 
     // 3. Fetch exact delivery rate for matched city
     let deliveryCharge = 450;
     let chargePerKg = 100;
-    let branchName = 'Gampaha';
+    let branchName = matchedDist.district_name;
 
     try {
       const rateRes = await this.getDeliveryRates({ city_id: bestCity.city_id });
@@ -762,7 +895,7 @@ export class KoombiyoApiClient {
         const rate = rateRes.rates[0];
         deliveryCharge = parseFloat(rate.initial_charge) || 450;
         chargePerKg = parseFloat(rate.charge_per_kg) || 100;
-        branchName = rate.branch_name || 'Gampaha';
+        branchName = rate.branch_name || matchedDist.district_name;
       }
     } catch {
       // Keep default

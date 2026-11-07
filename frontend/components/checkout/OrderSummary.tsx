@@ -39,8 +39,9 @@ export function OrderSummary({
         <h3 className="font-serif text-xl font-medium text-stone-900">
           3. Order Review ({items.length} {items.length === 1 ? 'item' : 'items'})
         </h3>
-        <span className="text-[10px] text-stone-500 font-bold uppercase tracking-wider">
-          {district} Delivery
+        <span className="text-[10px] text-stone-500 font-bold uppercase tracking-wider flex items-center space-x-1">
+          <Truck className="w-3.5 h-3.5 text-brand-600" />
+          <span>Koombiyo Delivery</span>
         </span>
       </div>
 
@@ -96,10 +97,10 @@ export function OrderSummary({
         <div className="flex justify-between items-start">
           <div>
             <div className="font-medium text-stone-800">
-              Delivery Fee ({district})
+              Delivery Fee (Koombiyo Delivery)
             </div>
             {zoneName && (
-              <span className="block text-[10px] text-amber-800 font-bold">
+              <span className="block text-[10px] text-stone-500 font-semibold">
                 {zoneName}
               </span>
             )}
@@ -108,15 +109,9 @@ export function OrderSummary({
             )}
           </div>
           <div className="text-right">
-            {requiresDeliveryReview ? (
-              <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                Pending Concierge Review
-              </span>
-            ) : (
-              <span className="font-semibold text-emerald-700">
-                {deliveryFee === 0 ? 'FREE DELIVERY' : formatCurrency(deliveryFee)}
-              </span>
-            )}
+            <span className="font-semibold text-emerald-700">
+              {deliveryFee === 0 ? 'FREE DELIVERY' : formatCurrency(deliveryFee)}
+            </span>
           </div>
         </div>
 

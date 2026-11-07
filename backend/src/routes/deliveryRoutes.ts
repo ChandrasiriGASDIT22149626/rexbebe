@@ -13,11 +13,19 @@ import {
   reassignTown,
   updatePolicy,
   lookupZone,
+  getKoombiyoDistricts,
+  getKoombiyoCities,
+  resolveKoombiyoAddress,
 } from '../controllers/deliveryController';
 import { authenticateToken } from '../middleware/authMiddleware';
 import { requireAdmin } from '../middleware/adminMiddleware';
 
 const router = Router();
+
+// Official Koombiyo Delivery Public Endpoints (Checkout address resolution & real-time rates)
+router.get('/koombiyo/districts', getKoombiyoDistricts);
+router.get('/koombiyo/cities', getKoombiyoCities);
+router.post('/koombiyo/resolve', resolveKoombiyoAddress);
 
 // General Delivery Settings & Pricing (Public for checkout calculations)
 router.get('/', getDeliverySettings);

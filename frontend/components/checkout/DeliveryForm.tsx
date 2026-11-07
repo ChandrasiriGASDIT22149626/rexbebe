@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { SRI_LANKA_DISTRICTS, deliveryService, DeliveryZone, PricingCalculationResult } from '../../services/deliveryService';
-import { MapPin, Phone, User, Mail, Home, Clock, AlertCircle, CheckCircle2, Info } from 'lucide-react';
+import { SRI_LANKA_DISTRICTS, deliveryService, PricingCalculationResult } from '../../services/deliveryService';
+import { MapPin, Phone, User, Mail, Home, Clock, AlertCircle, CheckCircle2, Truck, ShieldCheck } from 'lucide-react';
 
 interface DeliveryFormProps {
   values: {
@@ -19,23 +19,25 @@ interface DeliveryFormProps {
 }
 
 export function DeliveryForm({ values, onChange, pricing, estimatedDays }: DeliveryFormProps) {
-  const [zones, setZones] = useState<DeliveryZone[]>([]);
-  const [isLoadingZones, setIsLoadingZones] = useState(false);
+  const [koombiyoCities, setKoombiyoCities] = useState<{ city_id: number; city_name: string; postal_code: string }[]>([]);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
 
+  // Fetch official Koombiyo cities whenever selected district changes
   useEffect(() => {
-    setIsLoadingZones(true);
+    const dist = values.district || 'Colombo';
+    setIsLoadingCities(true);
     deliveryService
-      .getZones()
-      .then((data) => {
-        setZones(data || []);
+      .getKoombiyoCities(dist)
+      .then((cities) => {
+        setKoombiyoCities(cities || []);
       })
       .catch((err) => {
-        console.error('Failed to load delivery zones:', err);
+        console.warn('[Koombiyo Cities] Fallback on city load:', err);
       })
       .finally(() => {
-        setIsLoadingZones(false);
+        setIsLoadingCities(false);
       });
-  }, []);
+  }, [values.district]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     onChange({ ...values, [e.target.name]: e.target.value });
@@ -56,49 +58,48 @@ export function DeliveryForm({ values, onChange, pricing, estimatedDays }: Deliv
     });
   };
 
-  // Filter relevant zones for selected district
-  const districtZones = useMemo(() => {
-    const cleanDist = (values.district || '').trim().toLowerCase();
-    if (cleanDist === 'gampaha') {
-      return zones.filter((z) => z.active && z.district.toLowerCase() === 'gampaha');
-    }
-    // For non-Gampaha districts, return Outstation and any zone that contains district
-    return zones.filter(
-      (z) =>
-        z.active &&
-        (z.code === 'OUTSTATION' ||
-          z.district.toLowerCase() === cleanDist ||
-          z.district.toLowerCase() === 'all')
-    );
-  }, [zones, values.district]);
-
-  // Extract all town suggestions for datalist
-  const allSuggestedTowns = useMemo(() => {
-    const list: { town: string; zoneName: string; fee: number }[] = [];
-    districtZones.forEach((z) => {
-      z.towns.forEach((t) => {
-        if (!list.some((item) => item.town.toLowerCase() === t.toLowerCase())) {
-          list.push({ town: t, zoneName: z.name, fee: z.deliveryFee });
-        }
-      });
-    });
-    return list;
-  }, [districtZones]);
-
-  // Quick suggestion chips (first 8 prominent towns)
+  // Popular town quick chips based on selected district
   const popularTowns = useMemo(() => {
-    return allSuggestedTowns.slice(0, 8);
-  }, [allSuggestedTowns]);
+    const dist = (values.district || '').toLowerCase();
+    const curatedDefaults: Record<string, string[]> = {
+      gampaha: ['Gampaha', 'Negombo', 'Wattala', 'Ja-Ela', 'Kadawatha', 'Minuwangoda', 'Kelaniya', 'Kiribathgoda'],
+      colombo: ['Colombo 03', 'Nugegoda', 'Maharagama', 'Dehiwala', 'Moratuwa', 'Malabe', 'Kottawa', 'Rajagiriya'],
+      kandy: ['Kandy', 'Peradeniya', 'Katugastota', 'Gampola', 'Kundasale', 'Akurana'],
+      galle: ['Galle', 'Karapitiya', 'Hikkaduwa', 'Ambalangoda', 'Bentota'],
+      kurunegala: ['Kurunegala', 'Kuliyapitiya', 'Narammala', 'Pannala', 'Polgahawela'],
+      kalutara: ['Panadura', 'Kalutara', 'Horana', 'Wadduwa', 'Beruwala', 'Bandaragama'],
+      matara: ['Matara', 'Weligama', 'Akuressa', 'Dikwella'],
+    };
+
+    if (curatedDefaults[dist]) {
+      return curatedDefaults[dist];
+    }
+
+    if (koombiyoCities && koombiyoCities.length > 0) {
+      return koombiyoCities
+        .map((c) => c.city_name.trim())
+        .filter((name, idx, arr) => arr.indexOf(name) === idx && name.length >= 3 && !name.includes('Road') && !name.includes('Junction'))
+        .slice(0, 8);
+    }
+
+    return [];
+  }, [values.district, koombiyoCities]);
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-stone-200 space-y-4">
-      <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-        <h3 className="font-serif text-xl font-medium text-stone-900 flex items-center space-x-2">
-          <span>1. Shipping &amp; Delivery Address</span>
-        </h3>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-100 pb-3 gap-2">
+        <div>
+          <h3 className="font-serif text-xl font-medium text-stone-900 flex items-center space-x-2">
+            <span>1. Shipping &amp; Delivery Address</span>
+          </h3>
+          <span className="text-[11px] text-stone-500 font-medium flex items-center space-x-1.5 mt-0.5">
+            <Truck className="w-3.5 h-3.5 text-brand-600" />
+            <span>Exclusively fulfilled by <strong className="font-bold text-stone-800">Koombiyo Courier Service</strong></span>
+          </span>
+        </div>
         {estimatedDays && (
-          <span className="flex items-center space-x-1 text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-            <Clock className="w-3 h-3 text-amber-600" />
+          <span className="inline-flex items-center space-x-1 text-[11px] text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 self-start sm:self-auto font-medium">
+            <Clock className="w-3 h-3 text-emerald-600" />
             <span>{estimatedDays}</span>
           </span>
         )}
@@ -135,11 +136,11 @@ export function DeliveryForm({ values, onChange, pricing, estimatedDays }: Deliv
             name="phone"
             value={values.phone}
             onChange={handleChange}
-            placeholder="e.g. +94 77 123 4567 or 0771234567"
+            placeholder="e.g. 077 123 4567 or +94 77 123 4567"
             className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium placeholder-stone-400 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-500/20"
             required
           />
-          <p className="text-[10px] text-stone-400 mt-1">Our courier will call this number before delivery arrival</p>
+          <p className="text-[10px] text-stone-400 mt-1">Koombiyo rider will call this number before arrival</p>
         </div>
 
         {/* Email */}
@@ -176,25 +177,25 @@ export function DeliveryForm({ values, onChange, pricing, estimatedDays }: Deliv
           >
             {SRI_LANKA_DISTRICTS.map((dist) => (
               <option key={dist} value={dist}>
-                {dist} District {dist === 'Gampaha' ? '(Special Zone Rates Available)' : ''}
+                {dist} District
               </option>
             ))}
           </select>
           <p className="text-[10px] text-stone-400 mt-1">
-            {values.district === 'Gampaha'
-              ? 'Gampaha rates: Nearby towns LKR 400 • Other towns LKR 450'
-              : 'Outstation delivery rate: LKR 500'}
+            Koombiyo delivery network covers all 25 districts islandwide
           </p>
         </div>
 
-        {/* City / Town with Autocomplete / Zone matching */}
+        {/* City / Town with Autocomplete from official Koombiyo cities */}
         <div className="sm:col-span-2">
           <label htmlFor="checkout-city" className="block text-stone-700 font-semibold mb-1 flex items-center justify-between">
             <span className="flex items-center space-x-1">
               <MapPin className="w-3.5 h-3.5 text-amber-700" />
-              <span>City / Town (Delivery Zone) <span className="text-rose-500">*</span></span>
+              <span>City / Town <span className="text-rose-500">*</span></span>
             </span>
-            <span className="text-[10px] text-stone-400 font-normal">Select or type your town</span>
+            <span className="text-[10px] text-stone-400 font-normal">
+              {isLoadingCities ? 'Loading Koombiyo cities...' : `${koombiyoCities.length > 0 ? `${koombiyoCities.length} serviceable locations` : 'Type or select your town'}`}
+            </span>
           </label>
 
           <input
@@ -206,17 +207,17 @@ export function DeliveryForm({ values, onChange, pricing, estimatedDays }: Deliv
             onChange={handleChange}
             placeholder={
               values.district === 'Gampaha'
-                ? 'e.g. Wattala, Ja-Ela, Kadawatha, Minuwangoda, Negombo...'
-                : 'e.g. Kandy, Galle, Kurunegala, Colombo 03...'
+                ? 'e.g. Negombo, Wattala, Ja-Ela, Kadawatha, Minuwangoda...'
+                : 'e.g. Colombo 03, Nugegoda, Kandy, Galle, Kurunegala...'
             }
             className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium placeholder-stone-400 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-500/20"
             required
           />
 
           <datalist id="checkout-town-suggestions">
-            {allSuggestedTowns.map((item) => (
-              <option key={item.town} value={item.town}>
-                {item.town} — {item.zoneName} (LKR {item.fee})
+            {koombiyoCities.map((item) => (
+              <option key={item.city_id} value={item.city_name.trim()}>
+                {item.city_name.trim()} ({values.district})
               </option>
             ))}
           </datalist>
@@ -225,44 +226,37 @@ export function DeliveryForm({ values, onChange, pricing, estimatedDays }: Deliv
           {popularTowns.length > 0 && (
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span className="text-[10px] font-bold text-stone-400">Quick Select:</span>
-              {popularTowns.map((item) => (
+              {popularTowns.map((town) => (
                 <button
-                  key={item.town}
+                  key={town}
                   type="button"
-                  onClick={() => handleSelectTown(item.town)}
+                  onClick={() => handleSelectTown(town)}
                   className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
-                    values.city.toLowerCase() === item.town.toLowerCase()
+                    values.city.toLowerCase() === town.toLowerCase()
                       ? 'bg-amber-800 text-white border-amber-900 shadow-2xs'
                       : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
                   }`}
                 >
-                  {item.town}
+                  {town}
                 </button>
               ))}
             </div>
           )}
 
-          {/* Live Delivery Zone Resolution Feedback */}
+          {/* Live Delivery Resolution Feedback */}
           {values.city.trim() && (
             <div className="mt-2.5">
-              {pricing?.requiresDeliveryReview ? (
-                <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-amber-900 text-xs flex items-start space-x-2">
-                  <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold">Unmapped Town — Concierge Review Required</p>
-                    <p className="text-[11px] text-amber-800 mt-0.5">
-                      "{values.city}" is not currently in a pre-configured delivery zone. Per store policy, our concierge team will review delivery options and confirm before dispatch. No arbitrary fee will be guessed.
-                    </p>
-                  </div>
-                </div>
-              ) : pricing?.zoneName ? (
-                <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl text-emerald-900 text-xs flex items-center justify-between">
+              {pricing?.deliveryFee !== undefined ? (
+                <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl text-emerald-900 text-xs flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <div>
-                      <span className="font-bold">{pricing.zoneName}</span>
+                      <span className="font-bold flex items-center space-x-1.5">
+                        <span>{pricing.zoneName || `Koombiyo Delivery — ${values.city} (${values.district})`}</span>
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-semibold">Koombiyo Active</span>
+                      </span>
                       <span className="text-[11px] text-emerald-700 block">
-                        Estimated arrival: {pricing.estimatedDays}
+                        Estimated arrival: {pricing.estimatedDays || estimatedDays || '1–2 Business Days'}
                       </span>
                     </div>
                   </div>

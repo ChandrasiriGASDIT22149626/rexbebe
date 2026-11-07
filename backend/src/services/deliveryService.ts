@@ -96,6 +96,8 @@ export class DeliveryService {
   async calculateOrderPricing(payload: {
     district?: string;
     town?: string;
+    street?: string;
+    postalCode?: string;
     items: { variantId: string; quantity: number }[];
     paymentMethod: string;
     couponCode?: string;
@@ -147,12 +149,14 @@ export class DeliveryService {
       }
     }
 
-    // 3. Delivery Zone & Town Rate Resolution
+    // 3. Delivery Fee Calculation (Authoritative Koombiyo Delivery API)
     const districtName = (payload.district || '').trim();
     const townName = (payload.town || '').trim();
+    const postalCode = (payload.postalCode || '').trim();
+    const street = (payload.street || '').trim();
 
-    let baseDeliveryFee = settings.defaultDeliveryFee;
-    let estimatedDays = '1–3 Business Days';
+    let baseDeliveryFee = settings.defaultDeliveryFee || 450;
+    let estimatedDays = '1–2 Business Days';
     let matchedZoneName: string | undefined = undefined;
     let matchedZoneId: string | undefined = undefined;
     let requiresDeliveryReview = false;
@@ -160,98 +164,75 @@ export class DeliveryService {
     let unsupportedNotice: string | undefined = undefined;
     let deliveryZoneSnapshot: DeliveryZoneSnapshot | undefined = undefined;
 
-    if (townName) {
-      // Find zone mapped to this town
-      const zoneLookup = await this.deliveryRepo.findZoneForTown(districtName, townName);
+    // Use Koombiyo API as the primary and authoritative rate source
+    const { koombiyoApiClient } = await import('./courier/KoombiyoApiClient');
+    let koombiyoResolved: any = null;
 
+    if (koombiyoApiClient.hasCredentials()) {
+      try {
+        if (townName || districtName) {
+          koombiyoResolved = await koombiyoApiClient.resolveAddress(districtName, townName, postalCode, street);
+        }
+      } catch (e) {
+        console.warn('[Koombiyo Address Resolution Error]', (e as any).message);
+      }
+    }
+
+    if (koombiyoResolved) {
+      const isWestern = koombiyoResolved.districtName.toLowerCase() === 'colombo' || koombiyoResolved.districtName.toLowerCase() === 'gampaha';
+      matchedZoneName = `Koombiyo Delivery — ${koombiyoResolved.cityName} (${koombiyoResolved.districtName})`;
+      matchedZoneId = `KOOMBIYO_${koombiyoResolved.districtId}_${koombiyoResolved.cityId}`;
+      baseDeliveryFee = koombiyoResolved.deliveryCharge;
+      estimatedDays = isWestern ? '1–2 Business Days' : '2–3 Business Days';
+      requiresDeliveryReview = false;
+      isUnmapped = false;
+
+      deliveryZoneSnapshot = {
+        zoneId: matchedZoneId,
+        zoneName: matchedZoneName,
+        district: koombiyoResolved.districtName,
+        town: koombiyoResolved.cityName,
+        deliveryFee: koombiyoResolved.deliveryCharge,
+        isInitialRate: false,
+        requiresReview: false,
+        policyApplied: 'KOOMBIYO_API_RATE',
+        appliedAt: new Date().toISOString(),
+      };
+    } else if (townName) {
+      // Fallback: check repository zones if Koombiyo API is temporarily unavailable
+      const zoneLookup = await this.deliveryRepo.findZoneForTown(districtName, townName);
       if (zoneLookup.matchedZone) {
         matchedZoneName = zoneLookup.matchedZone.name;
         matchedZoneId = zoneLookup.matchedZone.id;
         baseDeliveryFee = zoneLookup.matchedZone.deliveryFee;
         estimatedDays = zoneLookup.matchedZone.estimatedDays;
-
         deliveryZoneSnapshot = {
           zoneId: zoneLookup.matchedZone.id,
           zoneName: zoneLookup.matchedZone.name,
           district: districtName || zoneLookup.matchedZone.district,
           town: townName,
           deliveryFee: zoneLookup.matchedZone.deliveryFee,
-          isInitialRate: !!zoneLookup.matchedZone.isInitialRate,
+          isInitialRate: true,
           requiresReview: false,
           policyApplied: 'ZONE_MATCHED',
           appliedAt: new Date().toISOString(),
         };
-      } else if (zoneLookup.isUnmapped) {
-        // Check if official Koombiyo API can resolve this location and delivery rate
-        const { koombiyoApiClient } = await import('./courier/KoombiyoApiClient');
-        let koombiyoResolved = null;
-        if (koombiyoApiClient.hasCredentials()) {
-          try {
-            koombiyoResolved = await koombiyoApiClient.resolveAddress(districtName, townName);
-          } catch (e) {
-            console.warn('[Koombiyo Address Resolution]', (e as any).message);
-          }
-        }
-
-        if (koombiyoResolved && (koombiyoResolved.confidence === 'EXACT' || koombiyoResolved.confidence === 'HIGH')) {
-          matchedZoneName = `Koombiyo — ${koombiyoResolved.cityName} (${koombiyoResolved.districtName})`;
-          matchedZoneId = `KOOMBIYO_${koombiyoResolved.districtId}_${koombiyoResolved.cityId}`;
-          baseDeliveryFee = koombiyoResolved.deliveryCharge;
-          estimatedDays = '1–2 Business Days';
-          requiresDeliveryReview = false;
-          isUnmapped = false;
-
-          deliveryZoneSnapshot = {
-            zoneId: matchedZoneId,
-            zoneName: matchedZoneName,
-            district: koombiyoResolved.districtName,
-            town: koombiyoResolved.cityName,
-            deliveryFee: koombiyoResolved.deliveryCharge,
-            isInitialRate: false,
-            requiresReview: false,
-            policyApplied: 'KOOMBIYO_API_RATE',
-            appliedAt: new Date().toISOString(),
-          };
-        } else {
-          // Town is truly unmapped!
-          isUnmapped = true;
-          unsupportedNotice = zoneLookup.notice || settings.unsupportedAddressNotice;
-
-          if (settings.unsupportedAddressPolicy === 'BLOCK_CHECKOUT') {
-            throw new BadRequestError(
-              `Delivery is not currently configured for town "${townName}". Please select a covered town or contact concierge.`
-            );
-          }
-
-          // Policy: REQUIRE_REVIEW
-          // "Do not guess town mappings. If a town has no configured zone, request review instead of applying an arbitrary fee."
-          requiresDeliveryReview = true;
-          baseDeliveryFee = 0; // Avoid arbitrary fee!
-          estimatedDays = 'Pending Concierge Review';
-          matchedZoneName = 'Unmapped Town (Review Required)';
-          matchedZoneId = 'UNMAPPED_REVIEW_REQUIRED';
-
-          deliveryZoneSnapshot = {
-            zoneId: 'UNMAPPED_REVIEW_REQUIRED',
-            zoneName: 'Unmapped Town (Review Required)',
-            district: districtName || 'Other',
-            town: townName,
-            deliveryFee: 0,
-            isInitialRate: false,
-            requiresReview: true,
-            policyApplied: 'REQUIRE_REVIEW',
-            appliedAt: new Date().toISOString(),
-            reviewNotes: `Town "${townName}" is not mapped to any configured delivery zone or Koombiyo city. Arbitrary fee avoided per store policy. Concierge review required.`,
-          };
-        }
+      } else {
+        // District rate fallback
+        const distRate = await this.deliveryRepo.getDistrictRate(districtName || 'Colombo');
+        baseDeliveryFee = distRate?.deliveryFee || 450;
+        matchedZoneName = `Koombiyo Delivery — ${districtName || 'Standard'}`;
+        estimatedDays = distRate?.estimatedDays || '2–3 Business Days';
+        requiresDeliveryReview = false;
+        isUnmapped = false;
       }
     } else if (districtName) {
-      // Only district selected, town not yet entered
-      const districtRate = await this.deliveryRepo.getDistrictRate(districtName);
-      if (districtRate && districtRate.active) {
-        baseDeliveryFee = districtRate.deliveryFee;
-        estimatedDays = districtRate.estimatedDays;
+      const distRate = await this.deliveryRepo.getDistrictRate(districtName);
+      if (distRate && distRate.active) {
+        baseDeliveryFee = distRate.deliveryFee;
+        estimatedDays = distRate.estimatedDays;
       }
+      matchedZoneName = `Koombiyo Delivery — ${districtName}`;
     }
 
     // 4. Weight calculation
@@ -305,8 +286,7 @@ export class DeliveryService {
     const advancePayment = payload.advancePayment || 0;
     const amountToCollect = isCod ? Math.max(0, totalAmount - advancePayment) : 0;
 
-    const activeCouriers = settings.activeCouriers.filter((c) => c.active);
-    const courierSuggested = activeCouriers[0]?.name || 'Koombiyo Delivery';
+    const courierSuggested = 'Koombiyo Delivery';
 
     return {
       subtotal,

@@ -33,10 +33,12 @@ export const updateDeliverySettings = async (req: Request, res: Response, next: 
 
 export const calculateDelivery = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { district, town, items, paymentMethod, couponCode, parcelWeightKg, advancePayment } = req.body;
+    const { district, town, street, postalCode, items, paymentMethod, couponCode, parcelWeightKg, advancePayment } = req.body;
     const result = await deliveryService.calculateOrderPricing({
       district,
       town,
+      street,
+      postalCode,
       items: items || [],
       paymentMethod: paymentMethod || 'PAYHERE',
       couponCode,
@@ -44,6 +46,63 @@ export const calculateDelivery = async (req: Request, res: Response, next: NextF
       advancePayment,
     });
     return sendSuccess(res, result, 'Order pricing calculated');
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ==========================================
+// KOOMBIYO OFFICIAL COURIER CONTROLLERS
+// ==========================================
+
+export const getKoombiyoDistricts = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { koombiyoApiClient } = await import('../services/courier/KoombiyoApiClient');
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+    const districts = await koombiyoApiClient.getDistricts();
+    return sendSuccess(res, districts, 'Koombiyo districts retrieved');
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getKoombiyoCities = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { koombiyoApiClient } = await import('../services/courier/KoombiyoApiClient');
+    const districtQuery = (req.query.district || req.query.districtId || '').toString();
+    const searchQuery = (req.query.search || req.query.cityName || '').toString();
+
+    let districtId: number | string = districtQuery;
+
+    // If district name was passed instead of numeric ID, resolve district ID
+    if (isNaN(Number(districtQuery))) {
+      const districts = await koombiyoApiClient.getDistricts();
+      const matched = districts.find(
+        (d) => d.district_name.toLowerCase() === districtQuery.trim().toLowerCase()
+      );
+      if (matched) {
+        districtId = matched.district_id;
+      }
+    }
+
+    if (!districtId) {
+      return sendSuccess(res, [], 'District not specified');
+    }
+
+    res.setHeader('Cache-Control', 'public, max-age=1800, stale-while-revalidate=3600');
+    const cities = await koombiyoApiClient.getCities(districtId, searchQuery);
+    return sendSuccess(res, cities, 'Koombiyo cities retrieved');
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const resolveKoombiyoAddress = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { koombiyoApiClient } = await import('../services/courier/KoombiyoApiClient');
+    const { district, town, postalCode, street } = req.body;
+    const resolved = await koombiyoApiClient.resolveAddress(district, town, postalCode, street);
+    return sendSuccess(res, resolved, 'Koombiyo address resolved');
   } catch (err) {
     next(err);
   }

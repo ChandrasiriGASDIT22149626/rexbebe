@@ -119,10 +119,14 @@ export class OrderService {
     const isCod = orderPayload.paymentMethod === 'CASH_ON_DELIVERY';
     const district = orderPayload.shippingAddress?.district || 'Colombo';
     const town = orderPayload.shippingAddress?.town || orderPayload.shippingAddress?.city;
+    const street = orderPayload.shippingAddress?.street;
+    const postalCode = orderPayload.shippingAddress?.postalCode;
 
     const calculation = await this.deliveryService.calculateOrderPricing({
       district,
       town,
+      street,
+      postalCode,
       items: orderPayload.items,
       paymentMethod: orderPayload.paymentMethod,
       couponCode: orderPayload.couponCode,
@@ -167,6 +171,7 @@ export class OrderService {
       items: validatedItems,
       deliveryZoneSnapshot: calculation.deliveryZoneSnapshot,
       requiresDeliveryReview: calculation.requiresDeliveryReview,
+      carrier: 'KOOMBIYO',
       shippingAddress: {
         recipientName: orderPayload.shippingAddress.recipientName,
         phone: orderPayload.shippingAddress.phone || (orderPayload as any).phone,
@@ -180,33 +185,28 @@ export class OrderService {
         deliveryInstructions: orderPayload.shippingAddress.deliveryInstructions,
       },
       courierDetails: {
-        courierProvider: calculation.courierSuggested,
+        courierProvider: 'KOOMBIYO',
         deliveryFee: calculation.deliveryFee,
         codAmountToCollect: calculation.amountToCollect,
         deliveryStatus: 'PENDING',
-        codCollectionStatus: isCod ? 'COLLECTION_PENDING' : 'PENDING',
-        codRemittanceStatus: 'PENDING_REMITTANCE',
+        codCollectionStatus: isCod ? 'COLLECTION_PENDING' : 'NOT_APPLICABLE',
+        codRemittanceStatus: isCod ? 'PENDING_REMITTANCE' : 'RECONCILED',
+        apiRateSnapshot: calculation.deliveryZoneSnapshot,
       },
       timeline: [
         {
           status: orderStatus,
           time: new Date().toISOString(),
           note: isCod
-            ? `Cash on Delivery order placed. Order Status: Pending Confirmation. COD Collection Status: Collection Pending. Amount to collect at delivery: LKR ${calculation.amountToCollect.toLocaleString()}${
-                calculation.requiresDeliveryReview
-                  ? ' [ATTENTION: Delivery fee pending concierge review for unmapped town]'
-                  : calculation.zoneName
-                  ? ` (Applied Zone: ${calculation.zoneName} - LKR ${calculation.deliveryFee})`
-                  : ''
-              }`
-            : 'Order placed and paid online.',
+            ? `Cash on Delivery order placed. Handled by Koombiyo Courier (${calculation.zoneName || district}). Delivery fee: LKR ${calculation.deliveryFee}. Amount to collect at delivery: LKR ${calculation.amountToCollect.toLocaleString()}`
+            : `Order placed and paid online. Handled by Koombiyo Courier (${calculation.zoneName || district}). Delivery fee: LKR ${calculation.deliveryFee}.`,
         },
         ...(calculation.requiresDeliveryReview
           ? [
               {
                 status: 'REVIEW_REQUESTED',
                 time: new Date().toISOString(),
-                note: `Town "${town}" is not mapped to any configured delivery zone. Arbitrary delivery fee avoided per store policy. Concierge review required before dispatch.`,
+                note: `Town "${town}" delivery rate pending concierge review before dispatch.`,
               },
             ]
           : []),

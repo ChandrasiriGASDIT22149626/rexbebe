@@ -105,6 +105,10 @@ export interface CourierDetails {
   deliveredDate?: string;
   returnedDate?: string;
   courierNotes?: string;
+  cityId?: string;
+  cityName?: string;
+  districtName?: string;
+  apiRateSnapshot?: any;
   dispatchUncertain?: boolean;
   uncertainReason?: string;
   dispatchAttemptedAt?: string;

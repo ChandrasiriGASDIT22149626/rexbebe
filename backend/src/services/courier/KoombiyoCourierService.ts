@@ -191,20 +191,6 @@ export class KoombiyoCourierService {
           trackingUrlPattern: 'https://koombiyodelivery.lk/track/{trackingNumber}',
           portalUrl: 'https://client.koombiyodelivery.lk/',
         },
-        {
-          id: 'courier-promptx',
-          name: 'PromptX Courier',
-          code: 'PROMPTX',
-          trackingUrlPattern: 'https://promptx.lk/track?waybill={trackingNumber}',
-          portalUrl: 'https://portal.promptx.lk',
-        },
-        {
-          id: 'courier-domex',
-          name: 'Domex Express',
-          code: 'DOMEX',
-          trackingUrlPattern: 'https://domex.lk/tracking?id={trackingNumber}',
-          portalUrl: 'https://domex.lk/login',
-        },
       ],
     };
   }
