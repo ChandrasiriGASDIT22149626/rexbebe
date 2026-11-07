@@ -246,12 +246,91 @@ export class MigrationService {
         );
       }
 
-      // 2. Categories (Root categories first, then child categories)
+      // 2. Categories (Merge categories.json and navigation.json to guarantee 100% referential integrity)
       const categories = this.readJson<any[]>('categories.json') || [];
-      const rootCats = categories.filter((c) => !c.parentId);
-      const childCats = categories.filter((c) => Boolean(c.parentId));
+      const navJson = this.readJson<any>('navigation.json');
+      const categoryMap = new Map<string, any>();
+
+      for (const cat of categories) {
+        if (cat.id) categoryMap.set(cat.id, cat);
+      }
+
+      // Also import navigation items & subGroups as categories if not present
+      if (navJson?.items && Array.isArray(navJson.items)) {
+        for (const item of navJson.items) {
+          if (item.id && !categoryMap.has(item.id)) {
+            categoryMap.set(item.id, {
+              id: item.id,
+              name: item.name,
+              slug: item.slug || item.id,
+              description: item.description,
+              bannerImage: item.bannerImage,
+              thumbnailImage: item.thumbnailImage,
+              order: item.order || 0,
+              status: item.status || 'published',
+              isActive: item.isActive !== false,
+              parentId: null,
+            });
+          }
+          if (Array.isArray(item.subGroups)) {
+            for (const sub of item.subGroups) {
+              if (sub.id && !categoryMap.has(sub.id)) {
+                categoryMap.set(sub.id, {
+                  id: sub.id,
+                  name: sub.name || sub.title || sub.id,
+                  slug: sub.slug || sub.id,
+                  description: sub.description,
+                  bannerImage: sub.bannerImage,
+                  thumbnailImage: sub.thumbnailImage,
+                  order: sub.order || 0,
+                  status: sub.status || 'published',
+                  isActive: sub.isActive !== false,
+                  parentId: item.id,
+                });
+              }
+              if (Array.isArray(sub.subItems)) {
+                for (const child of sub.subItems) {
+                  if (child.id && !categoryMap.has(child.id)) {
+                    categoryMap.set(child.id, {
+                      id: child.id,
+                      name: child.name || child.title || child.id,
+                      slug: child.slug || child.id,
+                      description: child.description,
+                      bannerImage: child.bannerImage || child.thumbnailImage,
+                      thumbnailImage: child.thumbnailImage,
+                      order: child.order || 0,
+                      status: child.status || 'published',
+                      isActive: child.isActive !== false,
+                      parentId: child.parentId || sub.id || item.id,
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      const allMergedCats = Array.from(categoryMap.values());
+
+      // Ensure unique slugs across all categories to satisfy Category_slug_key constraint
+      const seenCategorySlugs = new Set<string>();
+      for (const cat of allMergedCats) {
+        let baseSlug = (cat.slug || cat.id || 'cat').toLowerCase().trim().replace(/[^a-z0-9-]+/g, '-');
+        let uniqueSlug = baseSlug;
+        let counter = 2;
+        while (seenCategorySlugs.has(uniqueSlug)) {
+          uniqueSlug = `${baseSlug}-${counter++}`;
+        }
+        seenCategorySlugs.add(uniqueSlug);
+        cat.slug = uniqueSlug;
+      }
+
+      const rootCats = allMergedCats.filter((c) => !c.parentId || !categoryMap.has(c.parentId));
+      const childCats = allMergedCats.filter((c) => Boolean(c.parentId) && categoryMap.has(c.parentId));
 
       for (const c of [...rootCats, ...childCats]) {
+        const validParentId = c.parentId && categoryMap.has(c.parentId) ? c.parentId : null;
         await client.query(
           `INSERT INTO "Category" (id, name, slug, description, "shortDescription", "detailedDescription", image, "thumbnailImage", "bannerImage", "galleryImages", "assignedProductIds", "shortcutButtons", badge, "pageTitle", href, "navigationCategory", "destinationType", "destinationReference", "order", status, "isActive", "seoTitle", "seoDescription", "parentId", "createdAt", "updatedAt")
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
@@ -264,8 +343,8 @@ export class MigrationService {
              "updatedAt" = EXCLUDED."updatedAt"`,
           [
             c.id,
-            c.name,
-            c.slug,
+            c.name || c.title || c.slug || c.id || 'Category',
+            c.slug || c.id,
             c.description || null,
             c.shortDescription || null,
             c.detailedDescription || null,
@@ -286,12 +365,14 @@ export class MigrationService {
             c.isActive !== false,
             c.seoTitle || null,
             c.seoDescription || null,
-            c.parentId || null,
+            validParentId,
             c.createdAt ? new Date(c.createdAt) : new Date(),
             c.updatedAt ? new Date(c.updatedAt) : new Date(),
           ]
         );
       }
+
+      const insertedCategoryIds = new Set(allMergedCats.map((c) => c.id));
 
       // 3. Collections
       const collections = this.readJson<any[]>('collections.json') || [];
@@ -318,6 +399,8 @@ export class MigrationService {
           ]
         );
       }
+
+      const insertedCollectionIds = new Set(collections.map((col) => col.id));
 
       // 4. Products, Variants & Images
       const products = this.readJson<any[]>('products.json') || [];
@@ -368,9 +451,9 @@ export class MigrationService {
             p.gender || 'Baby',
             p.ageGroup || '0–12 months',
             p.productType || 'single',
-            p.category?.id || null,
-            p.subcategory?.id || null,
-            p.collection?.id || null,
+            (p.category?.id && insertedCategoryIds.has(p.category.id)) ? p.category.id : null,
+            (p.subcategory?.id && insertedCategoryIds.has(p.subcategory.id)) ? p.subcategory.id : null,
+            (p.collection?.id && insertedCollectionIds.has(p.collection.id)) ? p.collection.id : null,
             p.category ? JSON.stringify(p.category) : null,
             p.subcategory ? JSON.stringify(p.subcategory) : null,
             p.collection ? JSON.stringify(p.collection) : null,

@@ -11,6 +11,7 @@ import { optionalAuthenticateToken } from '../middleware/authMiddleware';
 const router = Router();
 
 router.get('/', optionalAuthenticateToken, getWishlist);
+router.get('/:id', optionalAuthenticateToken, getWishlist);
 router.post('/', optionalAuthenticateToken, addToWishlist);
 router.post('/sync', optionalAuthenticateToken, syncWishlist);
 router.delete('/items/:id', optionalAuthenticateToken, removeFromWishlist);

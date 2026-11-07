@@ -186,7 +186,9 @@ export class CategoryRepository {
           }
           this.migrateFromNavigation();
           this.ensureUniqueSlugs();
-          this.saveToDisk();
+          if (!this.isServerlessOrReadOnly()) {
+            this.saveToDisk();
+          }
           return;
         }
       } catch (err) {
@@ -197,6 +199,14 @@ export class CategoryRepository {
     // If categories.json doesn't exist, migrate idempotently from navigation.json
     this.migrateFromNavigation();
     this.ensureUniqueSlugs();
+  }
+
+  private isServerlessOrReadOnly(): boolean {
+    return (
+      process.env.VERCEL === '1' ||
+      Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+      process.env.NODE_ENV === 'production'
+    );
   }
 
   public ensureUniqueSlugs(): boolean {
@@ -227,7 +237,7 @@ export class CategoryRepository {
       }
     }
 
-    if (changed) {
+    if (changed && !this.isServerlessOrReadOnly()) {
       this.saveToDisk();
     }
     return changed;
@@ -236,7 +246,9 @@ export class CategoryRepository {
   public migrateFromNavigation(): { importedCount: number } {
     if (!fs.existsSync(this.navFilePath)) {
       this.categories = [];
-      this.saveToDisk();
+      if (!this.isServerlessOrReadOnly()) {
+        this.saveToDisk();
+      }
       return { importedCount: 0 };
     }
 
@@ -362,10 +374,12 @@ export class CategoryRepository {
       }
 
       this.categories = Array.from(existingMap.values());
-      this.saveToDisk();
+      if (!this.isServerlessOrReadOnly()) {
+        this.saveToDisk();
+      }
       return { importedCount: count };
     } catch (err) {
-      console.error('[CategoryRepository] Failed to migrate navigation.json:', err);
+      console.warn('[CategoryRepository] Failed to migrate navigation.json:', err);
       return { importedCount: 0 };
     }
   }
@@ -379,6 +393,12 @@ export class CategoryRepository {
           });
         }
       }
+
+      // In Vercel serverless environment, local filesystem is read-only
+      if (this.isServerlessOrReadOnly()) {
+        return;
+      }
+
       const dir = path.dirname(this.filePath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(this.filePath, JSON.stringify(this.categories, null, 2), 'utf-8');
@@ -388,9 +408,12 @@ export class CategoryRepository {
       if (fs.existsSync(path.dirname(frontendCatPath))) {
         fs.writeFileSync(frontendCatPath, JSON.stringify(this.categories, null, 2), 'utf-8');
       }
-    } catch (err) {
-      console.error('[CategoryRepository] Failed to write categories.json:', err);
-      throw new Error('Failed to persist category data to disk');
+    } catch (err: any) {
+      if (err?.code === 'EROFS') {
+        console.warn('[CategoryRepository] Read-only filesystem detected (Vercel/Serverless). Disk persistence safely bypassed.');
+        return;
+      }
+      console.warn('[CategoryRepository] Failed to write categories.json:', err.message);
     }
   }
 

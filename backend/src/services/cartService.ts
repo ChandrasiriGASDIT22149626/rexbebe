@@ -59,13 +59,19 @@ export class CartService {
           console.error('[CartService] Failed to sync cart to PostgreSQL:', err);
         });
       }
+
+      if (process.env.VERCEL === '1' || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) || process.env.NODE_ENV === 'production') {
+        return;
+      }
+
       const dir = path.dirname(STORAGE_PATH);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
       fs.writeFileSync(STORAGE_PATH, JSON.stringify(carts, null, 2), 'utf-8');
-    } catch (e) {
-      console.error('[CartService] Error saving carts.json:', e);
+    } catch (e: any) {
+      if (e?.code === 'EROFS') return;
+      console.warn('[CartService] Error saving carts.json:', e.message);
     }
   }
 

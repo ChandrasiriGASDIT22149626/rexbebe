@@ -10,6 +10,7 @@ export const getWishlist = async (req: Request, res: Response, next: NextFunctio
     const authReq = req as AuthenticatedRequest;
     const customerId = authReq.user?.id;
     const wishlistId =
+      (req.params.id as string) ||
       (req.query.wishlistId as string) ||
       (req.headers['x-wishlist-id'] as string) ||
       (customerId ? `wl-${customerId}` : 'wishlist-default');

@@ -317,13 +317,23 @@ class NavigationStorage {
           console.error('[NavigationStorage] Failed to update PostgreSQL navigation:', err);
         });
       }
+
+      // Bypass filesystem writes when deployed in serverless/production mode
+      if (process.env.VERCEL === '1' || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) || process.env.NODE_ENV === 'production') {
+        return;
+      }
+
       const dir = path.dirname(STORAGE_FILE_PATH);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
       fs.writeFileSync(STORAGE_FILE_PATH, JSON.stringify(this.config, null, 2), 'utf-8');
-    } catch (err) {
-      console.error('[NavigationStorage] Failed to write to disk:', err);
+    } catch (err: any) {
+      if (err?.code === 'EROFS') {
+        console.warn('[NavigationStorage] Read-only filesystem detected. Disk write bypassed.');
+        return;
+      }
+      console.warn('[NavigationStorage] Failed to write to disk:', err.message);
     }
   }
 

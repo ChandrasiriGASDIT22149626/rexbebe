@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { OrderRecord } from '../repositories/orderRepository';
 import { logger } from '../utils/logger';
 
@@ -335,30 +336,33 @@ REXBEBE Concierge Support: support@rexbebe.com | +94 77 123 4567
    * Main dispatch method: automatically sends or stores order confirmation email
    */
   public static async sendOrderConfirmation(order: OrderRecord): Promise<EmailSendResult> {
-    const recipient = order.customerEmail;
-    if (!recipient || !recipient.includes('@')) {
-      logger.info(`[EmailService] Order #${order.orderNumber} skipped: No valid customer email provided.`);
-      return { success: false, provider: 'NONE', error: 'No recipient email' };
+    const recipient = order.customerEmail?.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!recipient || !emailRegex.test(recipient)) {
+      logger.warn(`[EmailService] Order #${order.orderNumber} email skipped: Invalid recipient email address "${recipient}".`);
+      return { success: false, provider: 'NONE', error: `Invalid recipient email address "${recipient}"` };
     }
 
     const htmlContent = this.generateConfirmationHtml(order);
     const textContent = this.generateConfirmationPlainText(order);
     const subject = `REXBEBE Order Confirmation #${order.orderNumber}`;
 
-    // Ensure output directory exists for persistence
-    if (!fs.existsSync(this.emailOutputDir)) {
-      try {
-        fs.mkdirSync(this.emailOutputDir, { recursive: true });
-      } catch (e) {
-        console.error('[EmailService] Could not create sent_emails directory:', e);
-      }
-    }
+    // Safely determine output directory: use os.tmpdir() on Vercel/serverless to avoid EROFS
+    const isServerless = process.env.VERCEL === '1' || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
+    const outputDir = isServerless
+      ? path.join(os.tmpdir(), 'rexbebe_sent_emails')
+      : this.emailOutputDir;
 
-    // Always persist rendered email to disk for recordkeeping and verification
-    const savedHtmlPath = path.join(this.emailOutputDir, `order-${order.orderNumber}.html`);
-    const savedJsonPath = path.join(this.emailOutputDir, `order-${order.orderNumber}.json`);
+    let savedHtmlPath: string | undefined;
+    let savedJsonPath: string | undefined;
 
     try {
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+      savedHtmlPath = path.join(outputDir, `order-${order.orderNumber}.html`);
+      savedJsonPath = path.join(outputDir, `order-${order.orderNumber}.json`);
+
       fs.writeFileSync(savedHtmlPath, htmlContent, 'utf-8');
       fs.writeFileSync(
         savedJsonPath,
@@ -383,19 +387,20 @@ REXBEBE Concierge Support: support@rexbebe.com | +94 77 123 4567
         ),
         'utf-8'
       );
-    } catch (saveErr) {
-      console.warn('[EmailService] Failed to save copy of email to disk:', saveErr);
+    } catch (saveErr: any) {
+      // EROFS or filesystem permissions must never crash the order flow
+      console.warn('[EmailService] Record archival note (non-fatal):', saveErr.message);
     }
 
     // Check SMTP configuration
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
+    const smtpHost = process.env.SMTP_HOST?.trim();
+    const smtpUser = process.env.SMTP_USER?.trim();
+    const smtpPass = (process.env.SMTP_PASS || process.env.SMTP_PASSWORD)?.trim();
     const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
-    const smtpFrom = process.env.SMTP_FROM || '"REXBEBE Boutique" <no-reply@rexbebe.com>';
+    const smtpFrom = process.env.SMTP_FROM?.trim() || '"REXBEBE Boutique" <no-reply@rexbebe.com>';
     const isSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465;
 
-    if (smtpHost && smtpUser) {
+    if (smtpHost && smtpUser && smtpPass) {
       try {
         const transporter = nodemailer.createTransport({
           host: smtpHost,
@@ -405,6 +410,9 @@ REXBEBE Concierge Support: support@rexbebe.com | +94 77 123 4567
             user: smtpUser,
             pass: smtpPass,
           },
+          connectionTimeout: 5000, // 5s connection timeout for serverless
+          greetingTimeout: 5000,
+          socketTimeout: 10000,
         });
 
         const info = await transporter.sendMail({
@@ -424,25 +432,39 @@ REXBEBE Concierge Support: support@rexbebe.com | +94 77 123 4567
           savedPath: savedHtmlPath,
         };
       } catch (smtpErr: any) {
-        logger.error(`[EmailService] SMTP send error for Order #${order.orderNumber}: ${smtpErr.message}`);
-        // Fallback recorded: email is safely saved on disk
+        logger.error(`[EmailService] SMTP delivery failed for Order #${order.orderNumber} to ${recipient}: ${smtpErr.message}`);
         return {
-          success: true,
-          provider: 'SMTP_FALLBACK_ARCHIVE',
+          success: false,
+          provider: 'SMTP',
           savedPath: savedHtmlPath,
           error: smtpErr.message,
         };
       }
     }
 
-    // If SMTP is not configured in local environment, log and archive without failing checkout
-    logger.info(`[EmailService] Order #${order.orderNumber} confirmation email generated and archived at ${savedHtmlPath} (Recipient: ${recipient})`);
+    // When SMTP credentials are not configured in environment
+    const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    if (isProd) {
+      logger.warn(
+        `[EmailService] Order #${order.orderNumber}: Real email could not be delivered because SMTP is not configured in Vercel. ` +
+        `Required environment variables: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM.`
+      );
+      return {
+        success: false,
+        provider: 'UNCONFIGURED',
+        savedPath: savedHtmlPath,
+        error: 'SMTP credentials missing in Vercel environment variables (SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM)',
+      };
+    }
+
+    logger.info(`[EmailService] [Dev Mode] Order #${order.orderNumber} confirmation email generated and stored at ${savedHtmlPath} (Recipient: ${recipient})`);
 
     return {
-      success: true,
-      provider: 'LOCAL_ARCHIVE',
+      success: false,
+      provider: 'LOCAL_DEV_ARCHIVE',
       savedPath: savedHtmlPath,
-      messageId: `local-${Date.now()}`,
+      messageId: `dev-preview-${Date.now()}`,
+      error: 'Development mode: SMTP credentials not set; email safely rendered to local disk for testing.',
     };
   }
 }

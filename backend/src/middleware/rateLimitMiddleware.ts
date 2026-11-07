@@ -5,6 +5,11 @@ const LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const MAX_REQUESTS = 200;
 
 export const rateLimiter = (req: Request, res: Response, next: NextFunction) => {
+  // CORS Preflight OPTIONS requests should never be rate-limited
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   // In development, or for local IP requests and administrative APIs, bypass general rate limit
   const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
   const isLocal = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip === 'localhost';

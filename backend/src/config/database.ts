@@ -5,6 +5,12 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '../utils/logger';
 
+// Automatically enforce PostgreSQL mode when DATABASE_URL is present or when deployed on Vercel
+const rawDbUrl = (process.env.DATABASE_URL || '').trim();
+if (rawDbUrl && !rawDbUrl.includes('dummy') && !rawDbUrl.startsWith('memory:')) {
+  process.env.USE_POSTGRES = 'true';
+}
+
 // Instantiate PrismaClient with fallback error logging
 export const prisma = new PrismaClient({
   log: ['error', 'warn'],
@@ -47,8 +53,9 @@ export class DatabaseManager {
 
   private configureEngine(): void {
     const dbUrl = (process.env.DATABASE_URL || '').trim();
+    const isServerlessOrProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+
     if (dbUrl && !dbUrl.includes('dummy') && !dbUrl.startsWith('memory:')) {
-      const isServerlessOrProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
       const useSsl =
         process.env.DB_SSL === 'true' ||
         dbUrl.includes('sslmode=require') ||
@@ -71,7 +78,12 @@ export class DatabaseManager {
 
       this.pool = new Pool(poolConfig);
       this.isPgliteMode = false;
+      process.env.USE_POSTGRES = 'true';
     } else {
+      if (isServerlessOrProd) {
+        logger.error('[DatabaseManager] CRITICAL: Production environment detected, but DATABASE_URL is not configured. Silently falling back to temporary in-memory PGlite is disabled in production.');
+        throw new Error('DATABASE_URL is required in production environment.');
+      }
       this.isPgliteMode = true;
     }
   }
@@ -94,7 +106,12 @@ export class DatabaseManager {
    * Get or initialize active database instance
    */
   private async getEngine(): Promise<{ isPglite: boolean; engine: Pool | PGlite }> {
+    const isServerlessOrProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+
     if (this.isPgliteMode) {
+      if (isServerlessOrProd) {
+        throw new Error('[DatabaseManager] Production environment detected: PGlite fallback is disabled. Configure DATABASE_URL in Vercel settings.');
+      }
       if (!this.pglite) {
         this.pglite = new PGlite();
       }
@@ -106,6 +123,9 @@ export class DatabaseManager {
     }
 
     if (!this.pool) {
+      if (isServerlessOrProd) {
+        throw new Error('[DatabaseManager] Failed to initialize PostgreSQL pool in production. Verify DATABASE_URL.');
+      }
       this.pglite = new PGlite();
       this.isPgliteMode = true;
       return { isPglite: true, engine: this.pglite };

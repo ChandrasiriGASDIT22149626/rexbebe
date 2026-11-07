@@ -38,11 +38,15 @@ function readJsonFile<T>(filePath: string, fallback: T): T {
 // Helper to safely write JSON file
 function writeJsonFile<T>(filePath: string, data: T): void {
   try {
+    if (process.env.VERCEL === '1' || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) || process.env.NODE_ENV === 'production') {
+      return;
+    }
     const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (err) {
-    console.error(`[adminRoutes] Error writing ${filePath}:`, err);
+  } catch (err: any) {
+    if (err?.code === 'EROFS') return;
+    console.warn(`[adminRoutes] Error writing ${filePath}:`, err.message);
   }
 }
 
