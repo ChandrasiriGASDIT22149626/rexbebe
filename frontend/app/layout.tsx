@@ -4,7 +4,7 @@ import './globals.css';
 import { CartProvider } from '../hooks/useCart';
 import { WishlistProvider } from '../hooks/useWishlist';
 import { ThemeProvider } from '../hooks/useTheme';
-import { ClientOnlyPreloader } from '../components/ui/ClientOnlyPreloader';
+import { Preloader } from '../components/ui/Preloader';
 import { AdminDataProvider } from '../hooks/AdminContext';
 import { WhatsAppFloatingButton } from '../components/layout/WhatsAppFloatingButton';
 import { OrganizationJsonLd, WebSiteJsonLd, LocalBusinessJsonLd } from '../components/seo/JsonLd';
@@ -133,7 +133,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <GoogleAnalytics />
           <AdminDataProvider>
-            <ClientOnlyPreloader />
+            <Preloader />
             <CartProvider>
               <WishlistProvider>
                 {children}

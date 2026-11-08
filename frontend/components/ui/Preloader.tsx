@@ -4,57 +4,55 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Heart, Star } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { useAdminData } from '../../hooks/AdminContext';
 
-// Module-level guard: ensures client-side Next.js route navigation (e.g. clicking /shop, /about)
-// NEVER re-triggers the full-screen initial preloader during the active session.
-let hasInitialPreloaded = false;
+// Client-side session guard: ensures Next.js soft client-side route navigation
+// (e.g. clicking /shop, /about, /products/...) does NOT re-trigger the initial preloader.
+let clientHasInitialPreloaded = false;
 
 export function Preloader() {
+  const pathname = usePathname();
   const { isLoaded } = useAdminData();
-  const [mounted, setMounted] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState('Gathering little adventures...');
+
+  // Route check: Skip preloader completely on admin paths during SSR and client
+  const isAdminRoute = Boolean(pathname && pathname.startsWith('/admin'));
+
+  // Initial state: starts visible and at initial progress (12%)
+  const [isDismissed, setIsDismissed] = useState(() => {
+    // If on admin or if already preloaded in this client session, dismiss immediately
+    if (isAdminRoute) return true;
+    if (typeof window !== 'undefined' && clientHasInitialPreloaded) return true;
+    return false;
+  });
+
+  const [progress, setProgress] = useState(12);
+  const [statusText, setStatusText] = useState('Gathering little adventures... 🎈');
+
   const heroImageLoadedRef = useRef(false);
-  const isReadyRef = useRef(false);
+  const isDataLoadedRef = useRef(isLoaded);
+  const progressRef = useRef(12);
+  const startTimeRef = useRef(Date.now());
+  const dismissedRef = useRef(isDismissed);
 
   const handleDismiss = useCallback(() => {
+    if (dismissedRef.current) return;
+    dismissedRef.current = true;
+    clientHasInitialPreloaded = true;
     setIsDismissed(true);
-    hasInitialPreloaded = true;
   }, []);
 
+  // Synchronize data readiness ref whenever isLoaded changes
   useEffect(() => {
-    setMounted(true);
+    isDataLoadedRef.current = isLoaded;
+  }, [isLoaded]);
 
-    // Skip preloader on admin paths
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
-      hasInitialPreloaded = true;
-      setIsDismissed(true);
+  // Main lifecycle: runs once on mount on the client
+  useEffect(() => {
+    if (isAdminRoute || clientHasInitialPreloaded) {
+      handleDismiss();
       return;
     }
-
-    // Skip immediately for reduced motion preferences or automated test tools
-    if (
-      typeof window !== 'undefined' &&
-      (window.matchMedia('(prefers-reduced-motion: reduce)').matches || (navigator as any).webdriver)
-    ) {
-      hasInitialPreloaded = true;
-      setIsDismissed(true);
-      return;
-    }
-
-    if (hasInitialPreloaded) {
-      setIsDismissed(true);
-      return;
-    }
-
-    // Check readiness helper
-    const checkReadiness = () => {
-      if (isLoaded && heroImageLoadedRef.current && !isReadyRef.current) {
-        isReadyRef.current = true;
-      }
-    };
 
     // Preload critical hero background image
     if (typeof window !== 'undefined') {
@@ -62,60 +60,60 @@ export function Preloader() {
       heroImg.src = '/images/hero/world_bg.webp';
       heroImg.onload = () => {
         heroImageLoadedRef.current = true;
-        checkReadiness();
       };
       heroImg.onerror = () => {
-        heroImageLoadedRef.current = true;
-        checkReadiness();
+        heroImageLoadedRef.current = true; // Gracefully continue if hero asset is missing/slow
       };
     }
 
-    // Dynamic status messages based on progress percentage
     const statusMessages = [
-      'Floating into REXBEBE world... 🎈',
+      'Gathering little adventures... 🎈',
       'Knitting organic cashmere... ☁️',
       'Unpacking cute collections... 🌸',
       'Almost ready for playtime! 💖',
     ];
 
-    let currentProgress = 0;
     const intervalTime = 30;
+    const minDisplayDuration = 600; // Minimum viewing time (ms) to ensure smooth, delightful branding
 
-    // Smooth ticker that responds to genuine data & asset readiness
     const timer = setInterval(() => {
-      if (isReadyRef.current) {
-        // Accelerate smoothly to 100% when everything is ready
-        currentProgress = Math.min(currentProgress + 10, 100);
-        setProgress(currentProgress);
+      const elapsed = Date.now() - startTimeRef.current;
+      const isReady = isDataLoadedRef.current && (heroImageLoadedRef.current || elapsed >= minDisplayDuration);
 
-        if (currentProgress >= 100) {
+      if (isReady && elapsed >= minDisplayDuration) {
+        // Accelerate smoothly to 100% when everything is ready
+        progressRef.current = Math.min(progressRef.current + 8, 100);
+        setProgress(progressRef.current);
+
+        if (progressRef.current >= 100) {
           clearInterval(timer);
           setStatusText('Welcome to REXBEBE! 🌸');
           setTimeout(() => {
             handleDismiss();
-          }, 160);
+          }, 180);
         }
       } else {
-        // Progress smoothly up to 75% while awaiting network & assets
-        if (currentProgress < 75) {
-          const increment = currentProgress < 40 ? 4 : 2;
-          currentProgress = Math.min(currentProgress + increment, 75);
-          setProgress(currentProgress);
-
-          const messageIndex = Math.min(
-            Math.floor((currentProgress / 100) * statusMessages.length),
-            statusMessages.length - 1
-          );
-          setStatusText(statusMessages[messageIndex]);
+        // Advance smoothly through tiers while awaiting data
+        if (progressRef.current < 45) {
+          progressRef.current = Math.min(progressRef.current + 3, 45);
+        } else if (progressRef.current < 75) {
+          progressRef.current = Math.min(progressRef.current + 1.5, 75);
+        } else if (progressRef.current < 85) {
+          progressRef.current = Math.min(progressRef.current + 0.5, 85);
         }
+        setProgress(progressRef.current);
+
+        const messageIndex = Math.min(
+          Math.floor((progressRef.current / 100) * statusMessages.length),
+          statusMessages.length - 1
+        );
+        setStatusText(statusMessages[messageIndex]);
       }
     }, intervalTime);
 
-    // Guaranteed fallback timeout: Never keep the preloader visible for more than 1800ms
+    // Guaranteed safety timeout: Never leave preloader visible for more than 1800ms
     const maxSafetyTimer = setTimeout(() => {
-      isReadyRef.current = true;
-      heroImageLoadedRef.current = true;
-      currentProgress = 100;
+      progressRef.current = 100;
       setProgress(100);
       setStatusText('Welcome to REXBEBE! 🌸');
       clearInterval(timer);
@@ -128,16 +126,10 @@ export function Preloader() {
       clearInterval(timer);
       clearTimeout(maxSafetyTimer);
     };
-  }, [isLoaded, handleDismiss]);
+  }, [isAdminRoute, handleDismiss]);
 
-  // If isLoaded updates after mount, re-trigger readiness check
-  useEffect(() => {
-    if (isLoaded && heroImageLoadedRef.current && !isReadyRef.current) {
-      isReadyRef.current = true;
-    }
-  }, [isLoaded]);
-
-  if (!mounted || hasInitialPreloaded) return null;
+  // Do not render anything for admin routes
+  if (isAdminRoute) return null;
 
   return (
     <AnimatePresence>
@@ -148,6 +140,12 @@ export function Preloader() {
           transition={{ duration: 0.35, ease: 'easeOut' }}
           onClick={handleDismiss}
           id="rexbebe-preloader"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            backgroundColor: '#EAF7FD',
+          }}
           className="fixed inset-0 z-[99999] bg-[#EAF7FD] flex flex-col items-center justify-center select-none overflow-hidden p-4 sm:p-6 cursor-pointer"
           title="Click to enter store"
         >
@@ -283,7 +281,7 @@ export function Preloader() {
                         strokeLinecap="round"
                       />
 
-                      {/* Decorative Hearts & Stars on Parachute (Reference style) */}
+                      {/* Decorative Hearts & Stars on Parachute */}
                       <path
                         d="M 60 45 Q 60 38 67 38 Q 74 38 74 45 Q 74 53 67 59 Q 60 53 60 45 Z"
                         fill="#FFFFFF"
@@ -318,15 +316,10 @@ export function Preloader() {
                 {/* 2. PARACHUTE SUSPENSION LINES / ROPES LEADING TO ANIMAL */}
                 <div className="w-48 sm:w-56 h-12 -mt-2 relative z-10">
                   <svg className="w-full h-full overflow-visible" viewBox="0 0 200 50">
-                    {/* Left Outer Rope */}
                     <path d="M 25 0 Q 75 35 85 50" stroke="#FF9ECD" strokeWidth="2.5" strokeDasharray="3 1" fill="none" />
-                    {/* Left Inner Rope */}
                     <path d="M 65 0 Q 85 30 92 50" stroke="#7DD3FC" strokeWidth="2.5" strokeDasharray="3 1" fill="none" />
-                    {/* Center Rope */}
                     <path d="M 100 0 L 100 50" stroke="#FACC15" strokeWidth="2.5" strokeDasharray="3 1" fill="none" />
-                    {/* Right Inner Rope */}
                     <path d="M 135 0 Q 115 30 108 50" stroke="#C084FC" strokeWidth="2.5" strokeDasharray="3 1" fill="none" />
-                    {/* Right Outer Rope */}
                     <path d="M 175 0 Q 125 35 115 50" stroke="#FF9ECD" strokeWidth="2.5" strokeDasharray="3 1" fill="none" />
                   </svg>
                 </div>
@@ -366,13 +359,11 @@ export function Preloader() {
             {/* Large Rounded Capsule Progress Bar */}
             <div className="w-full relative pt-2">
               <div className="w-full h-7 sm:h-8 rounded-full bg-white/90 border-4 border-white shadow-[0_8px_25px_rgba(0,0,0,0.08)] relative overflow-hidden">
-                {/* Pastel Animated Gradient Fill */}
                 <motion.div
                   style={{ width: `${progress}%` }}
                   transition={{ ease: 'easeOut', duration: 0.1 }}
                   className="h-full rounded-full bg-gradient-to-r from-sky-400 via-pink-400 via-amber-400 to-teal-400 shadow-md transition-all relative overflow-hidden"
                 >
-                  {/* Subtle Inner Highlight Shine */}
                   <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-black/5" />
                 </motion.div>
               </div>
