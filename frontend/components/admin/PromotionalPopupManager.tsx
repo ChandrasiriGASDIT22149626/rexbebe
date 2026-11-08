@@ -47,24 +47,33 @@ export function PromotionalPopupManager({ onShowToast }: { onShowToast?: (msg: s
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  // Load existing configuration from backend
+  // Load existing configuration from backend with anti-cache headers
   useEffect(() => {
     const fetchConfig = async () => {
       setLoading(true);
       try {
         const token = localStorage.getItem('rexbebe_admin_token') || '';
-        const res = await fetch('/api/promotions/popup/admin', {
+        const res = await fetch(`/api/promotions/popup/admin?_t=${Date.now()}`, {
+          cache: 'no-store',
           headers: {
             Authorization: `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            Pragma: 'no-cache',
           },
         });
         const data = await res.json();
         if (data.success && data.data) {
-          setConfig((prev) => ({ ...prev, ...data.data }));
+          setConfig((prev) => ({
+            ...prev,
+            ...data.data,
+            // Strictly enforce the boolean state saved in database
+            enabled: Boolean(data.data.enabled),
+          }));
         }
       } catch (err) {
         console.warn('Failed to load admin popup config:', err);
@@ -75,6 +84,58 @@ export function PromotionalPopupManager({ onShowToast }: { onShowToast?: (msg: s
 
     fetchConfig();
   }, []);
+
+  // Dedicated toggle handler that persists immediately to backend
+  const handleToggleEnable = async (newVal: boolean) => {
+    const previousVal = config.enabled;
+    // Optimistic UI update
+    setConfig((prev) => ({ ...prev, enabled: newVal }));
+    setToggling(true);
+    setMessage(null);
+
+    try {
+      const token = localStorage.getItem('rexbebe_admin_token') || '';
+      const payload = {
+        ...config,
+        enabled: newVal,
+      };
+
+      const res = await fetch('/api/promotions/popup/admin', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (data.success && data.data) {
+        setConfig((prev) => ({
+          ...prev,
+          ...data.data,
+          enabled: Boolean(data.data.enabled),
+        }));
+        const statusMsg = newVal
+          ? 'Promotional Popup enabled and published to homepage! 🌸'
+          : 'Promotional Popup disabled and unpublished. Visitors will not see this popup.';
+        setMessage({ text: statusMsg, type: 'success' });
+        if (onShowToast) onShowToast(newVal ? 'Popup enabled ✨' : 'Popup disabled');
+      } else {
+        // Rollback on failure
+        setConfig((prev) => ({ ...prev, enabled: previousVal }));
+        setMessage({ text: data.message || 'Failed to update popup status in database', type: 'error' });
+      }
+    } catch (err: any) {
+      // Rollback on network failure
+      setConfig((prev) => ({ ...prev, enabled: previousVal }));
+      setMessage({ text: err.message || 'Network error updating popup status', type: 'error' });
+    } finally {
+      setToggling(false);
+    }
+  };
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -88,12 +149,19 @@ export function PromotionalPopupManager({ onShowToast }: { onShowToast?: (msg: s
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
         },
         body: JSON.stringify(config),
       });
 
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.data) {
+        setConfig((prev) => ({
+          ...prev,
+          ...data.data,
+          enabled: Boolean(data.data.enabled),
+        }));
         setMessage({ text: 'Promotional Popup settings saved and published successfully! 🌸', type: 'success' });
         if (onShowToast) onShowToast('Promotional Popup updated successfully! ✨');
       } else {
@@ -240,10 +308,12 @@ export function PromotionalPopupManager({ onShowToast }: { onShowToast?: (msg: s
 
               <button
                 type="button"
-                onClick={() => setConfig((prev) => ({ ...prev, enabled: !prev.enabled }))}
+                disabled={toggling || saving}
+                onClick={() => handleToggleEnable(!config.enabled)}
+                aria-label={config.enabled ? 'Disable Promotional Popup' : 'Enable Promotional Popup'}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  config.enabled ? 'bg-pink-600' : 'bg-stone-300'
-                }`}
+                  toggling ? 'opacity-70 cursor-wait' : ''
+                } ${config.enabled ? 'bg-pink-600' : 'bg-stone-300'}`}
               >
                 <span
                   className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${

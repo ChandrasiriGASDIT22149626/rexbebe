@@ -67,6 +67,17 @@ export class PostgresSettingsRepository {
 
   public async updateHomepageConfig(config: any): Promise<any> {
     const now = new Date();
+    // Preserve existing promotionalPopup if not present in update payload
+    let mergedConfig = { ...config };
+    if (config && config.promotionalPopup === undefined) {
+      try {
+        const current = await this.getHomepageConfig();
+        if (current && current.promotionalPopup !== undefined) {
+          mergedConfig.promotionalPopup = current.promotionalPopup;
+        }
+      } catch (_) {}
+    }
+
     await this.database.query(
       `INSERT INTO "HomepageConfig" (id, hero, announcements, "featuredSections", "bannerGrid", "valueProps", "rawConfig", "createdAt", "updatedAt")
        VALUES ('default', $1, $2, $3, $4, $5, $6, $7, $7)
@@ -79,17 +90,17 @@ export class PostgresSettingsRepository {
          "rawConfig" = EXCLUDED."rawConfig",
          "updatedAt" = EXCLUDED."updatedAt"`,
       [
-        JSON.stringify(config.hero || {}),
-        JSON.stringify(config.announcements || []),
-        JSON.stringify(config.featuredSections || []),
-        JSON.stringify(config.bannerGrid || []),
-        JSON.stringify(config.valueProps || []),
-        JSON.stringify(config),
+        JSON.stringify(mergedConfig.hero || {}),
+        JSON.stringify(mergedConfig.announcements || []),
+        JSON.stringify(mergedConfig.featuredSections || []),
+        JSON.stringify(mergedConfig.bannerGrid || []),
+        JSON.stringify(mergedConfig.valueProps || []),
+        JSON.stringify(mergedConfig),
         now,
       ]
     );
 
-    return config;
+    return mergedConfig;
   }
 
   // --- 3. SEO SETTINGS (SeoSettings table) ---
@@ -131,6 +142,56 @@ export class PostgresSettingsRepository {
     );
 
     return seo;
+  }
+
+  // --- 4. PROMOTIONAL POPUP SETTINGS (Dedicated isolated row in HomepageConfig) ---
+  public async getPromotionalPopupConfig(): Promise<any | null> {
+    // 1. Primary: check dedicated isolated record
+    const res = await this.database.query(`SELECT "rawConfig" FROM "HomepageConfig" WHERE id = 'promotional_popup' LIMIT 1`);
+    if (res.rows.length > 0 && res.rows[0].rawConfig) {
+      const v = res.rows[0].rawConfig;
+      return typeof v === 'string' ? JSON.parse(v) : v;
+    }
+
+    // 2. Secondary fallback: check inside 'default' row
+    const defaultRes = await this.database.query(`SELECT "rawConfig" FROM "HomepageConfig" WHERE id = 'default' LIMIT 1`);
+    if (defaultRes.rows.length > 0 && defaultRes.rows[0].rawConfig) {
+      const v = defaultRes.rows[0].rawConfig;
+      const parsed = typeof v === 'string' ? JSON.parse(v) : v;
+      if (parsed && parsed.promotionalPopup) {
+        return parsed.promotionalPopup;
+      }
+    }
+
+    return null;
+  }
+
+  public async updatePromotionalPopupConfig(config: any): Promise<any> {
+    const now = new Date();
+    // 1. Save to authoritative dedicated row 'promotional_popup'
+    await this.database.query(
+      `INSERT INTO "HomepageConfig" (id, "rawConfig", "createdAt", "updatedAt")
+       VALUES ('promotional_popup', $1, $2, $2)
+       ON CONFLICT (id) DO UPDATE SET
+         "rawConfig" = EXCLUDED."rawConfig",
+         "updatedAt" = EXCLUDED."updatedAt"`,
+      [JSON.stringify(config), now]
+    );
+
+    // 2. Also mirror into 'default' row without overwriting other homepage keys
+    try {
+      const currentDefault = (await this.getHomepageConfig()) || {};
+      currentDefault.promotionalPopup = config;
+      const jsonStr = JSON.stringify(currentDefault);
+      await this.database.query(
+        `UPDATE "HomepageConfig" SET "rawConfig" = $1, "updatedAt" = $2 WHERE id = 'default'`,
+        [jsonStr, now]
+      );
+    } catch (mirrorErr) {
+      console.warn('[PostgresSettingsRepository] Error mirroring promotionalPopup to default row:', mirrorErr);
+    }
+
+    return config;
   }
 }
 

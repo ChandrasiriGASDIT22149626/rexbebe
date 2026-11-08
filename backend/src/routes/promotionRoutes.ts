@@ -8,6 +8,10 @@ const router = Router();
 
 // Public: Get active promotional popup for storefront
 router.get('/popup', async (req: Request, res: Response) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
   try {
     const config = await promotionService.getPublicPopupConfig();
     return sendSuccess(res, config, 'Active promotional popup configuration');
@@ -18,6 +22,9 @@ router.get('/popup', async (req: Request, res: Response) => {
 
 // Admin: Get full promotional popup configuration
 router.get('/popup/admin', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   try {
     const config = await promotionService.getPopupConfig();
     return sendSuccess(res, config, 'Promotional popup management details retrieved');
@@ -28,6 +35,9 @@ router.get('/popup/admin', authenticateToken, requireAdmin, async (req: Authenti
 
 // Admin: Update promotional popup configuration
 router.put('/popup/admin', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   try {
     const payload = req.body;
     if (!payload || typeof payload !== 'object') {

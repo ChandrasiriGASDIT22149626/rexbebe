@@ -47,20 +47,50 @@ export function SalePopupCard({ forceOpen = false, previewData }: { forceOpen?: 
 
     let timeoutId: NodeJS.Timeout;
 
-    // Fetch live promotional popup settings from backend
-    fetch('/api/promotions/popup')
+    // Fetch live promotional popup settings from backend with anti-cache guarantees
+    fetch(`/api/promotions/popup?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+      },
+    })
       .then((res) => res.json())
       .then((json) => {
-        if (json.success && json.data && json.data.enabled) {
-          setData(json.data);
-          const delay = (json.data.displayDelaySeconds || 2) * 1000;
-          timeoutId = setTimeout(() => {
-            setIsOpen(true);
-          }, delay);
+        if (!json.success || !json.data || json.data.enabled === false) {
+          setIsOpen(false);
+          setData(null);
+          return;
         }
+
+        const popupData: SalePopupData = json.data;
+
+        // Defensive schedule check against client local date
+        if (popupData.startDate) {
+          const start = new Date(popupData.startDate);
+          if (new Date() < start) {
+            setIsOpen(false);
+            return;
+          }
+        }
+        if (popupData.endDate) {
+          const end = new Date(popupData.endDate);
+          end.setHours(23, 59, 59, 999);
+          if (new Date() > end) {
+            setIsOpen(false);
+            return;
+          }
+        }
+
+        setData(popupData);
+        const delay = (popupData.displayDelaySeconds || 2) * 1000;
+        timeoutId = setTimeout(() => {
+          setIsOpen(true);
+        }, delay);
       })
       .catch((err) => {
         console.warn('[SalePopupCard] Notice fetching popup config:', err);
+        setIsOpen(false);
       });
 
     return () => {

@@ -68,9 +68,14 @@ export class PromotionService {
   public async getPopupConfig(): Promise<PromotionalPopupConfig> {
     if (process.env.USE_POSTGRES === 'true') {
       try {
-        const homepageConfig = await postgresSettingsRepository.getHomepageConfig();
-        if (homepageConfig && homepageConfig.promotionalPopup) {
-          return { ...DEFAULT_POPUP_CONFIG, ...homepageConfig.promotionalPopup };
+        const dbConfig = await postgresSettingsRepository.getPromotionalPopupConfig();
+        if (dbConfig) {
+          return {
+            ...DEFAULT_POPUP_CONFIG,
+            ...dbConfig,
+            // Strictly enforce the boolean state saved in database so false is never reverted to default true
+            enabled: Boolean(dbConfig.enabled),
+          };
         }
       } catch (e) {
         console.warn('[PromotionService] Postgres read error, falling back to file:', e);
@@ -81,7 +86,7 @@ export class PromotionService {
 
   public async getPublicPopupConfig(): Promise<PromotionalPopupConfig | null> {
     const config = await this.getPopupConfig();
-    if (!config.enabled) return null;
+    if (!config || !config.enabled) return null;
 
     const today = new Date().toISOString().split('T')[0];
     if (config.startDate && config.startDate > today) {
@@ -99,20 +104,23 @@ export class PromotionService {
     const updated: PromotionalPopupConfig = {
       ...current,
       ...partial,
+      enabled: partial.enabled !== undefined ? Boolean(partial.enabled) : current.enabled,
       updatedAt: new Date().toISOString(),
     };
 
-    this.writeConfigToFile(updated);
-
     if (process.env.USE_POSTGRES === 'true') {
       try {
-        const currentHomepage = (await postgresSettingsRepository.getHomepageConfig()) || {};
-        currentHomepage.promotionalPopup = updated;
-        await postgresSettingsRepository.updateHomepageConfig(currentHomepage);
+        await postgresSettingsRepository.updatePromotionalPopupConfig(updated);
       } catch (e) {
-        console.warn('[PromotionService] Postgres write error:', e);
+        console.error('[PromotionService] Critical Postgres write error:', e);
+        throw new Error(`Failed to persist promotion configuration to database: ${(e as any).message}`);
       }
     }
+
+    // Best-effort local file write for offline dev; caught cleanly on Vercel read-only filesystem
+    try {
+      this.writeConfigToFile(updated);
+    } catch (_) {}
 
     return updated;
   }
