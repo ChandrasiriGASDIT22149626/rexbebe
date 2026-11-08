@@ -18,7 +18,7 @@ export function Preloader() {
   // Route check: Skip preloader completely on admin paths during SSR and client
   const isAdminRoute = Boolean(pathname && pathname.startsWith('/admin'));
 
-  // Initial state: starts visible and at initial progress (12%)
+  // Initial state: starts visible and at initial progress (8%)
   const [isDismissed, setIsDismissed] = useState(() => {
     // If on admin or if already preloaded in this client session, dismiss immediately
     if (isAdminRoute) return true;
@@ -26,13 +26,13 @@ export function Preloader() {
     return false;
   });
 
-  const [progress, setProgress] = useState(12);
-  const [statusText, setStatusText] = useState('Gathering little adventures... 🎈');
+  const [progress, setProgress] = useState(8);
+  const [statusText, setStatusText] = useState('Floating into REXBEBE world... 🎈');
 
   const heroImageLoadedRef = useRef(false);
   const isDataLoadedRef = useRef(isLoaded);
-  const progressRef = useRef(12);
-  const startTimeRef = useRef(Date.now());
+  const progressRef = useRef(8);
+  const startTimeRef = useRef(0);
   const dismissedRef = useRef(isDismissed);
 
   const handleDismiss = useCallback(() => {
@@ -42,7 +42,7 @@ export function Preloader() {
     setIsDismissed(true);
   }, []);
 
-  // Synchronize data readiness ref whenever isLoaded changes
+  // Synchronize data readiness ref whenever isLoaded changes without restarting the timer
   useEffect(() => {
     isDataLoadedRef.current = isLoaded;
   }, [isLoaded]);
@@ -54,7 +54,10 @@ export function Preloader() {
       return;
     }
 
-    // Preload critical hero background image
+    // Ensure timer starts strictly when the preloader mounts in the browser
+    startTimeRef.current = Date.now();
+
+    // Preload critical hero background image in parallel without blocking UI
     if (typeof window !== 'undefined') {
       const heroImg = new window.Image();
       heroImg.src = '/images/hero/world_bg.webp';
@@ -62,56 +65,55 @@ export function Preloader() {
         heroImageLoadedRef.current = true;
       };
       heroImg.onerror = () => {
-        heroImageLoadedRef.current = true; // Gracefully continue if hero asset is missing/slow
+        heroImageLoadedRef.current = true; // Gracefully continue on slow/failed asset
       };
     }
 
     const statusMessages = [
-      'Gathering little adventures... 🎈',
-      'Knitting organic cashmere... ☁️',
-      'Unpacking cute collections... 🌸',
-      'Almost ready for playtime! 💖',
+      'Floating into REXBEBE world... 🎈',
+      'Knitting organic cashmere rompers... ☁️',
+      'Unpacking cute pastel collections... 🌸',
+      'Curating luxury nursery essentials... ✨',
+      'Sprinkling sweet baby smiles... 💖',
+      'Almost ready for big adventures! 🧸',
     ];
 
-    const intervalTime = 30;
-    const minDisplayDuration = 600; // Minimum viewing time (ms) to ensure smooth, delightful branding
+    // Minimum display duration: 20 seconds (20,000 ms)
+    const minDisplayDuration = 20000;
+    const intervalTime = 50; // Smooth 20 updates per second
 
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTimeRef.current;
-      const isReady = isDataLoadedRef.current && (heroImageLoadedRef.current || elapsed >= minDisplayDuration);
+      const timeRatio = Math.min(elapsed / minDisplayDuration, 1.0);
 
-      if (isReady && elapsed >= minDisplayDuration) {
-        // Accelerate smoothly to 100% when everything is ready
-        progressRef.current = Math.min(progressRef.current + 8, 100);
+      if (elapsed < minDisplayDuration) {
+        // Smoothly progress from 8% up to 96% proportionally across the 20 seconds
+        const targetProgress = Math.min(8 + (timeRatio * 88), 96);
+        progressRef.current = Math.max(progressRef.current, Math.round(targetProgress));
         setProgress(progressRef.current);
 
-        if (progressRef.current >= 100) {
-          clearInterval(timer);
-          setStatusText('Welcome to REXBEBE! 🌸');
-          setTimeout(() => {
-            handleDismiss();
-          }, 180);
-        }
-      } else {
-        // Advance smoothly through tiers while awaiting data
-        if (progressRef.current < 45) {
-          progressRef.current = Math.min(progressRef.current + 3, 45);
-        } else if (progressRef.current < 75) {
-          progressRef.current = Math.min(progressRef.current + 1.5, 75);
-        } else if (progressRef.current < 85) {
-          progressRef.current = Math.min(progressRef.current + 0.5, 85);
-        }
-        setProgress(progressRef.current);
-
+        // Rotate status messages across the 20-second duration (~3.3s per message)
         const messageIndex = Math.min(
-          Math.floor((progressRef.current / 100) * statusMessages.length),
+          Math.floor(timeRatio * statusMessages.length),
           statusMessages.length - 1
         );
         setStatusText(statusMessages[messageIndex]);
+      } else {
+        // 20-second minimum duration has elapsed! Glide smoothly to 100%
+        progressRef.current = Math.min(progressRef.current + 2, 100);
+        setProgress(progressRef.current);
+        setStatusText('Welcome to REXBEBE! 🌸');
+
+        if (progressRef.current >= 100) {
+          clearInterval(timer);
+          setTimeout(() => {
+            handleDismiss();
+          }, 250);
+        }
       }
     }, intervalTime);
 
-    // Guaranteed safety timeout: Never leave preloader visible for more than 1800ms
+    // Safety timeout: dismiss after 22 seconds (20s min + 2s buffer) so user is never stuck
     const maxSafetyTimer = setTimeout(() => {
       progressRef.current = 100;
       setProgress(100);
@@ -119,8 +121,8 @@ export function Preloader() {
       clearInterval(timer);
       setTimeout(() => {
         handleDismiss();
-      }, 120);
-    }, 1800);
+      }, 200);
+    }, 22000);
 
     return () => {
       clearInterval(timer);
@@ -137,7 +139,7 @@ export function Preloader() {
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.02 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
           onClick={handleDismiss}
           id="rexbebe-preloader"
           style={{
@@ -208,7 +210,6 @@ export function Preloader() {
                     className="w-full h-full filter drop-shadow-[0_10px_20px_rgba(255,182,193,0.35)]"
                   >
                     <defs>
-                      {/* Pastel Stripe Gradients Inspired by Reference Image */}
                       <linearGradient id="pStripePink" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#FFA6C9" />
                         <stop offset="100%" stopColor="#FF70A6" />
@@ -240,39 +241,32 @@ export function Preloader() {
 
                     {/* Parachute Canopy Main Outer Shape */}
                     <g>
-                      {/* Stripe 1 - Left Pink */}
                       <path
                         d="M 15 110 C 15 35, 60 10, 85 10 C 65 30, 45 70, 40 115 C 28 116, 20 113, 15 110 Z"
                         fill="url(#pStripePink)"
                       />
-                      {/* Stripe 2 - Left Cyan Blue */}
                       <path
                         d="M 40 115 C 45 70, 65 30, 85 10 C 110 10, 100 50, 95 118 C 75 120, 55 119, 40 115 Z"
                         fill="url(#pStripeSky)"
                       />
-                      {/* Stripe 3 - Center Yellow */}
                       <path
                         d="M 95 118 C 100 50, 110 10, 130 8 C 150 10, 160 50, 165 118 C 140 121, 120 121, 95 118 Z"
                         fill="url(#pStripeYellow)"
                       />
-                      {/* Stripe 4 - Right Purple */}
                       <path
                         d="M 165 118 C 160 50, 150 10, 175 10 C 195 30, 215 70, 220 115 C 205 119, 185 120, 165 118 Z"
                         fill="url(#pStripePurple)"
                       />
-                      {/* Stripe 5 - Far Right Mint */}
                       <path
                         d="M 220 115 C 215 70, 195 30, 175 10 C 200 10, 245 35, 245 110 C 240 113, 232 116, 220 115 Z"
                         fill="url(#pStripeMint)"
                       />
 
-                      {/* Glossy Overlay Mask */}
                       <path
                         d="M 15 110 C 15 35, 245 35, 245 110 Q 130 135 15 110 Z"
                         fill="url(#pGloss)"
                       />
 
-                      {/* Bottom Scallop Trim Ring */}
                       <path
                         d="M 15 110 Q 40 120 65 115 Q 95 122 130 122 Q 165 122 195 115 Q 220 120 245 110"
                         fill="none"
@@ -292,7 +286,6 @@ export function Preloader() {
                         fill="#FFFFFF"
                         opacity="0.95"
                       />
-                      {/* Top Crown Knot Cap */}
                       <ellipse cx="130" cy="10" rx="14" ry="7" fill="#FFFFFF" opacity="0.9" />
                     </g>
                   </svg>
