@@ -101,7 +101,10 @@ export function HeaderLogo({
           </motion.div>
 
           {/* Website URL Directly Underneath Logo */}
-          <span className="text-[10px] sm:text-[11px] font-medium tracking-wide text-black dark:text-slate-800 mt-0.5 text-center leading-none select-none">
+          <span
+            style={{ fontWeight: 700 }}
+            className="w-fit text-[11px] min-[360px]:text-[12px] sm:text-[13px] md:text-[14px] font-bold font-heading tracking-wide text-neutral-950 dark:text-neutral-900 mt-1 text-center leading-none select-none antialiased"
+          >
             rexbebe.com
           </span>
         </Link>

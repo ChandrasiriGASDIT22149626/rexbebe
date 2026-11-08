@@ -215,7 +215,10 @@ export function MobileMenu({ isOpen, onClose, onOpenSearch }: MobileMenuProps) {
                   height={120}
                   className="w-28 sm:w-32 h-auto object-contain dark:brightness-110"
                 />
-                <span className="text-[10px] sm:text-[11px] font-medium tracking-wide text-black dark:text-slate-200 mt-0.5 text-center leading-none select-none">
+                <span
+                  style={{ fontWeight: 700 }}
+                  className="w-fit text-[12px] sm:text-[13px] font-bold font-heading tracking-wide text-neutral-950 dark:text-neutral-100 mt-1 text-center leading-none select-none antialiased"
+                >
                   rexbebe.com
                 </span>
               </Link>

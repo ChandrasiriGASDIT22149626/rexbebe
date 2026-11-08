@@ -152,7 +152,10 @@ export function Footer() {
                   loading="lazy"
                   className="w-36 sm:w-44 h-auto object-contain transition-transform group-hover:scale-105"
                 />
-                <span className="w-36 sm:w-44 text-center text-[10px] sm:text-[11px] font-medium tracking-wide text-black mt-1 leading-none select-none">
+                <span
+                  style={{ fontWeight: 700 }}
+                  className="w-36 sm:w-44 text-center text-[12px] sm:text-[14px] font-bold font-heading tracking-wide text-neutral-950 mt-1.5 leading-none select-none antialiased"
+                >
                   rexbebe.com
                 </span>
               </Link>
