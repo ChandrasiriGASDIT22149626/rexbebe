@@ -78,29 +78,29 @@ export function Preloader() {
       'Almost ready for big adventures! 🧸',
     ];
 
-    // Minimum display duration: exactly 10 seconds (10,000 ms)
-    const minDisplayDuration = 10000;
-    const intervalTime = 40; // Smooth 25 updates per second
+    // Minimum display duration: exactly 5 seconds (5000 ms)
+    const minDisplayDuration = 5000;
+    const intervalTime = 30; // Smooth 33 updates per second
 
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTimeRef.current;
       const timeRatio = Math.min(elapsed / minDisplayDuration, 1.0);
 
       if (elapsed < minDisplayDuration) {
-        // Smoothly progress from 8% up to 96% proportionally across the 10 seconds
+        // Smoothly progress from 8% up to 96% proportionally across the 5 seconds
         const targetProgress = Math.min(8 + (timeRatio * 88), 96);
         progressRef.current = Math.max(progressRef.current, Math.round(targetProgress));
         setProgress(progressRef.current);
 
-        // Rotate status messages across the 10-second duration (~1.6s per message)
+        // Rotate status messages across the 5-second duration (~0.8s per message)
         const messageIndex = Math.min(
           Math.floor(timeRatio * statusMessages.length),
           statusMessages.length - 1
         );
         setStatusText(statusMessages[messageIndex]);
       } else {
-        // 10-second minimum duration has elapsed! Glide smoothly to 100%
-        progressRef.current = Math.min(progressRef.current + 3, 100);
+        // 5-second minimum duration has elapsed! Glide smoothly to 100%
+        progressRef.current = Math.min(progressRef.current + 4, 100);
         setProgress(progressRef.current);
         setStatusText('Welcome to REXBEBE! 🌸');
 
@@ -108,12 +108,12 @@ export function Preloader() {
           clearInterval(timer);
           setTimeout(() => {
             handleDismiss();
-          }, 200);
+          }, 150);
         }
       }
     }, intervalTime);
 
-    // Safety timeout: dismiss after 12 seconds (10s min + 2s buffer) so user is never stuck
+    // Safety timeout: dismiss after 6.5 seconds (5s min + 1.5s buffer) so user is never stuck
     const maxSafetyTimer = setTimeout(() => {
       progressRef.current = 100;
       setProgress(100);
@@ -121,8 +121,8 @@ export function Preloader() {
       clearInterval(timer);
       setTimeout(() => {
         handleDismiss();
-      }, 150);
-    }, 12000);
+      }, 100);
+    }, 6500);
 
     return () => {
       clearInterval(timer);
