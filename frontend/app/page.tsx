@@ -3,21 +3,21 @@ import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { Header } from '../components/layout/Header';
 import { Hero } from '../components/home/Hero';
-import { WhyRexbebe } from '../components/home/WhyRexbebe';
-import { Newsletter } from '../components/home/Newsletter';
+import { CategorySection } from '../components/home/CategorySection';
+import { ShopByAge } from '../components/home/ShopByAge';
+import { NewArrivals } from '../components/home/NewArrivals';
+import { LittleEssentials } from '../components/home/LittleEssentials';
+import { TheLittleEdit } from '../components/home/TheLittleEdit';
+import { BrandStory } from '../components/home/BrandStory';
 import { FeaturedCollection } from '../components/home/FeaturedCollection';
+import { WhyRexbebe } from '../components/home/WhyRexbebe';
 import { CustomerReviews } from '../components/home/CustomerReviews';
+import { Newsletter } from '../components/home/Newsletter';
 import { InstagramSection } from '../components/home/InstagramSection';
+import { Footer } from '../components/layout/Footer';
 import { getDatabaseSeoSettings } from '../services/serverSeoService';
 import { SITE_URL, BRAND_NAME, generateOpenGraph, generateTwitter } from '../config/seoConfig';
 
-const CategorySection = dynamic(() => import('../components/home/CategorySection'));
-const ShopByAge = dynamic(() => import('../components/home/ShopByAge'));
-const NewArrivals = dynamic(() => import('../components/home/NewArrivals'));
-const LittleEssentials = dynamic(() => import('../components/home/LittleEssentials'));
-const TheLittleEdit = dynamic(() => import('../components/home/TheLittleEdit'));
-const BrandStory = dynamic(() => import('../components/home/BrandStory'));
-const Footer = dynamic(() => import('../components/layout/Footer'));
 const SalePopupCard = dynamic(() => import('../components/promotions/SalePopupCard'), { ssr: false });
 
 export async function generateMetadata(): Promise<Metadata> {

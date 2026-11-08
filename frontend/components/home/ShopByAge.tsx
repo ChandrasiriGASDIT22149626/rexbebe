@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, useInView, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
 export interface AgeCategoryItem {
@@ -68,36 +68,7 @@ const AGE_CATEGORIES: AgeCategoryItem[] = [
 
 export function ShopByAge() {
   const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef, { once: true, margin: '-80px' });
   const shouldReduceMotion = useReducedMotion();
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: shouldReduceMotion ? 0 : 0.12,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: {
-      opacity: 0,
-      y: shouldReduceMotion ? 0 : 30,
-      scale: shouldReduceMotion ? 1 : 0.98,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.7,
-        ease: [0.16, 1, 0.3, 1],
-      },
-    },
-  };
 
   return (
     <section
@@ -108,13 +79,8 @@ export function ShopByAge() {
       {/* Expanded outer container with 16–24px horizontal padding to maximize screen width usage */}
       <div className="w-full max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-5 xl:px-6">
         
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.65, ease: 'easeOut' }}
-          className="text-center max-w-2xl mx-auto mb-8 sm:mb-12 lg:mb-14"
-        >
+        {/* Section Header - Rendered immediately on first load */}
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12 lg:mb-14">
           {/* Subtle Stage Pill */}
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 bg-white/90 backdrop-blur-md rounded-full border border-pink-200/70 shadow-xs mb-3.5">
             <Sparkles className="w-3.5 h-3.5 text-pink-500" />
@@ -132,24 +98,18 @@ export function ShopByAge() {
           <p className="text-neutral-500 text-xs sm:text-sm font-medium mt-2 max-w-lg mx-auto">
             Thoughtfully tailored collections designed for every magical step of growing up.
           </p>
-        </motion.div>
+        </div>
 
-        {/* 4 Large Full-Width Portrait Cards with Staggered Zigzag Layout */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-          className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 pt-4 pb-12 lg:pb-20 items-start"
-        >
-          {AGE_CATEGORIES.map((cat, idx) => {
+        {/* 4 Large Full-Width Portrait Cards with Staggered Zigzag Layout - Ready on first paint */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 pt-4 pb-12 lg:pb-20 items-start">
+          {AGE_CATEGORIES.map((cat) => {
             const offsetClass = shouldReduceMotion
               ? ''
               : `${cat.desktopOffsetClass} ${cat.tabletOffsetClass} ${cat.mobileOffsetClass}`;
 
             return (
-              <motion.div
+              <div
                 key={cat.id}
-                variants={cardVariants}
                 className={`w-full transition-transform duration-500 ease-out ${offsetClass}`}
               >
                 <Link
@@ -164,8 +124,8 @@ export function ShopByAge() {
                       alt={cat.altText}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                      loading={idx < 2 ? 'eager' : 'lazy'}
-                      priority={idx < 2}
+                      loading="eager"
+                      priority={true}
                       className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-106 pointer-events-none"
                     />
                     
@@ -191,10 +151,10 @@ export function ShopByAge() {
                     <ArrowRight className="w-3.5 h-3.5 text-neutral-900" />
                   </div>
                 </Link>
-              </motion.div>
+              </div>
             );
           })}
-        </motion.div>
+        </div>
 
       </div>
     </section>

@@ -184,18 +184,12 @@ export function InstagramSection() {
         </motion.div>
       </div>
 
-      {/* Section Reveal Motion Container - Full Width */}
-      <motion.div
-        initial={{ opacity: 0, y: 35, scale: 0.96 }}
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-8"
-      >
-        
+      {/* Section Container - Full Width, Ready on First Load */}
+      <div className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-8">
+
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-white/60 pb-6 gap-4 px-2 relative">
-          
+
           <div className="flex-shrink-0">
             <div className="inline-flex items-center space-x-2 px-3.5 py-1 bg-white/90 backdrop-blur-md rounded-full border border-pink-200/80 shadow-xs mb-2.5">
               <Instagram className="w-3.5 h-3.5 text-pink-500" />
@@ -223,7 +217,7 @@ export function InstagramSection() {
 
           {/* Middle Floating Animal & Baby Badges */}
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 py-1 my-1 select-none flex-grow justify-start lg:justify-center">
-            
+
             <motion.div
               animate={{ y: [0, -6, 0], rotate: [-2, 2, -2] }}
               transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -290,13 +284,13 @@ export function InstagramSection() {
 
         {/* Gallery Main Container Box - Transparent Frosted Glass Pastel Card Box */}
         <div className="relative group px-1">
-          
+
           {/* Soft Animated Pastel Glowing Aura Behind Card */}
           <div className="absolute -inset-2 rounded-[40px] bg-gradient-to-r from-pink-300/40 via-purple-300/40 via-sky-300/40 to-emerald-300/40 blur-xl opacity-80 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
           {/* Translucent Frosted Glass Card Panel */}
           <div className="relative bg-gradient-to-br from-white/95 via-pink-50/75 via-sky-50/75 to-emerald-50/75 backdrop-blur-xl p-5 sm:p-7 rounded-[36px] border-4 border-white/95 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.12)] overflow-hidden">
-            
+
             {/* Cute Corner Accent Badges */}
             <div className="absolute top-3 left-3 text-sm opacity-80 pointer-events-none select-none z-20">🌸</div>
             <div className="absolute top-3 right-3 text-sm opacity-80 pointer-events-none select-none z-20">✨</div>
@@ -332,7 +326,7 @@ export function InstagramSection() {
                     sizes="(max-width: 640px) 210px, (max-width: 1024px) 275px, 295px"
                     className="object-cover object-top group-hover/item:scale-108 transition-transform duration-700 ease-out"
                   />
-                  
+
                   {/* Hover Overlay with Instagram Like Badge */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-between text-white">
                     <div className="self-end bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-extrabold border border-white/30">
@@ -351,7 +345,7 @@ export function InstagramSection() {
           </div>
         </div>
 
-      </motion.div>
+      </div>
     </section>
   );
 }

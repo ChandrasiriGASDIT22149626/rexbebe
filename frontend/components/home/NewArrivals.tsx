@@ -35,14 +35,8 @@ export function NewArrivals() {
         </motion.div>
       </div>
 
-      {/* Outer Container - Full Width (Zero Left & Right Wasted Space) */}
-      <motion.div
-        initial={{ opacity: 0, y: 35, scale: 0.97 }}
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-8"
-      >
+      {/* Outer Container - Full Width (Zero Left & Right Wasted Space, Ready on First Load) */}
+      <div className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-8">
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-white/80 pb-6 gap-4 px-2 relative">
           
@@ -119,16 +113,9 @@ export function NewArrivals() {
         {newProducts.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 items-start">
             {newProducts.map((product, idx) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.05 }}
-                className="w-full"
-              >
-                <ProductCard product={product} />
-              </motion.div>
+              <div key={product.id} className="w-full">
+                <ProductCard product={product} priority={idx < 4} />
+              </div>
             ))}
           </div>
         ) : (
@@ -143,7 +130,7 @@ export function NewArrivals() {
           </div>
         )}
 
-      </motion.div>
+      </div>
     </section>
   );
 }

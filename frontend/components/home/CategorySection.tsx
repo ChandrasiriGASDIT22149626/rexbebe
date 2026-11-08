@@ -243,14 +243,8 @@ export function CategorySection() {
         </motion.div>
       </div>
 
-      {/* Section Reveal Motion Container */}
-      <motion.div
-        initial={{ opacity: 0, y: 35, scale: 0.96 }}
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-4 sm:space-y-5"
-      >
+      {/* Section Container - Rendered immediately on first page load */}
+      <div className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-4 sm:space-y-5">
         
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-white/60 pb-3 sm:pb-4 gap-3 px-2 relative">
@@ -419,12 +413,8 @@ export function CategorySection() {
           className="flex space-x-3 sm:space-x-4 md:space-x-5 lg:space-x-6 overflow-x-auto pb-4 pt-2 touch-pan-x cursor-grab active:cursor-grabbing focus:outline-none scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           {infiniteCategories.map((cat, idx) => (
-            <motion.div
+            <div
               key={idx}
-              initial={{ opacity: 0, scale: 0.92, y: 20 }}
-              whileInView={{ opacity: 1, scale: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.55, delay: (idx % 6) * 0.08, ease: [0.16, 1, 0.3, 1] }}
               className="flex-shrink-0 group text-center cursor-pointer w-[170px] sm:w-[205px] md:w-[225px] lg:w-[255px]"
             >
               <Link href={cat.href} className="block group focus:outline-none">
@@ -447,7 +437,8 @@ export function CategorySection() {
                         src={cat.image}
                         alt={cat.name}
                         fill
-                        loading="lazy"
+                        loading={idx < 6 ? 'eager' : 'lazy'}
+                        priority={idx < 4}
                         sizes="(max-width: 640px) 195px, 245px"
                         className="object-cover group-hover:scale-106 transition-transform duration-700 ease-out"
                       />
@@ -472,11 +463,11 @@ export function CategorySection() {
                 </div>
 
               </Link>
-            </motion.div>
+            </div>
           ))}
         </div>
 
-      </motion.div>
+      </div>
     </section>
   );
 }

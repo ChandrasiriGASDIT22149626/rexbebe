@@ -251,7 +251,7 @@ const ensureHomeItem = (items: any[]) => {
 };
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(INITIAL_CATALOG_PRODUCTS);
   const [homepageConfig, setHomepageConfig] = useState<HomepageConfig>(DEFAULT_HOMEPAGE_CONFIG);
   const [navigationConfig, setNavigationConfig] = useState<NavigationConfig>(DEFAULT_NAVIGATION_CONFIG);
   const [visitorLogs, setVisitorLogs] = useState<VisitorLog[]>(INITIAL_VISITOR_LOGS);

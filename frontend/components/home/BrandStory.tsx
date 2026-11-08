@@ -49,18 +49,12 @@ export function BrandStory() {
         </motion.div>
       </div>
 
-      {/* Section Reveal Motion Container - Full Width */}
-      <motion.div
-        initial={{ opacity: 0, y: 35, scale: 0.96 }}
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-10"
-      >
-        
+      {/* Section Container - Full Width, Ready on First Load */}
+      <div className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-10">
+
         {/* Top Editorial Headline Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-white/60 pb-6 gap-4 px-2 relative">
-          
+
           <div className="flex-shrink-0">
             <div className="inline-flex items-center space-x-2 px-3.5 py-1 bg-white/90 backdrop-blur-md rounded-full border border-pink-200/80 shadow-xs mb-2.5">
               <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-400" />
@@ -89,7 +83,7 @@ export function BrandStory() {
 
           {/* Middle Floating Animal & Baby Badges */}
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 py-1 my-1 select-none flex-grow justify-start lg:justify-center">
-            
+
             <motion.div
               animate={{ y: [0, -6, 0], rotate: [-2, 2, -2] }}
               transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -134,29 +128,25 @@ export function BrandStory() {
 
         {/* Content Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center px-1">
-          
+
           {/* Left Column: Overlapping Lifestyle Photography */}
           <div className="lg:col-span-6 relative">
             <div className="relative">
-              
+
               {/* Primary Atmospheric Image */}
               <div className="relative aspect-[1024/655] rounded-[34px] overflow-hidden shadow-2xl border-6 border-white/95 bg-pink-50">
                 <Image
                   src="/images/products/plush-bears-tshirts.webp"
                   alt="Plush Animals Wearing REXBEBE T-Shirts"
                   fill
-                  loading="lazy"
+                  loading="eager"
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover transition-transform duration-700 hover:scale-103"
                 />
               </div>
-              
+
               {/* Floating Secondary Image (Baby Playing / Wooden Toy Moment) */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
                 whileHover={{ scale: 1.05 }}
                 className="absolute -bottom-6 -right-2 sm:-right-10 lg:-right-12 w-32 sm:w-44 aspect-square rounded-[24px] overflow-hidden shadow-2xl border-4 border-white/95 bg-white z-20"
               >
@@ -187,13 +177,13 @@ export function BrandStory() {
           {/* Right Column: Transparent Frosted Glass Pastel Card Box */}
           <div className="lg:col-span-6">
             <div className="relative group">
-              
+
               {/* Soft Animated Pastel Glowing Aura Behind Card */}
               <div className="absolute -inset-2 rounded-[40px] bg-gradient-to-r from-pink-300/40 via-purple-300/40 via-sky-300/40 to-emerald-300/40 blur-xl opacity-80 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
               {/* Translucent Frosted Glass Card Panel */}
               <div className="relative bg-gradient-to-br from-white/90 via-pink-50/70 via-sky-50/70 to-emerald-50/70 backdrop-blur-xl p-8 sm:p-10 rounded-[36px] border-4 border-white/95 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.12)] space-y-6 overflow-hidden">
-                
+
                 {/* Cute Corner Accent Badges */}
                 <div className="absolute top-3 left-3 text-sm opacity-80 pointer-events-none select-none">🌸</div>
                 <div className="absolute top-3 right-3 text-sm opacity-80 pointer-events-none select-none">✨</div>
@@ -243,7 +233,7 @@ export function BrandStory() {
 
         </div>
 
-      </motion.div>
+      </div>
     </section>
   );
 }

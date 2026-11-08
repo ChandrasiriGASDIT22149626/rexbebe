@@ -38,14 +38,8 @@ export function TheLittleEdit() {
         </motion.div>
       </div>
 
-      {/* Section Reveal Motion Container - Full Width */}
-      <motion.div
-        initial={{ opacity: 0, y: 35, scale: 0.96 }}
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-10"
-      >
+      {/* Section Container - Full Width, Ready on First Load */}
+      <div className="w-full max-w-full px-2 sm:px-4 lg:px-6 relative z-10 space-y-10">
         
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-white/60 pb-6 gap-4 px-2 relative">
@@ -173,7 +167,7 @@ export function TheLittleEdit() {
                       src="/images/products/cocomelon-tshirt-lifestyle.webp"
                       alt="The Little Edit Cocomelon T-Shirt"
                       fill
-                      loading="lazy"
+                      loading="eager"
                       sizes="(max-width: 1024px) 100vw, 55vw"
                       className="object-cover object-[center_top] transition-transform duration-700 hover:scale-103"
                     />
@@ -214,7 +208,7 @@ export function TheLittleEdit() {
           </div>
         </div>
 
-      </motion.div>
+      </div>
     </section>
   );
 }
