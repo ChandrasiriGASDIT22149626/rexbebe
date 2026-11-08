@@ -1,21 +1,36 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Heart, Star } from 'lucide-react';
+import { useAdminData } from '../../hooks/AdminContext';
+
+// Module-level guard: ensures client-side Next.js route navigation (e.g. clicking /shop, /about)
+// NEVER re-triggers the full-screen initial preloader during the active session.
+let hasInitialPreloaded = false;
 
 export function Preloader() {
+  const { isLoaded } = useAdminData();
   const [mounted, setMounted] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
   const [statusText, setStatusText] = useState('Gathering little adventures...');
+  const heroImageLoadedRef = useRef(false);
+  const isReadyRef = useRef(false);
+
+  const handleDismiss = useCallback(() => {
+    setIsDismissed(true);
+    hasInitialPreloaded = true;
+  }, []);
 
   useEffect(() => {
     setMounted(true);
+
     // Skip preloader on admin paths
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
-      setIsComplete(true);
+      hasInitialPreloaded = true;
+      setIsDismissed(true);
       return;
     }
 
@@ -24,15 +39,35 @@ export function Preloader() {
       typeof window !== 'undefined' &&
       (window.matchMedia('(prefers-reduced-motion: reduce)').matches || (navigator as any).webdriver)
     ) {
-      setIsComplete(true);
+      hasInitialPreloaded = true;
+      setIsDismissed(true);
       return;
     }
 
-    // Check if preloader has already run in current session
-    const hasLoaded = sessionStorage.getItem('rexbebe_preloaded');
-    if (hasLoaded) {
-      setIsComplete(true);
+    if (hasInitialPreloaded) {
+      setIsDismissed(true);
       return;
+    }
+
+    // Check readiness helper
+    const checkReadiness = () => {
+      if (isLoaded && heroImageLoadedRef.current && !isReadyRef.current) {
+        isReadyRef.current = true;
+      }
+    };
+
+    // Preload critical hero background image
+    if (typeof window !== 'undefined') {
+      const heroImg = new window.Image();
+      heroImg.src = '/images/hero/world_bg.webp';
+      heroImg.onload = () => {
+        heroImageLoadedRef.current = true;
+        checkReadiness();
+      };
+      heroImg.onerror = () => {
+        heroImageLoadedRef.current = true;
+        checkReadiness();
+      };
     }
 
     // Dynamic status messages based on progress percentage
@@ -43,67 +78,82 @@ export function Preloader() {
       'Almost ready for playtime! 💖',
     ];
 
-    // Ultra-fast, delightful greeting (~180ms total load)
-    const duration = 180;
-    const intervalTime = 25;
-    const increment = 100 / (duration / intervalTime);
+    let currentProgress = 0;
+    const intervalTime = 30;
 
+    // Smooth ticker that responds to genuine data & asset readiness
     const timer = setInterval(() => {
-      setProgress((prev) => {
-        const next = Math.min(prev + increment + (Math.random() * 5), 100);
-        
-        // Update status text
-        const messageIndex = Math.min(
-          Math.floor((next / 100) * statusMessages.length),
-          statusMessages.length - 1
-        );
-        setStatusText(statusMessages[messageIndex]);
+      if (isReadyRef.current) {
+        // Accelerate smoothly to 100% when everything is ready
+        currentProgress = Math.min(currentProgress + 10, 100);
+        setProgress(currentProgress);
 
-        if (next >= 100) {
+        if (currentProgress >= 100) {
           clearInterval(timer);
+          setStatusText('Welcome to REXBEBE! 🌸');
           setTimeout(() => {
-            setIsComplete(true);
-            try { sessionStorage.setItem('rexbebe_preloaded', 'true'); } catch {}
-          }, 40);
-          return 100;
+            handleDismiss();
+          }, 160);
         }
-        return next;
-      });
+      } else {
+        // Progress smoothly up to 75% while awaiting network & assets
+        if (currentProgress < 75) {
+          const increment = currentProgress < 40 ? 4 : 2;
+          currentProgress = Math.min(currentProgress + increment, 75);
+          setProgress(currentProgress);
+
+          const messageIndex = Math.min(
+            Math.floor((currentProgress / 100) * statusMessages.length),
+            statusMessages.length - 1
+          );
+          setStatusText(statusMessages[messageIndex]);
+        }
+      }
     }, intervalTime);
 
-    // Guaranteed fallback timeout: Never keep the preloader visible for more than 260ms
+    // Guaranteed fallback timeout: Never keep the preloader visible for more than 1800ms
     const maxSafetyTimer = setTimeout(() => {
+      isReadyRef.current = true;
+      heroImageLoadedRef.current = true;
+      currentProgress = 100;
+      setProgress(100);
+      setStatusText('Welcome to REXBEBE! 🌸');
       clearInterval(timer);
-      setIsComplete(true);
-      try { sessionStorage.setItem('rexbebe_preloaded', 'true'); } catch {}
-    }, 260);
+      setTimeout(() => {
+        handleDismiss();
+      }, 120);
+    }, 1800);
 
     return () => {
       clearInterval(timer);
       clearTimeout(maxSafetyTimer);
     };
-  }, []);
+  }, [isLoaded, handleDismiss]);
 
-  if (!mounted || isComplete) return null;
+  // If isLoaded updates after mount, re-trigger readiness check
+  useEffect(() => {
+    if (isLoaded && heroImageLoadedRef.current && !isReadyRef.current) {
+      isReadyRef.current = true;
+    }
+  }, [isLoaded]);
+
+  if (!mounted || hasInitialPreloaded) return null;
 
   return (
     <AnimatePresence>
-      {!isComplete && (
+      {!isDismissed && (
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.02 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          onClick={() => {
-            setIsComplete(true);
-            try { sessionStorage.setItem('rexbebe_preloaded', 'true'); } catch {}
-          }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          onClick={handleDismiss}
           id="rexbebe-preloader"
           className="fixed inset-0 z-[99999] bg-[#EAF7FD] flex flex-col items-center justify-center select-none overflow-hidden p-4 sm:p-6 cursor-pointer"
           title="Click to enter store"
         >
           {/* Background Atmosphere Matching Homepage Hero (#EAF7FD) */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/80 via-sky-100/50 to-[#EAF7FD] pointer-events-none" />
-          
+
           {/* Floating Soft Background Clouds */}
           <motion.div
             animate={{ x: ['-10%', '110%'] }}
@@ -127,10 +177,10 @@ export function Preloader() {
 
           {/* Main Preloader Content Container */}
           <div className="relative z-10 max-w-sm sm:max-w-md w-full flex flex-col items-center space-y-6">
-            
+
             {/* Parachute Floating Stage Container */}
             <div className="w-full h-72 sm:h-80 relative flex items-end justify-center overflow-visible">
-              
+
               {/* Entire Parachute + Animal Assembly Moving Across Progress Track */}
               <motion.div
                 style={{
@@ -140,9 +190,9 @@ export function Preloader() {
                   progress >= 100
                     ? { y: [-10, -35, -5], scale: [1, 1.08, 1], rotate: [0, 5, 0] }
                     : {
-                        y: [0, -12, 0, -8, 0],
-                        rotate: [-2.5, 2.5, -2.5],
-                      }
+                      y: [0, -12, 0, -8, 0],
+                      rotate: [-2.5, 2.5, -2.5],
+                    }
                 }
                 transition={
                   progress >= 100

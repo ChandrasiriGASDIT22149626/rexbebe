@@ -366,8 +366,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       const savedVisitors = localStorage.getItem(STORAGE_KEYS.VISITORS);
       if (savedVisitors) setVisitorLogs(JSON.parse(savedVisitors));
 
-      // Asynchronously sync products from backend API (Database source of truth)
-      productService.getProducts().then(apiProducts => {
+      // Asynchronously sync essential initial data using Promise.allSettled
+      const productSync = productService.getProducts().then(apiProducts => {
         if (apiProducts && Array.isArray(apiProducts)) {
           setProducts(apiProducts);
           try {
@@ -376,35 +376,36 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }
       }).catch(e => console.warn('Backend products sync notice:', e));
 
-      // Use public navigation for public storefront, full admin navigation for admin portal
-      if (isAuthedAdminRoute) {
-        navigationService.getAllNavigation().then(apiNav => {
-          if (apiNav && apiNav.items && apiNav.items.length > 0) {
-            const ensuredNav = { ...apiNav, items: ensureHomeItem(apiNav.items) };
-            setNavigationConfig(ensuredNav);
+      const navSync = (isAuthedAdminRoute ? navigationService.getAllNavigation() : navigationService.getPublicNavigation()).then(apiNav => {
+        if (apiNav && apiNav.items && apiNav.items.length > 0) {
+          const ensuredNav = { ...apiNav, items: ensureHomeItem(apiNav.items) };
+          setNavigationConfig(ensuredNav);
+          try {
             localStorage.setItem(STORAGE_KEYS.NAVIGATION, JSON.stringify(ensuredNav));
-          }
-        }).catch(e => console.warn('Backend admin navigation sync notice:', e));
-      } else {
-        navigationService.getPublicNavigation().then(publicNav => {
-          if (publicNav && publicNav.items && publicNav.items.length > 0) {
-            const ensuredNav = { ...publicNav, items: ensureHomeItem(publicNav.items) };
-            setNavigationConfig(ensuredNav);
-            localStorage.setItem(STORAGE_KEYS.NAVIGATION, JSON.stringify(ensuredNav));
-          }
-        }).catch(e => console.warn('Backend public navigation sync notice:', e));
-      }
+          } catch {}
+        }
+      }).catch(e => console.warn('Backend navigation sync notice:', e));
 
-      adminService.getHomepage().then(apiHp => {
+      const homepageSync = adminService.getHomepage().then(apiHp => {
         if (apiHp && apiHp.hero) {
           setHomepageConfig(prev => ({ ...prev, ...apiHp }));
-          localStorage.setItem(STORAGE_KEYS.HOMEPAGE, JSON.stringify(apiHp));
+          try {
+            localStorage.setItem(STORAGE_KEYS.HOMEPAGE, JSON.stringify(apiHp));
+          } catch {}
         }
       }).catch(e => console.warn('Backend homepage sync notice:', e));
 
+      // Settle all essential initial requests, backed by a safety timeout so slow networks never hang
+      const initialSettleTimeout = new Promise(resolve => setTimeout(resolve, 1400));
+      Promise.race([
+        Promise.allSettled([productSync, navSync, homepageSync]),
+        initialSettleTimeout,
+      ]).finally(() => {
+        setIsLoaded(true);
+      });
+
     } catch (e) {
       console.warn('Could not read admin state from localStorage:', e);
-    } finally {
       setIsLoaded(true);
     }
   }, []);

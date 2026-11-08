@@ -132,8 +132,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body suppressHydrationWarning className="min-h-screen flex flex-col justify-between bg-white text-slate-800 dark:bg-[#0F172A] dark:text-slate-100 transition-colors duration-300">
         <ThemeProvider>
           <GoogleAnalytics />
-          <ClientOnlyPreloader />
           <AdminDataProvider>
+            <ClientOnlyPreloader />
             <CartProvider>
               <WishlistProvider>
                 {children}
