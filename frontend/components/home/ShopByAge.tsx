@@ -3,7 +3,6 @@
 import React, { useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, useReducedMotion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
 export interface AgeCategoryItem {
@@ -13,10 +12,7 @@ export interface AgeCategoryItem {
   href: string;
   image: string;
   altText: string;
-  // Zigzag layout: Card 1 higher, Card 2 lower, Card 3 higher, Card 4 lower
-  desktopOffsetClass: string;
-  tabletOffsetClass: string;
-  mobileOffsetClass: string;
+  imagePosition?: string;
 }
 
 const AGE_CATEGORIES: AgeCategoryItem[] = [
@@ -27,9 +23,7 @@ const AGE_CATEGORIES: AgeCategoryItem[] = [
     href: '/baby',
     image: '/images/categories/baby.jpg',
     altText: 'REXBEBE Baby Collection (0–12 Months)',
-    desktopOffsetClass: 'lg:-translate-y-5', // Card 1 slightly higher
-    tabletOffsetClass: 'md:-translate-y-3',
-    mobileOffsetClass: '-translate-y-1',
+    imagePosition: 'object-top',
   },
   {
     id: 'age-cat-toddler',
@@ -38,9 +32,7 @@ const AGE_CATEGORIES: AgeCategoryItem[] = [
     href: '/toddler',
     image: '/images/categories/toddler.jpg',
     altText: 'REXBEBE Toddler Collection (1–3 Years)',
-    desktopOffsetClass: 'lg:translate-y-6', // Card 2 slightly lower
-    tabletOffsetClass: 'md:translate-y-3',
-    mobileOffsetClass: 'translate-y-1',
+    imagePosition: 'object-center',
   },
   {
     id: 'age-cat-preschool',
@@ -49,9 +41,7 @@ const AGE_CATEGORIES: AgeCategoryItem[] = [
     href: '/pre-school',
     image: '/images/categories/pre-school.jpg',
     altText: 'REXBEBE Pre-School Collection (3–5 Years)',
-    desktopOffsetClass: 'lg:-translate-y-5', // Card 3 slightly higher
-    tabletOffsetClass: 'md:-translate-y-3',
-    mobileOffsetClass: '-translate-y-1',
+    imagePosition: 'object-center',
   },
   {
     id: 'age-cat-middle-childhood',
@@ -60,15 +50,12 @@ const AGE_CATEGORIES: AgeCategoryItem[] = [
     href: '/middle-childhood',
     image: '/images/categories/middle-childhood.jpg',
     altText: 'REXBEBE Middle Childhood Collection (6–10 Years)',
-    desktopOffsetClass: 'lg:translate-y-6', // Card 4 slightly lower
-    tabletOffsetClass: 'md:translate-y-3',
-    mobileOffsetClass: 'translate-y-1',
+    imagePosition: 'object-center',
   },
 ];
 
 export function ShopByAge() {
   const sectionRef = useRef<HTMLElement>(null);
-  const shouldReduceMotion = useReducedMotion();
 
   return (
     <section
@@ -100,17 +87,13 @@ export function ShopByAge() {
           </p>
         </div>
 
-        {/* 4 Large Full-Width Portrait Cards with Staggered Zigzag Layout - Ready on first paint */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 pt-4 pb-12 lg:pb-20 items-start">
+        {/* 4 Equal-Sized Full-Width Portrait Cards with Exact Top & Bottom Alignment */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 pt-4 pb-12 lg:pb-20 items-stretch">
           {AGE_CATEGORIES.map((cat) => {
-            const offsetClass = shouldReduceMotion
-              ? ''
-              : `${cat.desktopOffsetClass} ${cat.tabletOffsetClass} ${cat.mobileOffsetClass}`;
-
             return (
               <div
                 key={cat.id}
-                className={`w-full transition-transform duration-500 ease-out ${offsetClass}`}
+                className="w-full flex flex-col"
               >
                 <Link
                   href={cat.href}
@@ -126,7 +109,7 @@ export function ShopByAge() {
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                       loading="eager"
                       priority={true}
-                      className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-106 pointer-events-none"
+                      className={`w-full h-full object-cover ${cat.imagePosition || 'object-center'} transition-transform duration-700 ease-out group-hover:scale-106 pointer-events-none`}
                     />
                     
                     {/* Subtle Gradient Overlays for Depth & Readability */}
@@ -162,4 +145,3 @@ export function ShopByAge() {
 }
 
 export default ShopByAge;
-
