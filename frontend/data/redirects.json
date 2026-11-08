@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "id": "redir-pooh-honey-time",
+    "fromPath": "/products/pooh-s-honey-time",
+    "toPath": "/products/sunshine-cotton-pooh-tee",
+    "statusCode": 301,
+    "active": true
+  }
+]

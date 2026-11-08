@@ -1458,8 +1458,8 @@
   },
   {
     "id": "prod-1792938412601",
-    "name": "Pooh’s Honey Time",
-    "slug": "pooh-s-honey-time",
+    "name": "Sunshine Cotton Pooh Tee",
+    "slug": "sunshine-cotton-pooh-tee",
     "sku": "REX-BABY-1927",
     "shortDescription": "",
     "description": "",
@@ -1485,9 +1485,15 @@
     "images": [
       {
         "id": "img-1792938412600-0",
-        "url": "/uploads/1792938348396-7b5a7a20-bc99-4039-8303-7a029de623e3.webp",
-        "alt": "Pooh’s Honey Time - View 1",
+        "url": "/images/products/yellow-pooh-baby-card.webp",
+        "alt": "Sunshine Cotton Pooh Tee - Yellow Pooh",
         "position": 1
+      },
+      {
+        "id": "img-1792938412600-1",
+        "url": "/uploads/1792938348396-7b5a7a20-bc99-4039-8303-7a029de623e3.webp",
+        "alt": "Sunshine Cotton Pooh Tee - Red Pooh",
+        "position": 2
       }
     ],
     "variants": [
@@ -1509,7 +1515,7 @@
         "colorHex": "#F59E0B",
         "price": 400,
         "stockQuantity": 10,
-        "imageUrl": "/uploads/1792938348396-7b5a7a20-bc99-4039-8303-7a029de623e3.webp"
+        "imageUrl": "/images/products/yellow-pooh-baby-card.webp"
       }
     ],
     "colors": [
@@ -1562,7 +1568,7 @@
         "images": []
       }
     ],
-    "seoTitle": "Pooh’s Honey Time | REXBEBE Baby Clothing",
+    "seoTitle": "Sunshine Cotton Pooh Tee | REXBEBE Baby Clothing",
     "seoDescription": ""
   }
 ]

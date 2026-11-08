@@ -4,6 +4,10 @@ function getEffectiveApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const currentHost = window.location.hostname;
     const protocol = window.location.protocol;
+    // When client browser is on localhost or 127.0.0.1, always use local same-origin /api
+    if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+      return '/api';
+    }
     try {
       const parsed = new URL(API_BASE_URL);
       // In browser over HTTPS, avoid mixed-content blocks by falling back to same-origin /api if API_BASE_URL is insecure localhost

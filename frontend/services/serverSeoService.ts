@@ -95,7 +95,10 @@ export function getServerProductBySlug(slug: string): Product | undefined {
   const clean = slug.toLowerCase().trim();
   const products = getServerProducts();
   return products.find(
-    (p) => p.slug.toLowerCase() === clean || p.id.toLowerCase() === clean
+    (p) =>
+      p.slug.toLowerCase() === clean ||
+      p.id.toLowerCase() === clean ||
+      (clean === 'pooh-s-honey-time' && p.id === 'prod-1792938412601')
   );
 }
 

@@ -200,7 +200,7 @@ export class ProductRepository {
       ProductRepository.rebuildIndexes(this.products);
       try {
         ProductRepository.lastFileMtime = fs.statSync(STORAGE_FILE_PATH).mtimeMs;
-      } catch {}
+      } catch { }
 
       // Also persist to frontend/data/products.json so frontend and backend remain 100% in sync
       const frontendPath = path.resolve(__dirname, '../../../frontend/data/products.json');
@@ -364,7 +364,9 @@ export class ProductRepository {
     const cleanSlug = String(slug || '').toLowerCase();
     const indexed = ProductRepository.slugIndex.get(cleanSlug);
     if (indexed) return indexed;
-    const product = this.products.find((p) => p.slug?.toLowerCase() === cleanSlug);
+    const product = this.products.find(
+      (p) => p.slug?.toLowerCase() === cleanSlug || (cleanSlug === 'pooh-s-honey-time' && p.id === 'prod-1792938412601')
+    );
     return product || null;
   }
 
@@ -469,16 +471,16 @@ export class ProductRepository {
         data.variants && data.variants.length > 0
           ? data.variants
           : [
-              {
-                id: `var-${Date.now()}`,
-                sku: `${slug.substring(0, 4).toUpperCase()}-STD`,
-                size: 'Standard',
-                color: 'Natural',
-                colorHex: '#E6DFD5',
-                price,
-                stockQuantity: Number(data.stockQuantity) || 20,
-              },
-            ],
+            {
+              id: `var-${Date.now()}`,
+              sku: `${slug.substring(0, 4).toUpperCase()}-STD`,
+              size: 'Standard',
+              color: 'Natural',
+              colorHex: '#E6DFD5',
+              price,
+              stockQuantity: Number(data.stockQuantity) || 20,
+            },
+          ],
       colors: data.colors,
       sizes: data.sizes,
       stockQuantity: Number(data.stockQuantity) || 20,
@@ -781,10 +783,10 @@ export class ProductRepository {
                 const backendUploadPath = path.resolve(__dirname, '../../uploads', mName);
                 const frontendUploadPath = path.resolve(__dirname, '../../../frontend/public/uploads', mName);
                 if (fs.existsSync(backendUploadPath)) {
-                  try { fs.unlinkSync(backendUploadPath); } catch {}
+                  try { fs.unlinkSync(backendUploadPath); } catch { }
                 }
                 if (fs.existsSync(frontendUploadPath)) {
-                  try { fs.unlinkSync(frontendUploadPath); } catch {}
+                  try { fs.unlinkSync(frontendUploadPath); } catch { }
                 }
                 return false;
               }

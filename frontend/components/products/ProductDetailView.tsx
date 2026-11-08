@@ -35,7 +35,8 @@ export function ProductDetailView({ slug, initialProduct }: ProductDetailViewPro
       (p) =>
         p.slug.toLowerCase() === cleanSlug ||
         p.id === initialProduct?.id ||
-        p.id === cleanSlug
+        p.id === cleanSlug ||
+        (cleanSlug === 'pooh-s-honey-time' && p.id === 'prod-1792938412601')
     );
     return found || initialProduct || null;
   }, [products, slug, initialProduct]);
