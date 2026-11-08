@@ -24,9 +24,9 @@ export function HeaderLogo({
           shouldReduceMotion
             ? {}
             : {
-                y: [0, -3.5, 0],
-                scale: [1, 1.018, 1],
-              }
+              y: [0, -3.5, 0],
+              scale: [1, 1.018, 1],
+            }
         }
         transition={{
           duration: 4.2,
@@ -48,7 +48,7 @@ export function HeaderLogo({
         <Link
           href="/"
           aria-label="REXBEBE Home"
-          className="block focus:outline-none transition-all relative"
+          className="flex flex-col items-center focus:outline-none transition-all relative"
         >
           {/* Ambient Glow Pulse Layer */}
           <motion.div
@@ -56,12 +56,12 @@ export function HeaderLogo({
               shouldReduceMotion
                 ? {}
                 : {
-                    filter: [
-                      'drop-shadow(0 2px 6px rgba(255, 255, 255, 0.5))',
-                      'drop-shadow(0 4px 14px rgba(245, 158, 11, 0.25))',
-                      'drop-shadow(0 2px 6px rgba(255, 255, 255, 0.5))',
-                    ],
-                  }
+                  filter: [
+                    'drop-shadow(0 2px 6px rgba(255, 255, 255, 0.5))',
+                    'drop-shadow(0 4px 14px rgba(245, 158, 11, 0.25))',
+                    'drop-shadow(0 2px 6px rgba(255, 255, 255, 0.5))',
+                  ],
+                }
             }
             transition={{
               duration: 5.5,
@@ -99,6 +99,11 @@ export function HeaderLogo({
               />
             )}
           </motion.div>
+
+          {/* Website URL Directly Underneath Logo */}
+          <span className="text-[10px] sm:text-[11px] font-medium tracking-wide text-black dark:text-slate-800 mt-0.5 text-center leading-none select-none">
+            rexbebe.com
+          </span>
         </Link>
       </motion.div>
     </div>

@@ -143,7 +143,7 @@ export function Footer() {
           {/* 5. LOGO & BRAND STATEMENT AREA */}
           <div className="lg:col-span-4 space-y-5">
             <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white/90 shadow-sm space-y-4">
-              <Link href="/" aria-label="REXBEBE Home" className="inline-block group">
+              <Link href="/" aria-label="REXBEBE Home" className="inline-flex flex-col items-start group">
                 <Image
                   src="/images/logo.png"
                   alt="REXBEBE"
@@ -152,6 +152,9 @@ export function Footer() {
                   loading="lazy"
                   className="w-36 sm:w-44 h-auto object-contain transition-transform group-hover:scale-105"
                 />
+                <span className="w-36 sm:w-44 text-center text-[10px] sm:text-[11px] font-medium tracking-wide text-black mt-1 leading-none select-none">
+                  rexbebe.com
+                </span>
               </Link>
 
               <p className="text-xs sm:text-sm text-purple-900/80 leading-relaxed font-medium pt-1">

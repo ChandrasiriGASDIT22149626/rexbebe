@@ -207,7 +207,7 @@ export function MobileMenu({ isOpen, onClose, onOpenSearch }: MobileMenuProps) {
           >
             {/* Header inside drawer */}
             <div className="p-4 border-b border-stone-100 dark:border-slate-800 flex items-center justify-between bg-stone-50/70 dark:bg-slate-800/60 flex-shrink-0">
-              <Link href="/" onClick={onClose} aria-label="REXBEBE Home" className="block">
+              <Link href="/" onClick={onClose} aria-label="REXBEBE Home" className="flex flex-col items-center">
                 <Image
                   src="/images/logo.png"
                   alt="REXBEBE"
@@ -215,6 +215,9 @@ export function MobileMenu({ isOpen, onClose, onOpenSearch }: MobileMenuProps) {
                   height={120}
                   className="w-28 sm:w-32 h-auto object-contain dark:brightness-110"
                 />
+                <span className="text-[10px] sm:text-[11px] font-medium tracking-wide text-black dark:text-slate-200 mt-0.5 text-center leading-none select-none">
+                  rexbebe.com
+                </span>
               </Link>
               <button
                 onClick={onClose}
