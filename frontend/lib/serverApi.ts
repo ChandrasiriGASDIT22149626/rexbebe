@@ -76,7 +76,7 @@ function getSharedBackendDataPath(filename: string): string | null {
 }
 
 function getFilePath(filename: string): string {
-  const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
+  const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
   const tmpPath = path.join('/tmp', filename);
   if (isVercel && fs.existsSync(tmpPath)) {
     return tmpPath;
@@ -99,7 +99,7 @@ function getFilePath(filename: string): string {
 
 function saveData(filename: string, data: any) {
   try {
-    const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
+    const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
     if (isVercel) {
       fs.writeFileSync(path.join('/tmp', filename), JSON.stringify(data, null, 2), 'utf-8');
     }
@@ -162,8 +162,11 @@ class ServerStore {
       result = result.filter((c) => c.status === query.status);
     }
     if (query?.parentId !== undefined) {
-      const targetParent = query.parentId === 'root' || query.parentId === 'null' ? null : query.parentId;
-      result = result.filter((c) => (targetParent === null ? !c.parentId || c.parentId === 'root' || c.parentId === 'none' : c.parentId === targetParent));
+      const targetParent = query.parentId === 'root' || query.parentId === 'null' || query.parentId === 'none' ? null : query.parentId;
+      result = result.filter((c) => {
+        const isRoot = !c.parentId || c.parentId === 'root' || c.parentId === 'none' || c.parentId === 'null';
+        return targetParent === null ? isRoot : c.parentId === targetParent;
+      });
     }
     return result;
   }

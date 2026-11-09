@@ -25,7 +25,7 @@ export class PostgresCategoryRepository {
       id: row.id,
       name: row.name,
       slug: row.slug,
-      parentId: row.parentId || null,
+      parentId: !row.parentId || row.parentId === 'null' || row.parentId === 'none' || row.parentId === 'root' ? null : String(row.parentId),
       order: Number(row.order || 0),
       status: row.status as any || 'published',
       isActive: Boolean(row.isActive),
@@ -78,6 +78,7 @@ export class PostgresCategoryRepository {
     const id = input.id || `cat-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     const now = new Date();
     const slug = input.slug || input.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const normalizedParentId = !input.parentId || input.parentId === 'null' || input.parentId === 'none' || input.parentId === 'root' ? null : String(input.parentId);
 
     await this.database.query(
       `INSERT INTO "Category" (
@@ -113,7 +114,7 @@ export class PostgresCategoryRepository {
         id,
         input.name,
         slug,
-        input.parentId || null,
+        normalizedParentId,
         input.order !== undefined ? input.order : 0,
         input.status || 'published',
         input.isActive !== undefined ? input.isActive : true,
@@ -145,6 +146,7 @@ export class PostgresCategoryRepository {
     if (!existing) return null;
 
     const merged = { ...existing, ...updates, updatedAt: new Date().toISOString() };
+    const normalizedParentId = !merged.parentId || merged.parentId === 'null' || merged.parentId === 'none' || merged.parentId === 'root' ? null : String(merged.parentId);
     const now = new Date();
 
     await this.database.query(
@@ -176,7 +178,7 @@ export class PostgresCategoryRepository {
         id,
         merged.name,
         merged.slug,
-        merged.parentId || null,
+        normalizedParentId,
         Number(merged.order || 0),
         merged.status,
         Boolean(merged.isActive),

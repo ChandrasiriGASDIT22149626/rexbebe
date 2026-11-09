@@ -122,7 +122,16 @@ export class CategoryRepository {
 
   public async findAllAsync(): Promise<CategoryRecord[]> {
     if (this.isPostgresMode()) {
-      return postgresCategoryRepository.findAll();
+      try {
+        const dbCats = await postgresCategoryRepository.findAll();
+        if (dbCats && dbCats.length > 0) {
+          this.categories = dbCats;
+          this.saveToDiskOnly();
+          return dbCats;
+        }
+      } catch (err) {
+        console.warn('[CategoryRepository] Error loading from Postgres, falling back to disk:', err);
+      }
     }
     return this.getAll();
   }
@@ -143,21 +152,27 @@ export class CategoryRepository {
 
   public async createAsync(input: CreateCategoryInput): Promise<CategoryRecord> {
     if (this.isPostgresMode()) {
-      return postgresCategoryRepository.create(input);
+      const created = await postgresCategoryRepository.create(input);
+      await this.findAllAsync();
+      return created;
     }
     return this.create(input);
   }
 
   public async updateAsync(id: string, updates: UpdateCategoryInput): Promise<CategoryRecord | null> {
     if (this.isPostgresMode()) {
-      return postgresCategoryRepository.update(id, updates);
+      const updated = await postgresCategoryRepository.update(id, updates);
+      await this.findAllAsync();
+      return updated;
     }
     return this.update(id, updates);
   }
 
   public async deleteAsync(id: string): Promise<boolean> {
     if (this.isPostgresMode()) {
-      return postgresCategoryRepository.delete(id);
+      const deleted = await postgresCategoryRepository.delete(id);
+      await this.findAllAsync();
+      return deleted;
     }
     const res = this.delete(id);
     return res.deleted;
@@ -414,6 +429,26 @@ export class CategoryRepository {
         return;
       }
       console.warn('[CategoryRepository] Failed to write categories.json:', err.message);
+    }
+  }
+
+  public saveToDiskOnly(): void {
+    try {
+      if (this.isServerlessOrReadOnly()) {
+        return;
+      }
+      const dir = path.dirname(this.filePath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(this.filePath, JSON.stringify(this.categories, null, 2), 'utf-8');
+
+      const frontendCatPath = path.resolve(__dirname, '../../../frontend/data/categories.json');
+      if (fs.existsSync(path.dirname(frontendCatPath))) {
+        fs.writeFileSync(frontendCatPath, JSON.stringify(this.categories, null, 2), 'utf-8');
+      }
+    } catch (err: any) {
+      if (err?.code !== 'EROFS') {
+        console.warn('[CategoryRepository] Failed to write categories.json:', err.message);
+      }
     }
   }
 

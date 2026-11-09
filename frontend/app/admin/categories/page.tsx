@@ -129,14 +129,14 @@ export default function AdminCategoriesPage() {
   // Main Categories (Top-level, parentId is null or empty)
   const mainCategories = useMemo(() => {
     return categories
-      .filter((c) => !c.parentId)
+      .filter((c) => !c.parentId || c.parentId === 'null' || c.parentId === 'root' || c.parentId === 'none')
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   }, [categories]);
 
   // All Subcategories (has a parentId)
   const allSubcategories = useMemo(() => {
     return categories
-      .filter((c) => Boolean(c.parentId))
+      .filter((c) => Boolean(c.parentId) && c.parentId !== 'null' && c.parentId !== 'root' && c.parentId !== 'none')
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   }, [categories]);
 

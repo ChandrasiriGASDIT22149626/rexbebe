@@ -248,7 +248,7 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
       res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
     }
 
-    const all = categoryRepository.getAll();
+    const all = await categoryRepository.findAllAsync();
     const { status, parentId } = req.query;
 
     let result = all;
@@ -256,8 +256,11 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
       result = result.filter((c) => c.status === status);
     }
     if (parentId !== undefined) {
-      const targetParent = parentId === 'root' || parentId === 'null' ? null : (parentId as string);
-      result = result.filter((c) => c.parentId === targetParent);
+      const targetParent = parentId === 'root' || parentId === 'null' || parentId === 'none' ? null : (parentId as string);
+      result = result.filter((c) => {
+        const isRoot = !c.parentId || c.parentId === 'root' || c.parentId === 'none' || c.parentId === 'null';
+        return targetParent === null ? isRoot : c.parentId === targetParent;
+      });
     }
 
     const formatted = result.map((c) => formatCategoryForConsumer(c, all));
@@ -377,7 +380,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
     const effectiveStatus = status || 'published';
     const effectiveIsActive = isActive !== undefined ? isActive : effectiveStatus === 'published';
 
-    const created = categoryRepository.create({
+    const created = await categoryRepository.createAsync({
       id: req.body.id,
       name,
       pageTitle,
@@ -405,7 +408,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
     syncCategoryWithNavigation(created, 'save');
     recordAudit('CATEGORY_CREATE', `Created canonical category "${created.name}" (${created.slug})`);
 
-    const all = categoryRepository.getAll();
+    const all = await categoryRepository.findAllAsync();
     return sendSuccess(res, formatCategoryForConsumer(created, all), 'Category created successfully', 201);
   } catch (err: any) {
     if (err instanceof CategoryValidationError) {
@@ -453,7 +456,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
     const effectiveStatus = status !== undefined ? status : existing.status;
     const effectiveIsActive = isActive !== undefined ? isActive : status !== undefined ? status === 'published' : existing.isActive;
 
-    const updated = categoryRepository.update(existing.id, {
+    const updated = await categoryRepository.updateAsync(existing.id, {
       name,
       pageTitle,
       slug,
@@ -477,11 +480,11 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       isActive: effectiveIsActive,
     });
 
-    syncCategoryWithNavigation(updated, 'save');
-    recordAudit('CATEGORY_UPDATE', `Updated category "${updated.name}" (${updated.id})`);
+    syncCategoryWithNavigation(updated!, 'save');
+    recordAudit('CATEGORY_UPDATE', `Updated category "${updated!.name}" (${updated!.id})`);
 
-    const all = categoryRepository.getAll();
-    return sendSuccess(res, formatCategoryForConsumer(updated, all), 'Changes saved successfully.');
+    const all = await categoryRepository.findAllAsync();
+    return sendSuccess(res, formatCategoryForConsumer(updated!, all), 'Changes saved successfully.');
   } catch (err: any) {
     if (err instanceof CategoryValidationError) {
       return sendError(res, err.message, err.statusCode);
@@ -613,10 +616,8 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
     }
 
     // Perform deletion in category repository
-    const delResult = categoryRepository.delete(targetCat.id, {
-      force,
-      reassignTargetId: reassignTargetId === 'none' ? undefined : reassignTargetId,
-    });
+    await categoryRepository.deleteAsync(targetCat.id);
+    const delResult = { deleted: true, id: targetCat.id };
 
     // Sync with navigation
     syncCategoryWithNavigation(targetCat, 'delete');
