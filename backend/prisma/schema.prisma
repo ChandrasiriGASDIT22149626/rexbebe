@@ -709,6 +709,8 @@ model MediaAsset {
   dimensions  Json?
   usedInCount Int      @default(0)
   isSystem    Boolean  @default(false)
+  data        String?
+  mimeType    String?
   uploadedAt  DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

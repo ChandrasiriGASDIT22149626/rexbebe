@@ -36,7 +36,7 @@ const app = express();
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(compression());
-app.use(express.json({ limit: '15mb' }));
+app.use(express.json({ limit: '25mb' }));
 app.use(rateLimiter);
 
 // Serve uploads statically with long-term immutable caching & ETag

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "MediaAsset" ADD COLUMN IF NOT EXISTS "data" TEXT,
+ADD COLUMN IF NOT EXISTS "mimeType" TEXT;
+

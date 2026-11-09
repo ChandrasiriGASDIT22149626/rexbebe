@@ -10,5 +10,10 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     return sendError(res, err.message, err.statusCode);
   }
 
-  return sendError(res, 'Internal Server Error', 500, process.env.NODE_ENV === 'development' ? err.message : undefined);
+  if (err.status === 413 || err.type === 'entity.too.large') {
+    return sendError(res, 'Payload too large. Maximum allowed size is 15MB.', 413);
+  }
+
+  const statusCode = err.status || err.statusCode || 500;
+  return sendError(res, statusCode === 500 ? 'Internal Server Error' : err.message, statusCode, process.env.NODE_ENV === 'development' ? err.message : undefined);
 };

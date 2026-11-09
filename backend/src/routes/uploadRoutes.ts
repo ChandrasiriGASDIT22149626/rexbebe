@@ -6,6 +6,7 @@ import { sendSuccess, sendError } from '../utils/response';
 import { postgresMediaRepository } from '../repositories/postgres/PostgresMediaRepository';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/authMiddleware';
 import { requireAdmin } from '../middleware/adminMiddleware';
+import { cloudStorageService } from '../services/cloudStorageService';
 
 const router = Router();
 
@@ -23,15 +24,17 @@ const pagesFilePath = path.resolve(__dirname, '../../data/pages.json');
 const homepageFilePath = path.resolve(__dirname, '../../data/homepage.json');
 const auditLogsFilePath = path.resolve(__dirname, '../../data/audit_logs.json');
 
-// Ensure upload and originals backup directories exist (safe in read-only serverless)
-try {
-  [FRONTEND_UPLOADS_DIR, BACKEND_UPLOADS_DIR, FRONTEND_ORIGINALS_DIR, BACKEND_ORIGINALS_DIR].forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  });
-} catch (err) {
-  // Gracefully ignored in read-only serverless environments like Vercel
+// Ensure upload and originals backup directories exist (skipped in read-only serverless like Vercel)
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
+  try {
+    [FRONTEND_UPLOADS_DIR, BACKEND_UPLOADS_DIR, FRONTEND_ORIGINALS_DIR, BACKEND_ORIGINALS_DIR].forEach((dir) => {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    });
+  } catch (err) {
+    // Gracefully ignored in read-only serverless environments like Vercel
+  }
 }
 
 function readJson<T>(filePath: string, fallback: T): T {
@@ -144,10 +147,35 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/upload/serve/:id
+ * Streams image buffer with permanent caching headers from persistent cloud storage / PostgreSQL
+ */
+router.get('/serve/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const asset = await cloudStorageService.getStoredAsset(id);
+    if (!asset) {
+      // Fallback: check if exists in local public uploads
+      const localPath = path.join(BACKEND_UPLOADS_DIR, id);
+      if (fs.existsSync(localPath)) {
+        return res.sendFile(localPath);
+      }
+      return res.status(404).send('Image not found');
+    }
+    res.setHeader('Content-Type', asset.mimeType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return res.send(asset.buffer);
+  } catch (err: any) {
+    console.error('[Serve Image Error]:', err);
+    return res.status(500).send('Error serving image');
+  }
+});
+
+/**
  * POST /api/upload
  * Accepts base64 encoded image or raw file buffer
- * Automatically backs up original, converts photographic/raster images to WebP (quality 80-85),
- * preserves transparency for logos/graphics, and creates responsive thumbnails.
+ * Automatically converts photographic/raster images to WebP (quality 80-85),
+ * preserves transparency for logos/graphics, and uploads to persistent cloud storage.
  * Protected: Requires valid admin JWT bearer token.
  */
 router.post('/', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
@@ -158,24 +186,10 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthenticatedReque
       return sendError(res, 'No image data provided', 400);
     }
 
-    // Extract base64 payload & detect extension
+    // Extract base64 payload
     let base64Data = data;
-    let originalExt = 'jpg';
-
     if (data.includes(';base64,')) {
-      const parts = data.split(';base64,');
-      const mime = parts[0].replace('data:', '');
-      if (mime.includes('png')) originalExt = 'png';
-      else if (mime.includes('webp')) originalExt = 'webp';
-      else if (mime.includes('svg')) originalExt = 'svg';
-      else if (mime.includes('gif')) originalExt = 'gif';
-      else originalExt = 'jpg';
-      base64Data = parts[1];
-    } else if (filename) {
-      const matchExt = path.extname(filename).replace('.', '').toLowerCase();
-      if (['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif'].includes(matchExt)) {
-        originalExt = matchExt === 'jpeg' ? 'jpg' : matchExt;
-      }
+      base64Data = data.split(';base64,')[1];
     }
 
     const buffer = Buffer.from(base64Data, 'base64');
@@ -185,126 +199,33 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthenticatedReque
       return sendError(res, 'Image size exceeds maximum limit of 15MB', 400);
     }
 
-    const timestamp = Date.now();
-    const rawCleanName = filename
-      ? filename.toLowerCase().replace(/[^a-z0-9.]+/g, '-').replace(/\.[^/.]+$/, '')
-      : `upload-${timestamp}`;
+    // Upload to persistent cloud storage (Vercel Blob, Cloudinary, AWS S3, or Neon PostgreSQL)
+    // Zero disk writes to read-only serverless /var/task filesystem
+    const newMediaItem = await cloudStorageService.upload({
+      buffer,
+      filename: filename || `upload-${Date.now()}.jpg`,
+      category,
+    });
 
-    const originalFilename = `${timestamp}-${rawCleanName}.${originalExt}`;
-    const webpFilename = `${timestamp}-${rawCleanName}.webp`;
-    const thumbFilename = `${timestamp}-${rawCleanName}-thumb.webp`;
-
-    // 1. SAFE BACKUP: Always write untouched original buffer to originals directory
-    const frontendOriginalTarget = path.join(FRONTEND_ORIGINALS_DIR, originalFilename);
-    const backendOriginalTarget = path.join(BACKEND_ORIGINALS_DIR, originalFilename);
-    fs.writeFileSync(frontendOriginalTarget, buffer);
-    fs.writeFileSync(backendOriginalTarget, buffer);
-
-    let publicUrl = `/uploads/${webpFilename}`;
-    let thumbUrl = `/uploads/${thumbFilename}`;
-    let finalFormat = 'webp';
-    let outputWidth: number | undefined;
-    let outputHeight: number | undefined;
-    let outputSizeKb = Math.round(buffer.length / 1024);
-    let originalSizeKb = outputSizeKb;
-    let savedPercent = '0%';
-
-    // 2. AUTOMATIC WEBP CONVERSION & OPTIMIZATION PIPELINE
-    try {
-      if (originalExt === 'svg') {
-        // SVG is resolution-independent vector graphics: preserve directly
-        const svgFilename = `${timestamp}-${rawCleanName}.svg`;
-        fs.writeFileSync(path.join(FRONTEND_UPLOADS_DIR, svgFilename), buffer);
-        fs.writeFileSync(path.join(BACKEND_UPLOADS_DIR, svgFilename), buffer);
-        publicUrl = `/uploads/${svgFilename}`;
-        thumbUrl = publicUrl;
-        finalFormat = 'svg';
-      } else {
-        // Inspect image metadata
-        const metadata = await sharp(buffer).metadata();
-        outputWidth = metadata.width;
-        outputHeight = metadata.height;
-
-        const isTransparent = Boolean(metadata.hasAlpha && metadata.channels && metadata.channels > 3);
-
-        // Convert to WebP:
-        // - Transparent graphics/logos: lossless WebP to prevent halos or edge fuzziness
-        // - Photographic images: quality 85 with effort 4 for optimal visual quality
-        let webpBuffer: Buffer;
-        if (isTransparent) {
-          webpBuffer = await sharp(buffer)
-            .webp({ quality: 85, effort: 4, lossless: true, alphaQuality: 100 })
-            .toBuffer();
-        } else {
-          webpBuffer = await sharp(buffer)
-            .webp({ quality: 85, effort: 4 })
-            .toBuffer();
-        }
-
-        // Generate responsive thumbnail variant for product grids
-        let thumbBuffer: Buffer;
-        if (metadata.width && metadata.width > 420) {
-          thumbBuffer = await sharp(buffer)
-            .resize({ width: 420, fit: 'inside', withoutEnlargement: true })
-            .webp({ quality: 82, effort: 4 })
-            .toBuffer();
-        } else {
-          thumbBuffer = webpBuffer;
-        }
-
-        // Save WebP and thumbnail to both frontend and backend uploads
-        fs.writeFileSync(path.join(FRONTEND_UPLOADS_DIR, webpFilename), webpBuffer);
-        fs.writeFileSync(path.join(BACKEND_UPLOADS_DIR, webpFilename), webpBuffer);
-        fs.writeFileSync(path.join(FRONTEND_UPLOADS_DIR, thumbFilename), thumbBuffer);
-        fs.writeFileSync(path.join(BACKEND_UPLOADS_DIR, thumbFilename), thumbBuffer);
-
-        outputSizeKb = Math.round(webpBuffer.length / 1024);
-        const savedBytes = Math.max(0, buffer.length - webpBuffer.length);
-        const percentNum = buffer.length > 0 ? Math.round((savedBytes / buffer.length) * 100) : 0;
-        savedPercent = `${percentNum}%`;
-      }
-    } catch (conversionErr: any) {
-      // 3. RESILIENT FALLBACK: Never break upload if sharp hits unsupported format
-      console.warn(`[Upload Optimizer] Sharp conversion note, falling back to original: ${conversionErr.message}`);
-      const fallbackTargetFront = path.join(FRONTEND_UPLOADS_DIR, originalFilename);
-      const fallbackTargetBack = path.join(BACKEND_UPLOADS_DIR, originalFilename);
-      fs.writeFileSync(fallbackTargetFront, buffer);
-      fs.writeFileSync(fallbackTargetBack, buffer);
-      publicUrl = `/uploads/${originalFilename}`;
-      thumbUrl = publicUrl;
-      finalFormat = originalExt;
+    // In local dev only (and if writable), optionally write local copies
+    const isLocalDev = process.env.NODE_ENV !== 'production' && !process.env.VERCEL;
+    if (isLocalDev) {
+      try {
+        const localTarget = path.join(BACKEND_UPLOADS_DIR, newMediaItem.name);
+        fs.writeFileSync(localTarget, buffer);
+      } catch {}
     }
 
-    const newMediaItem = {
-      id: `med-${timestamp}`,
-      name: path.basename(publicUrl),
-      filename: path.basename(publicUrl),
-      url: publicUrl,
-      thumbnailUrl: thumbUrl,
-      originalUrl: `/uploads/originals/${originalFilename}`,
-      size: `${outputSizeKb} KB`,
-      originalSize: `${originalSizeKb} KB`,
-      storageSaved: savedPercent,
-      format: finalFormat,
-      width: outputWidth,
-      height: outputHeight,
-      category: ['products', 'banners', 'general'].includes(category) ? category : 'general',
-      uploadedAt: new Date().toISOString(),
-      isSystem: false,
-    };
-
-    const media = readJson<any[]>(mediaFilePath, []);
-    media.unshift(newMediaItem);
-    writeJson(mediaFilePath, media);
-    if (process.env.USE_POSTGRES === 'true') {
-      await postgresMediaRepository.create(newMediaItem);
-    }
-    recordAudit('MEDIA_UPLOAD', `Uploaded & optimized image asset "${newMediaItem.name}" (Original: ${newMediaItem.originalSize}, WebP: ${newMediaItem.size}, Saved: ${newMediaItem.storageSaved})`, req.user);
+    recordAudit(
+      'MEDIA_UPLOAD',
+      `Uploaded & optimized image asset "${newMediaItem.name}" (Original: ${newMediaItem.originalSize}, WebP: ${newMediaItem.size}, Saved: ${newMediaItem.storageSaved}, Provider: ${newMediaItem.provider})`,
+      req.user
+    );
 
     return sendSuccess(
       res,
       newMediaItem,
-      'Image optimized and uploaded successfully as WebP',
+      'Image optimized and uploaded successfully to persistent storage',
       201
     );
   } catch (err: any) {
@@ -355,18 +276,22 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req: Authenticated
     const frontendThumbPath = path.join(FRONTEND_UPLOADS_DIR, thumbFilename);
     const backendThumbPath = path.join(BACKEND_UPLOADS_DIR, thumbFilename);
 
-    try {
-      if (fs.existsSync(frontendPath)) fs.unlinkSync(frontendPath);
-      if (fs.existsSync(backendPath)) fs.unlinkSync(backendPath);
-      if (fs.existsSync(frontendThumbPath)) fs.unlinkSync(frontendThumbPath);
-      if (fs.existsSync(backendThumbPath)) fs.unlinkSync(backendThumbPath);
-    } catch (fileErr) {
-      console.warn(`[Upload Delete] Notice unlinking physical file:`, fileErr);
+    if (!process.env.VERCEL) {
+      try {
+        if (fs.existsSync(frontendPath)) fs.unlinkSync(frontendPath);
+        if (fs.existsSync(backendPath)) fs.unlinkSync(backendPath);
+        if (fs.existsSync(frontendThumbPath)) fs.unlinkSync(frontendThumbPath);
+        if (fs.existsSync(backendThumbPath)) fs.unlinkSync(backendThumbPath);
+      } catch (fileErr) {
+        console.warn(`[Upload Delete] Notice unlinking physical file:`, fileErr);
+      }
     }
 
-    // Remove from media.json
-    media.splice(index, 1);
-    writeJson(mediaFilePath, media);
+    // Remove from media.json if in writable local environment
+    if (!process.env.VERCEL) {
+      media.splice(index, 1);
+      writeJson(mediaFilePath, media);
+    }
     if (process.env.USE_POSTGRES === 'true') {
       await postgresMediaRepository.delete(item.id || id);
     }

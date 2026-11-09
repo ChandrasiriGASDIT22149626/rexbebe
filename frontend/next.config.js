@@ -48,6 +48,34 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: '**.public.blob.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.amazonaws.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.r2.cloudflarestorage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'rexbebe.vercel.app',
+      },
+      {
+        protocol: 'https',
+        hostname: 'rexbebe.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
     ],
   },
   async headers() {
