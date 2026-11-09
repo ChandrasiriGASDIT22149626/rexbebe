@@ -99,6 +99,8 @@ export const corsOptions: cors.CorsOptions = {
     'Accept',
     'Origin',
     'Idempotency-Key',
+    'x-admin-token',
+    'x-access-token',
     'x-admin-role',
     'x-admin-dev',
     'Cache-Control',

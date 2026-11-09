@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../utils/constants';
+import { fetchApi } from './api';
 
 export interface UploadResult {
   url: string;
@@ -32,23 +32,15 @@ export const uploadService = {
     });
 
     try {
-      const response = await fetch(`${API_BASE_URL}/upload`, {
+      const result = await fetchApi<UploadResult>('/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           data: base64Data,
           filename: file.name,
         }),
       });
 
-      const json = await response.json();
-      if (!response.ok || !json.success) {
-        throw new Error(json.message || 'Image upload failed on server');
-      }
-
-      return json.data;
+      return result;
     } catch (err: any) {
       console.error('[uploadService] Server image upload failed:', err);
       throw new Error(`Failed to upload image to permanent storage: ${err.message || 'Server error'}`);
@@ -60,23 +52,15 @@ export const uploadService = {
    */
   async uploadBase64(base64Data: string, filename: string): Promise<UploadResult> {
     try {
-      const response = await fetch(`${API_BASE_URL}/upload`, {
+      const result = await fetchApi<UploadResult>('/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           data: base64Data,
           filename: filename || `upload-${Date.now()}.png`,
         }),
       });
 
-      const json = await response.json();
-      if (!response.ok || !json.success) {
-        throw new Error(json.message || 'Base64 image upload failed on server');
-      }
-
-      return json.data;
+      return result;
     } catch (err: any) {
       console.error('[uploadService] Server base64 upload failed:', err);
       throw new Error(`Failed to upload image to permanent storage: ${err.message || 'Server error'}`);

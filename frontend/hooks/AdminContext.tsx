@@ -26,6 +26,7 @@ import {
   AdminUserRecord,
   AuditLogRecord,
 } from '../services/adminService';
+import { getAdminToken } from '../services/api';
 
 interface AdminContextType {
   // Products
@@ -327,7 +328,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       } catch {}
 
       // Sync admin-only data strictly on administrative routes when authenticated via a single batched operation
-      const adminToken = typeof window !== 'undefined' ? localStorage.getItem('rexbebe_admin_token') : null;
+      const adminToken = getAdminToken();
       const isAuthedAdminRoute = isAdminRoute && !window.location.pathname.startsWith('/admin/login') && Boolean(adminToken);
 
       if (isAuthedAdminRoute) {
@@ -789,7 +790,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   // Orders Management
   const refreshOrders = useCallback(async () => {
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('rexbebe_admin_token') : null;
+      const token = getAdminToken();
       if (!token) return;
       const apiOrders: any = await orderService.getAllOrdersAdmin();
       if (apiOrders) {
@@ -898,7 +899,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   // Inventory Management
   const refreshInventory = useCallback(async () => {
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('rexbebe_admin_token') : null;
+      const token = getAdminToken();
       if (!token) return;
       const items = await inventoryService.getInventoryList();
       if (items) setInventoryItems(items);

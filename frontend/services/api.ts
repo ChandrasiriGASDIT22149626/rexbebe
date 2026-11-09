@@ -38,27 +38,79 @@ function getEffectiveApiBaseUrl(): string {
   return API_BASE_URL.replace(/\/$/, '');
 }
 
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+  return match && match[1] ? decodeURIComponent(match[1]).trim() : null;
+}
+
+export function getAdminToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const local = localStorage.getItem('rexbebe_admin_token');
+    if (local && local !== 'null' && local !== 'undefined' && local.trim()) {
+      return local.trim();
+    }
+  } catch {}
+  try {
+    const cookie = getCookie('rexbebe_admin_token');
+    if (cookie && cookie !== 'null' && cookie !== 'undefined' && cookie.trim()) {
+      try { localStorage.setItem('rexbebe_admin_token', cookie.trim()); } catch {}
+      return cookie.trim();
+    }
+  } catch {}
+  return null;
+}
+
+export function getCustomerToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const local = localStorage.getItem('rexbebe_customer_token');
+    if (local && local !== 'null' && local !== 'undefined' && local.trim()) return local.trim();
+  } catch {}
+  try {
+    const alt = localStorage.getItem('auth_token') || localStorage.getItem('token');
+    if (alt && alt !== 'null' && alt !== 'undefined' && alt.trim()) return alt.trim();
+  } catch {}
+  try {
+    const cookie = getCookie('rexbebe_customer_token') || getCookie('token');
+    if (cookie && cookie !== 'null' && cookie !== 'undefined' && cookie.trim()) return cookie.trim();
+  } catch {}
+  return null;
+}
+
 export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const baseUrl = getEffectiveApiBaseUrl();
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
   const url = `${baseUrl}${cleanEndpoint}`;
   
+  const isAdminContext =
+    (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) ||
+    cleanEndpoint.startsWith('/admin') ||
+    cleanEndpoint.startsWith('/upload') ||
+    cleanEndpoint.startsWith('/auth/admin') ||
+    (options.method && options.method.toUpperCase() !== 'GET' && (
+      cleanEndpoint.startsWith('/products') ||
+      cleanEndpoint.startsWith('/categories') ||
+      cleanEndpoint.startsWith('/inventory') ||
+      cleanEndpoint.startsWith('/navigation') ||
+      cleanEndpoint.startsWith('/coupons') ||
+      cleanEndpoint.startsWith('/delivery')
+    ));
+
   let token: string | null = null;
-  if (typeof window !== 'undefined') {
-    try {
-      token =
-        localStorage.getItem('rexbebe_admin_token') ||
-        localStorage.getItem('rexbebe_customer_token') ||
-        localStorage.getItem('auth_token') ||
-        localStorage.getItem('token');
-    } catch {}
+  if (isAdminContext) {
+    // Strictly prioritize admin token on administrative routes and mutations
+    token = getAdminToken();
+  } else {
+    // For storefront / customer endpoints, prefer customer token; fallback to admin token if available
+    token = getCustomerToken() || getAdminToken();
   }
 
   const isMutation = options.method && options.method.toUpperCase() !== 'GET';
   const isPrivateOrAdmin =
     Boolean(token) ||
-    cleanEndpoint.startsWith('/admin') ||
-    cleanEndpoint.startsWith('/auth') ||
+    isAdminContext ||
     cleanEndpoint.startsWith('/cart') ||
     cleanEndpoint.startsWith('/orders') ||
     cleanEndpoint.startsWith('/checkout') ||
@@ -73,7 +125,10 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
           Expires: '0',
         }
       : {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(token ? {
+      Authorization: `Bearer ${token}`,
+      'x-admin-token': token,
+    } : {}),
     ...((options.headers as Record<string, string>) || {}),
   };
 
@@ -82,6 +137,7 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
   try {
     const response = await fetch(url, {
       cache: fetchCacheMode,
+      credentials: 'include',
       ...options,
       headers,
     });
@@ -103,10 +159,15 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
     }
 
     if (!response.ok) {
-      // Handle authentication expiry / unauthorized on admin routes only when a token was actually provided
+      // Handle authentication expiry on admin routes
       if (response.status === 401 && typeof window !== 'undefined') {
         const isCurrentlyAdmin = window.location.pathname.startsWith('/admin') && !window.location.pathname.startsWith('/admin/login');
-        if (isCurrentlyAdmin && token && (cleanEndpoint.startsWith('/auth/admin/me') || cleanEndpoint.startsWith('/auth/admin/verify'))) {
+        const isExpired = Boolean(
+          data?.message?.toLowerCase().includes('expired') ||
+          data?.error?.toLowerCase().includes('expired')
+        );
+
+        if (isCurrentlyAdmin && (isExpired || cleanEndpoint.startsWith('/auth/admin/me') || cleanEndpoint.startsWith('/auth/admin/verify'))) {
           localStorage.removeItem('rexbebe_admin_token');
           localStorage.removeItem('rexbebe_admin_user');
           document.cookie = 'rexbebe_admin_token=; path=/; max-age=0; SameSite=Strict';

@@ -223,9 +223,30 @@ export class PostgresProductRepository {
 
   public async create(productData: any): Promise<ProductRecord> {
     const id = productData.id || `prod-${Date.now()}`;
+
+    // Idempotent retry protection: if product already exists by ID or slug, update it cleanly
+    const existing = (await this.findById(id)) || (productData.slug ? await this.findBySlug(productData.slug) : null);
+    if (existing) {
+      const updated = await this.update(existing.id, productData);
+      if (updated) return updated;
+    }
+
     const now = new Date();
 
     await this.database.transaction(async (tx) => {
+      // Validate foreign key references so unknown category IDs do not violate database constraints
+      let validCategoryId: string | null = null;
+      let validSubcategoryId: string | null = null;
+
+      if (productData.category?.id) {
+        const catRes = await tx.query('SELECT id FROM "Category" WHERE id = $1', [productData.category.id]);
+        if (catRes.rows.length > 0) validCategoryId = productData.category.id;
+      }
+      if (productData.subcategory?.id) {
+        const subRes = await tx.query('SELECT id FROM "Category" WHERE id = $1', [productData.subcategory.id]);
+        if (subRes.rows.length > 0) validSubcategoryId = productData.subcategory.id;
+      }
+
       await tx.query(
         `INSERT INTO "Product" (
           id, name, slug, sku, "shortDescription", description, price, "comparePrice",
@@ -263,8 +284,8 @@ export class PostgresProductRepository {
           productData.gender || 'Baby',
           productData.ageGroup || '0–12 months',
           productData.productType || 'single',
-          productData.category?.id || null,
-          productData.subcategory?.id || null,
+          validCategoryId,
+          validSubcategoryId,
           productData.collection?.id || null,
           productData.category ? JSON.stringify(productData.category) : null,
           productData.subcategory ? JSON.stringify(productData.subcategory) : null,
@@ -295,8 +316,22 @@ export class PostgresProductRepository {
         for (const v of productData.variants) {
           const vId = v.id || `var-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
           await tx.query(
-            `INSERT INTO "ProductVariant" (id, "productId", sku, size, color, "colorHex", "partColors", price, "stockQuantity", "imageUrl", "partId", "partName", "purchaseType", "createdAt", "updatedAt")
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+            `INSERT INTO "ProductVariant" (
+              id, "productId", sku, size, color, "colorHex", "partColors", price, "stockQuantity", "imageUrl", "partId", "partName", "purchaseType", "createdAt", "updatedAt"
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            ON CONFLICT (sku) DO UPDATE SET
+              "productId" = EXCLUDED."productId",
+              size = EXCLUDED.size,
+              color = EXCLUDED.color,
+              "colorHex" = EXCLUDED."colorHex",
+              "partColors" = EXCLUDED."partColors",
+              price = EXCLUDED.price,
+              "stockQuantity" = EXCLUDED."stockQuantity",
+              "imageUrl" = EXCLUDED."imageUrl",
+              "partId" = EXCLUDED."partId",
+              "partName" = EXCLUDED."partName",
+              "purchaseType" = EXCLUDED."purchaseType",
+              "updatedAt" = EXCLUDED."updatedAt"`,
             [
               vId,
               id,
@@ -324,8 +359,15 @@ export class PostgresProductRepository {
           const img = productData.images[idx];
           const imgId = img.id || `img-${Date.now()}-${idx}`;
           await tx.query(
-            `INSERT INTO "ProductImage" (id, "productId", url, alt, position, "partName", "colorName", "createdAt")
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            `INSERT INTO "ProductImage" (
+              id, "productId", url, alt, position, "partName", "colorName", "createdAt"
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (id) DO UPDATE SET
+              url = EXCLUDED.url,
+              alt = EXCLUDED.alt,
+              position = EXCLUDED.position,
+              "partName" = EXCLUDED."partName",
+              "colorName" = EXCLUDED."colorName"`,
             [
               imgId,
               id,
@@ -349,28 +391,164 @@ export class PostgresProductRepository {
     const existing = await this.findById(id);
     if (!existing) return null;
 
-    await this.database.query(
-      `UPDATE "Product" SET
-         name = COALESCE($2, name),
-         price = COALESCE($3, price),
-         "stockQuantity" = COALESCE($4, "stockQuantity"),
-         status = COALESCE($5, status),
-         "isFeatured" = COALESCE($6, "isFeatured"),
-         "isBestSeller" = COALESCE($7, "isBestSeller"),
-         "isNewArrival" = COALESCE($8, "isNewArrival"),
-         "updatedAt" = NOW()
-       WHERE id = $1`,
-      [
-        id,
-        updates.name || null,
-        updates.price !== undefined ? Number(updates.price) : null,
-        updates.stockQuantity !== undefined ? Number(updates.stockQuantity) : null,
-        updates.status || null,
-        updates.isFeatured !== undefined ? Boolean(updates.isFeatured) : null,
-        updates.isBestSeller !== undefined ? Boolean(updates.isBestSeller) : null,
-        updates.isNewArrival !== undefined ? Boolean(updates.isNewArrival) : null,
-      ]
-    );
+    const now = new Date();
+
+    await this.database.transaction(async (tx) => {
+      let validCategoryId: string | null = null;
+      let validSubcategoryId: string | null = null;
+
+      if (updates.category?.id) {
+        const catRes = await tx.query('SELECT id FROM "Category" WHERE id = $1', [updates.category.id]);
+        if (catRes.rows.length > 0) validCategoryId = updates.category.id;
+      }
+      if (updates.subcategory?.id) {
+        const subRes = await tx.query('SELECT id FROM "Category" WHERE id = $1', [updates.subcategory.id]);
+        if (subRes.rows.length > 0) validSubcategoryId = updates.subcategory.id;
+      }
+
+      await tx.query(
+        `UPDATE "Product" SET
+           name = COALESCE($2, name),
+           slug = COALESCE($3, slug),
+           sku = COALESCE($4, sku),
+           "shortDescription" = COALESCE($5, "shortDescription"),
+           description = COALESCE($6, description),
+           price = COALESCE($7, price),
+           "comparePrice" = COALESCE($8, "comparePrice"),
+           "discountPercentage" = COALESCE($9, "discountPercentage"),
+           "isFeatured" = COALESCE($10, "isFeatured"),
+           "isNewArrival" = COALESCE($11, "isNewArrival"),
+           "isBestSeller" = COALESCE($12, "isBestSeller"),
+           "isSaleBadge" = COALESCE($13, "isSaleBadge"),
+           status = COALESCE($14, status),
+           brand = COALESCE($15, brand),
+           gender = COALESCE($16, gender),
+           "ageGroup" = COALESCE($17, "ageGroup"),
+           "productType" = COALESCE($18, "productType"),
+           "categoryId" = COALESCE($19, "categoryId"),
+           "subcategoryId" = COALESCE($20, "subcategoryId"),
+           "categoryJson" = COALESCE($21, "categoryJson"),
+           "subcategoryJson" = COALESCE($22, "subcategoryJson"),
+           colors = COALESCE($23, colors),
+           sizes = COALESCE($24, sizes),
+           "stockQuantity" = COALESCE($25, "stockQuantity"),
+           "lowStockThreshold" = COALESCE($26, "lowStockThreshold"),
+           "stockStatus" = COALESCE($27, "stockStatus"),
+           "fabricMaterial" = COALESCE($28, "fabricMaterial"),
+           "careInstructions" = COALESCE($29, "careInstructions"),
+           parts = COALESCE($30, parts),
+           "seoTitle" = COALESCE($31, "seoTitle"),
+           "seoDescription" = COALESCE($32, "seoDescription"),
+           "updatedAt" = $33
+         WHERE id = $1`,
+        [
+          id,
+          updates.name || null,
+          updates.slug || null,
+          updates.sku || null,
+          updates.shortDescription !== undefined ? updates.shortDescription : null,
+          updates.description !== undefined ? updates.description : null,
+          updates.price !== undefined ? Number(updates.price) : null,
+          updates.comparePrice !== undefined ? (updates.comparePrice ? Number(updates.comparePrice) : null) : null,
+          updates.discountPercentage !== undefined ? updates.discountPercentage : null,
+          updates.isFeatured !== undefined ? Boolean(updates.isFeatured) : null,
+          updates.isNewArrival !== undefined ? Boolean(updates.isNewArrival) : null,
+          updates.isBestSeller !== undefined ? Boolean(updates.isBestSeller) : null,
+          updates.isSaleBadge !== undefined ? Boolean(updates.isSaleBadge) : null,
+          updates.status || null,
+          updates.brand || null,
+          updates.gender || null,
+          updates.ageGroup || null,
+          updates.productType || null,
+          validCategoryId,
+          validSubcategoryId,
+          updates.category ? JSON.stringify(updates.category) : null,
+          updates.subcategory ? JSON.stringify(updates.subcategory) : null,
+          updates.colors ? JSON.stringify(updates.colors) : null,
+          updates.sizes ? JSON.stringify(updates.sizes) : null,
+          updates.stockQuantity !== undefined ? Number(updates.stockQuantity) : null,
+          updates.lowStockThreshold !== undefined ? Number(updates.lowStockThreshold) : null,
+          updates.stockStatus || null,
+          updates.fabricMaterial !== undefined ? updates.fabricMaterial : null,
+          updates.careInstructions !== undefined ? updates.careInstructions : null,
+          updates.parts ? JSON.stringify(updates.parts) : null,
+          updates.seoTitle !== undefined ? updates.seoTitle : null,
+          updates.seoDescription !== undefined ? updates.seoDescription : null,
+          now,
+        ]
+      );
+
+      // Upsert variants if provided
+      if (updates.variants && Array.isArray(updates.variants)) {
+        for (const v of updates.variants) {
+          const vId = v.id || `var-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+          await tx.query(
+            `INSERT INTO "ProductVariant" (
+              id, "productId", sku, size, color, "colorHex", "partColors", price, "stockQuantity", "imageUrl", "partId", "partName", "purchaseType", "createdAt", "updatedAt"
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            ON CONFLICT (sku) DO UPDATE SET
+              "productId" = EXCLUDED."productId",
+              size = EXCLUDED.size,
+              color = EXCLUDED.color,
+              "colorHex" = EXCLUDED."colorHex",
+              "partColors" = EXCLUDED."partColors",
+              price = EXCLUDED.price,
+              "stockQuantity" = EXCLUDED."stockQuantity",
+              "imageUrl" = EXCLUDED."imageUrl",
+              "partId" = EXCLUDED."partId",
+              "partName" = EXCLUDED."partName",
+              "purchaseType" = EXCLUDED."purchaseType",
+              "updatedAt" = EXCLUDED."updatedAt"`,
+            [
+              vId,
+              id,
+              v.sku || `${updates.sku || existing.sku || id}-${vId}`,
+              v.size || null,
+              v.color || null,
+              v.colorHex || null,
+              v.partColors ? JSON.stringify(v.partColors) : null,
+              Number(v.price || updates.price || existing.price || 0),
+              Number(v.stockQuantity || 0),
+              v.imageUrl || null,
+              v.partId || null,
+              v.partName || null,
+              v.purchaseType || 'complete_set',
+              now,
+              now,
+            ]
+          );
+        }
+      }
+
+      // Upsert images if provided
+      if (updates.images && Array.isArray(updates.images)) {
+        for (let idx = 0; idx < updates.images.length; idx++) {
+          const img = updates.images[idx];
+          const imgId = img.id || `img-${Date.now()}-${idx}`;
+          await tx.query(
+            `INSERT INTO "ProductImage" (
+              id, "productId", url, alt, position, "partName", "colorName", "createdAt"
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (id) DO UPDATE SET
+              url = EXCLUDED.url,
+              alt = EXCLUDED.alt,
+              position = EXCLUDED.position,
+              "partName" = EXCLUDED."partName",
+              "colorName" = EXCLUDED."colorName"`,
+            [
+              imgId,
+              id,
+              img.url,
+              img.alt || '',
+              img.position ?? idx,
+              img.partName || null,
+              img.colorName || null,
+              now,
+            ]
+          );
+        }
+      }
+    });
 
     return await this.findById(id);
   }

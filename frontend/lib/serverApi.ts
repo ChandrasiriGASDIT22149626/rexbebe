@@ -522,6 +522,9 @@ class ServerStore {
 
     if (query?.status) {
       result = result.filter((p) => p.status === query.status);
+    } else if (query?._admin !== 'true' && query?._admin !== true) {
+      // By default on public storefront, exclude draft and unpublished items
+      result = result.filter((p) => p.status === 'published' || !p.status);
     }
     if (query?.featured === 'true') {
       result = result.filter((p) => p.isFeatured);
