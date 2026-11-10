@@ -5,7 +5,7 @@ import { CategoryShoppingTemplate } from '../../components/products/CategoryShop
 import { BreadcrumbJsonLd } from '../../components/seo/JsonLd';
 import { generateCategoryMetadata } from '../../config/seoConfig';
 import {
-  getServerCategoryBySlug,
+  getAsyncServerCategoryBySlug,
   checkServerRedirect,
 } from '../../services/serverSeoService';
 
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const targetSlug = pathParts[pathParts.length - 1];
-  const category = getServerCategoryBySlug(targetSlug);
+  const category = await getAsyncServerCategoryBySlug(targetSlug);
   const cleanCategory = targetSlug.replace(/-/g, ' ');
   const formattedTitle = cleanCategory.replace(/\b\w/g, (l) => l.toUpperCase());
 
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default function DynamicCategoryFallbackPage({ params }: Props) {
+export default async function DynamicCategoryFallbackPage({ params }: Props) {
   const pathParts = params.categoryPath || [];
   if (pathParts.length === 0 || RESERVED_PREFIXES.has(pathParts[0].toLowerCase())) {
     notFound();
@@ -68,7 +68,7 @@ export default function DynamicCategoryFallbackPage({ params }: Props) {
 
   // The leaf category slug is the last segment (e.g. 'krish-boxer' from ['krish-home-wear', 'krish-boxer'])
   const targetSlug = pathParts[pathParts.length - 1];
-  const category = getServerCategoryBySlug(targetSlug);
+  const category = await getAsyncServerCategoryBySlug(targetSlug);
   const cleanCategory = targetSlug.replace(/-/g, ' ');
   const formattedTitle = category?.name || cleanCategory.replace(/\b\w/g, (l) => l.toUpperCase());
 

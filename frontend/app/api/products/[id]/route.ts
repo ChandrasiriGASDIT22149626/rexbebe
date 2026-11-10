@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverStore } from '../../../../lib/serverApi';
+import { getServerProductBySlug } from '../../../../services/serverSeoService';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const product = serverStore.findProductById(params.id);
+    let product = await getServerProductBySlug(params.id);
+    if (!product) {
+      product = serverStore.findProductById(params.id);
+    }
     if (!product) {
       return NextResponse.json(
         {

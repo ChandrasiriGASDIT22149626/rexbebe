@@ -5,7 +5,7 @@ import { CategoryShoppingTemplate } from '../../../components/products/CategoryS
 import { BreadcrumbJsonLd } from '../../../components/seo/JsonLd';
 import { generateCategoryMetadata } from '../../../config/seoConfig';
 import {
-  getServerCategoryBySlug,
+  getAsyncServerCategoryBySlug,
   checkServerRedirect,
 } from '../../../services/serverSeoService';
 
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const category = getServerCategoryBySlug(params.slug);
+  const category = await getAsyncServerCategoryBySlug(params.slug);
   const cleanFallback = params.slug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
   const title = category?.seoTitle?.trim() || `${category?.name || cleanFallback} - Luxury Baby Boutique`;
@@ -39,14 +39,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default function CategoryPage({ params }: Props) {
+export default async function CategoryPage({ params }: Props) {
   const currentPath = `/categories/${params.slug}`;
   const redirectTarget = checkServerRedirect(currentPath) || checkServerRedirect(`/shop/${params.slug}`);
   if (redirectTarget) {
     redirect(redirectTarget, RedirectType.replace);
   }
 
-  const category = getServerCategoryBySlug(params.slug);
+  const category = await getAsyncServerCategoryBySlug(params.slug);
   const displayName = category?.name || params.slug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
   const breadcrumbs = [
